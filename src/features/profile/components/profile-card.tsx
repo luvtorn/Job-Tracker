@@ -5,7 +5,8 @@ import { Camera, Mail, User, Loader } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/features/auth/context/auth-context";
 import Image from "next/image";
-import { UserRole } from "@prisma/client";
+
+type UserRole = "SEEKER" | "RECRUITER" | "ADMIN";
 
 export function ProfileCard() {
   const { user, updateUser } = useAuth();
@@ -22,7 +23,7 @@ export function ProfileCard() {
     firstName: "",
     lastName: "",
     email: "",
-    role: UserRole.SEEKER,
+    role: "SEEKER",
   });
 
   useEffect(() => {
