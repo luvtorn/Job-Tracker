@@ -4,10 +4,131 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
 }
+
+enum UserRole {
+  SEEKER
+  RECRUITER
+  ADMIN
+}
+
+model User {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  email        String @unique
+  passwordHash String @map("password_hash")
+
+  firstName String? @map("first_name")
+  lastName  String? @map("last_name")
+
+  avatarUrl      String? @map("avatar_url")
+  avatarPublicId String? @map("avatar_public_id")
+
+  emailVerified Boolean @default(false) @map("email_verified")
+
+  role UserRole @default(SEEKER)
+
+  lastLoginAt DateTime? @map("last_login_at")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  refreshTokens RefreshToken[]
+  vacancies     Vacancy[]
+  applications  Application[]
+
+  @@index([email])
+  @@index([role])
+  @@index([createdAt(sort: Desc)])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+enum VacancyStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+  ARCHIVED
+}
+
+enum ApplicationStatus {
+  APPLIED
+  INTERVIEWING
+  REJECTED
+  OFFER
+  ACCEPTED
+  WITHDRAWN
+}
+
+model Vacancy {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  title       String
+  description String
+  requirements String?
+
+  position     String?
+  company      String?
+  location     String?
+  salaryMin    Int?     @map("salary_min")
+  salaryMax    Int?     @map("salary_max")
+  currency     String   @default("USD")
+
+  status VacancyStatus @default(DRAFT)
+
+  recruiterId String @db.Uuid
+  recruiter   User   @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+
+  applications Application[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  publishedAt DateTime? @map("published_at")
+  closedAt  DateTime? @map("closed_at")
+
+  @@index([recruiterId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("vacancies")
+}
+
+model Application {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  status ApplicationStatus @default(APPLIED)
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  vacancyId String @db.Uuid
+  vacancy   Vacancy @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@unique([userId, vacancyId])
+  @@index([userId])
+  @@index([vacancyId])
+  @@index([status])
+  @@map("applications")
+}
+
