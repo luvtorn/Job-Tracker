@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
@@ -99,7 +98,13 @@ const navItems: NavItem[] = [
   },
 ];
 
-export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export function Sidebar({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   const pathname = usePathname();
 
   const getSections = () => {
@@ -202,7 +207,6 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
           </nav>
         </div>
       </aside>
-
 
       {/* Spacer for desktop */}
       <div className="hidden lg:flex w-64 flex-shrink-0" />

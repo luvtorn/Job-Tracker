@@ -58,7 +58,7 @@ export class VacancyService {
     });
   }
 
-  async updateVacancy(vacancyId: string, recruiterId: string, data: Partial<CreateVacancyInput>) {
+  async updateVacancy(vacancyId: string, data: Partial<CreateVacancyInput>) {
     return prisma.vacancy.update({
       where: {
         id: vacancyId,
@@ -69,7 +69,7 @@ export class VacancyService {
     });
   }
 
-  async deleteVacancy(vacancyId: string, recruiterId: string) {
+  async deleteVacancy(vacancyId: string) {
     return prisma.vacancy.delete({
       where: {
         id: vacancyId,

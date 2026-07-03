@@ -1,5 +1,5 @@
-import { randomBytes } from 'crypto';
-import jwt from 'jsonwebtoken';
+import { randomBytes } from "crypto";
+import jwt from "jsonwebtoken";
 import {
   hashPassword,
   verifyPassword,
@@ -8,16 +8,17 @@ import {
   getUserByEmail,
   createRefreshToken,
   updateUserLastLogin,
-} from '@/server/repositories/user-repository';
-import { LoginInput, RegisterInput } from '@/server/validators/auth-validator';
+} from "@/server/repositories/user-repository";
+import { LoginInput, RegisterInput } from "@/server/validators/auth-validator";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET =
+  process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
 export class AuthService {
   async register(input: RegisterInput) {
     const existingUser = await getUserByEmail(input.email);
     if (existingUser) {
-      throw new Error('Email already registered');
+      throw new Error("Email already registered");
     }
 
     const passwordHash = await hashPassword(input.password);
@@ -37,27 +38,34 @@ export class AuthService {
     const user = await getUserByEmail(input.email);
 
     if (!user) {
-      throw new Error('Invalid credentials');
+      throw new Error("Invalid credentials");
     }
 
-    const isPasswordValid = await verifyPassword(input.password, user.passwordHash);
+    const isPasswordValid = await verifyPassword(
+      input.password,
+      user.passwordHash,
+    );
 
     if (!isPasswordValid) {
-      throw new Error('Invalid credentials');
+      throw new Error("Invalid credentials");
     }
 
     if (user.deletedAt) {
-      throw new Error('Account has been deleted');
+      throw new Error("Account has been deleted");
     }
 
     await updateUserLastLogin(user.id);
 
-    const { accessTokenExpiry, refreshTokenExpiry } = generateTokens(user.id);
+    const { accessTokenExpiry, refreshTokenExpiry } = generateTokens();
 
-    const refreshTokenString = randomBytes(32).toString('hex');
+    const refreshTokenString = randomBytes(32).toString("hex");
     const refreshTokenHash = await hashPassword(refreshTokenString);
 
-    await createRefreshToken(user.id, refreshTokenHash, new Date(refreshTokenExpiry));
+    await createRefreshToken(
+      user.id,
+      refreshTokenHash,
+      new Date(refreshTokenExpiry),
+    );
 
     return {
       user: {
@@ -76,7 +84,11 @@ export class AuthService {
     };
   }
 
-  private generateAccessToken(userId: string, email: string, role: string): string {
+  private generateAccessToken(
+    userId: string,
+    email: string,
+    role: string,
+  ): string {
     return jwt.sign(
       {
         userId,
@@ -85,8 +97,8 @@ export class AuthService {
       },
       JWT_SECRET,
       {
-        expiresIn: '15m',
-      }
+        expiresIn: "15m",
+      },
     );
   }
 }

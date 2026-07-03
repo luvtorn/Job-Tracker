@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { motion, Variants } from "framer-motion";
+import { Mail, Lock, ArrowRight } from "lucide-react";
 
 interface LoginFormProps {
   onSubmit: (data: LoginFormData) => Promise<void>;
@@ -14,12 +14,15 @@ export interface LoginFormData {
   password: string;
 }
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
+    transition: {
+      duration: 0.3,
+      ease: [0.42, 0, 0.58, 1], // easeOut bezier
+    },
   },
 };
 
@@ -29,8 +32,8 @@ export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
     const formData = new FormData(e.currentTarget);
 
     await onSubmit({
-      email: formData.get('email') as string,
-      password: formData.get('password') as string,
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
     });
   };
 
@@ -47,7 +50,10 @@ export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
       animate="visible"
       className="bg-white rounded-xl shadow-lg p-8 border border-neutral-200"
     >
-      <motion.h2 variants={itemVariants} className="text-2xl font-bold text-neutral-900 mb-2">
+      <motion.h2
+        variants={itemVariants}
+        className="text-2xl font-bold text-neutral-900 mb-2"
+      >
         Welcome back
       </motion.h2>
 
@@ -57,9 +63,14 @@ export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <motion.div variants={itemVariants}>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">Email</label>
+          <label className="block text-sm font-medium text-neutral-700 mb-2">
+            Email
+          </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-3 text-neutral-400" size={18} />
+            <Mail
+              className="absolute left-3 top-3 text-neutral-400"
+              size={18}
+            />
             <input
               type="email"
               name="email"
@@ -71,9 +82,14 @@ export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">Password</label>
+          <label className="block text-sm font-medium text-neutral-700 mb-2">
+            Password
+          </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-3 text-neutral-400" size={18} />
+            <Lock
+              className="absolute left-3 top-3 text-neutral-400"
+              size={18}
+            />
             <input
               type="password"
               name="password"
@@ -104,7 +120,7 @@ export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
           {isLoading ? (
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
             />
           ) : (

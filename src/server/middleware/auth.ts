@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { getUserByEmail } from "@/server/repositories/user-repository";
@@ -7,7 +6,7 @@ interface JWTPayload {
   email?: string;
 }
 
-export async function verifyAuth(request: NextRequest) {
+export async function verifyAuth() {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;

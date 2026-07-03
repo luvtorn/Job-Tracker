@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Camera, Mail, User, Loader } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useAuth } from '@/features/auth/context/auth-context';
-import Image from 'next/image';
+import { useState, useEffect } from "react";
+import { Camera, Mail, User, Loader } from "lucide-react";
+import { motion } from "framer-motion";
+import { useAuth } from "@/features/auth/context/auth-context";
+import Image from "next/image";
+import { UserRole } from "@prisma/client";
 
 export function ProfileCard() {
   const { user, updateUser } = useAuth();
@@ -12,25 +13,32 @@ export function ProfileCard() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    role: 'SEEKER' as const,
+  const [formData, setFormData] = useState<{
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: UserRole;
+  }>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    role: UserRole.SEEKER,
   });
 
   useEffect(() => {
     if (user) {
       setFormData({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        email: user.email || '',
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
         role: user.role,
       });
     }
   }, [user]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -43,9 +51,9 @@ export function ProfileCard() {
     setIsSaving(true);
 
     try {
-      const response = await fetch('/api/auth/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -55,14 +63,14 @@ export function ProfileCard() {
         setIsEditing(false);
       }
     } catch (error) {
-      console.error('Failed to update profile:', error);
+      console.error("Failed to update profile:", error);
     } finally {
       setIsSaving(false);
     }
   };
 
   const getInitials = () => {
-    if (!user) return '?';
+    if (!user) return "?";
     return `${user.firstName?.[0]}${user.lastName?.[0]}`.toUpperCase();
   };
 
@@ -70,13 +78,13 @@ export function ProfileCard() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      setUploadError('Please select an image file');
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Please select an image file");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setUploadError('File size must be less than 5MB');
+      setUploadError("File size must be less than 5MB");
       return;
     }
 
@@ -85,10 +93,10 @@ export function ProfileCard() {
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
 
-      const response = await fetch('/api/auth/avatar', {
-        method: 'POST',
+      const response = await fetch("/api/auth/avatar", {
+        method: "POST",
         body: formData,
       });
 
@@ -97,11 +105,11 @@ export function ProfileCard() {
         updateUser(data.user);
       } else {
         const error = await response.json();
-        setUploadError(error.message || 'Failed to upload avatar');
+        setUploadError(error.message || "Failed to upload avatar");
       }
     } catch (error) {
-      console.error('Failed to upload avatar:', error);
-      setUploadError('Failed to upload avatar');
+      console.error("Failed to upload avatar:", error);
+      setUploadError("Failed to upload avatar");
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -135,7 +143,9 @@ export function ProfileCard() {
               />
             ) : (
               <div className="w-24 h-24 bg-neutral-900 rounded-full flex items-center justify-center">
-                <span className="text-white text-4xl font-bold">{getInitials()}</span>
+                <span className="text-white text-4xl font-bold">
+                  {getInitials()}
+                </span>
               </div>
             )}
             <label
@@ -167,7 +177,7 @@ export function ProfileCard() {
             </p>
             <p className="text-neutral-600 flex items-center gap-2 mt-1">
               <User size={16} />
-              {user.role === 'SEEKER' ? 'Job Seeker' : 'Recruiter'}
+              {user.role === "SEEKER" ? "Job Seeker" : "Recruiter"}
             </p>
             {uploadError && (
               <p className="text-red-600 text-sm mt-2">{uploadError}</p>
@@ -179,12 +189,14 @@ export function ProfileCard() {
       {/* Profile Information */}
       <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-neutral-900">Personal Information</h3>
+          <h3 className="text-lg font-semibold text-neutral-900">
+            Personal Information
+          </h3>
           <button
             onClick={() => setIsEditing(!isEditing)}
             className="text-sm font-medium text-primary-600 hover:text-primary-700"
           >
-            {isEditing ? 'Cancel' : 'Edit'}
+            {isEditing ? "Cancel" : "Edit"}
           </button>
         </div>
 
@@ -228,7 +240,9 @@ export function ProfileCard() {
                 disabled
                 className="w-full px-4 py-2 border border-neutral-200 rounded-lg bg-neutral-50 text-neutral-600"
               />
-              <p className="text-xs text-neutral-500 mt-1">Email cannot be changed</p>
+              <p className="text-xs text-neutral-500 mt-1">
+                Email cannot be changed
+              </p>
             </div>
 
             <div>
@@ -252,7 +266,7 @@ export function ProfileCard() {
                 disabled={isSaving}
                 className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium disabled:opacity-50"
               >
-                {isSaving ? 'Saving...' : 'Save Changes'}
+                {isSaving ? "Saving..." : "Save Changes"}
               </button>
               <button
                 type="button"
@@ -267,11 +281,15 @@ export function ProfileCard() {
           <div className="space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
               <span className="text-neutral-600">First Name</span>
-              <span className="font-medium text-neutral-900">{user.firstName}</span>
+              <span className="font-medium text-neutral-900">
+                {user.firstName}
+              </span>
             </div>
             <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
               <span className="text-neutral-600">Last Name</span>
-              <span className="font-medium text-neutral-900">{user.lastName}</span>
+              <span className="font-medium text-neutral-900">
+                {user.lastName}
+              </span>
             </div>
             <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
               <span className="text-neutral-600">Email</span>
@@ -280,7 +298,7 @@ export function ProfileCard() {
             <div className="flex items-center justify-between">
               <span className="text-neutral-600">Account Type</span>
               <span className="font-medium text-neutral-900">
-                {user.role === 'SEEKER' ? 'Job Seeker' : 'Recruiter'}
+                {user.role === "SEEKER" ? "Job Seeker" : "Recruiter"}
               </span>
             </div>
           </div>
@@ -289,7 +307,9 @@ export function ProfileCard() {
 
       {/* Security Section */}
       <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
-        <h3 className="text-lg font-semibold text-neutral-900 mb-6">Security</h3>
+        <h3 className="text-lg font-semibold text-neutral-900 mb-6">
+          Security
+        </h3>
         <div className="space-y-3">
           <button className="w-full px-4 py-3 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors text-left font-medium text-neutral-700">
             Change Password

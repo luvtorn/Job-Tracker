@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     if (error instanceof ZodError) {
-      const firstError = error.errors[0];
+      const firstError = error.issues[0];
       const fieldPath = firstError.path.join(".");
       let message = firstError.message;
 
@@ -37,10 +37,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      return NextResponse.json(
-        { success: false, message },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, message }, { status: 400 });
     }
 
     if (error instanceof Error) {

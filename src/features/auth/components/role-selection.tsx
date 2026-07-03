@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Building2, Users } from 'lucide-react';
-import type { UserRole } from '@/types/auth';
+import { motion, Variants } from "framer-motion";
+import { Building2, Users } from "lucide-react";
+import type { UserRole } from "@/types/auth";
 
 interface RoleSelectionProps {
   onSelect: (role: UserRole) => void;
 }
 
 export function RoleSelection({ onSelect }: RoleSelectionProps) {
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: {
       opacity: 1,
       scale: 1,
-      transition: { duration: 0.4, ease: 'easeOut' },
+      transition: { duration: 0.4, ease: "easeOut" },
     },
   };
 
@@ -42,7 +42,7 @@ export function RoleSelection({ onSelect }: RoleSelectionProps) {
         variants={itemVariants}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.98 }}
-        onClick={() => onSelect('SEEKER')}
+        onClick={() => onSelect("SEEKER")}
         className="w-full p-6 rounded-xl border-2 border-neutral-200 hover:border-primary-500 transition-all bg-white hover:bg-primary-50 text-left"
       >
         <div className="flex items-start gap-4">
@@ -51,7 +51,9 @@ export function RoleSelection({ onSelect }: RoleSelectionProps) {
           </div>
           <div>
             <h3 className="font-semibold text-neutral-900 mb-1">Job Seeker</h3>
-            <p className="text-sm text-neutral-600">Looking for new opportunities</p>
+            <p className="text-sm text-neutral-600">
+              Looking for new opportunities
+            </p>
           </div>
         </div>
       </motion.button>
@@ -60,7 +62,7 @@ export function RoleSelection({ onSelect }: RoleSelectionProps) {
         variants={itemVariants}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.98 }}
-        onClick={() => onSelect('RECRUITER')}
+        onClick={() => onSelect("RECRUITER")}
         className="w-full p-6 rounded-xl border-2 border-neutral-200 hover:border-primary-500 transition-all bg-white hover:bg-primary-50 text-left"
       >
         <div className="flex items-start gap-4">

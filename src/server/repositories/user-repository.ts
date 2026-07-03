@@ -14,7 +14,7 @@ export async function verifyPassword(
   return compare(password, hashStr);
 }
 
-export function generateTokens(userId: string) {
+export function generateTokens() {
   const accessTokenExpiry = Date.now() + 15 * 60 * 10000;
   const refreshTokenExpiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
 

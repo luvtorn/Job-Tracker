@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
@@ -57,7 +56,13 @@ const navItems: NavItem[] = [
   },
 ];
 
-export function RecruiterSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export function RecruiterSidebar({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   const pathname = usePathname();
 
   const getSections = () => {
@@ -159,7 +164,7 @@ export function RecruiterSidebar({ isOpen, onClose }: { isOpen: boolean; onClose
       </aside>
 
       {/* Spacer for desktop */}
-      <div className="hidden lg:flex w-64 flex-shrink-0" />
+      <div className="hidden lg:flex w-64 shrink-0" />
     </>
   );
 }

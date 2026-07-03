@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { vacancyService } from "@/server/services/vacancy-service";
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -48,7 +48,7 @@ export async function DELETE(
       );
     }
 
-    await vacancyService.deleteVacancy(id, decoded.userId);
+    await vacancyService.deleteVacancy(id);
 
     return NextResponse.json(
       {

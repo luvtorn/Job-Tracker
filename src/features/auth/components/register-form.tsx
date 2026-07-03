@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Mail, Lock, Check, X } from 'lucide-react';
-import { useState } from 'react';
-import type { UserRole } from '@/types/auth';
+import { motion, Variants } from "framer-motion";
+import { Mail, Lock, Check, X } from "lucide-react";
+import { useState } from "react";
+import type { UserRole } from "@/types/auth";
 
 interface RegisterFormProps {
   role: UserRole;
@@ -27,10 +27,10 @@ interface PasswordRequirement {
 }
 
 const PASSWORD_REQUIREMENTS: PasswordRequirement[] = [
-  { label: 'At least 8 characters', test: (p) => p.length >= 8 },
-  { label: 'One uppercase letter', test: (p) => /[A-Z]/.test(p) },
-  { label: 'One lowercase letter', test: (p) => /[a-z]/.test(p) },
-  { label: 'One number', test: (p) => /[0-9]/.test(p) },
+  { label: "At least 8 characters", test: (p) => p.length >= 8 },
+  { label: "One uppercase letter", test: (p) => /[A-Z]/.test(p) },
+  { label: "One lowercase letter", test: (p) => /[a-z]/.test(p) },
+  { label: "One number", test: (p) => /[0-9]/.test(p) },
 ];
 
 function PasswordRequirementItem({
@@ -49,19 +49,19 @@ function PasswordRequirementItem({
       ) : (
         <X size={16} className="text-neutral-300" />
       )}
-      <span className={isMet ? 'text-green-600' : 'text-neutral-600'}>
+      <span className={isMet ? "text-green-600" : "text-neutral-600"}>
         {requirement.label}
       </span>
     </div>
   );
 }
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
+    transition: { duration: 0.5, ease: "easeOut" },
   },
 };
 
@@ -72,34 +72,37 @@ export function RegisterForm({
   isLoading,
   error,
 }: RegisterFormProps) {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [formError, setFormError] = useState('');
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [formError, setFormError] = useState("");
 
-  const allRequirementsMet = PASSWORD_REQUIREMENTS.every((req) => req.test(password));
-  const passwordsMatch = password && confirmPassword && password === confirmPassword;
+  const allRequirementsMet = PASSWORD_REQUIREMENTS.every((req) =>
+    req.test(password),
+  );
+  const passwordsMatch =
+    password && confirmPassword && password === confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setFormError('');
+    setFormError("");
 
     const formData = new FormData(e.currentTarget);
-    const firstName = formData.get('firstName') as string;
-    const lastName = formData.get('lastName') as string;
-    const email = formData.get('email') as string;
+    const firstName = formData.get("firstName") as string;
+    const lastName = formData.get("lastName") as string;
+    const email = formData.get("email") as string;
 
     if (!firstName.trim() || !lastName.trim()) {
-      setFormError('Please fill in all fields');
+      setFormError("Please fill in all fields");
       return;
     }
 
     if (!allRequirementsMet) {
-      setFormError('Password does not meet requirements');
+      setFormError("Password does not meet requirements");
       return;
     }
 
     if (!passwordsMatch) {
-      setFormError('Passwords do not match');
+      setFormError("Passwords do not match");
       return;
     }
 
@@ -133,12 +136,15 @@ export function RegisterForm({
         ← Back
       </motion.button>
 
-      <motion.h2 variants={itemVariants} className="text-2xl font-bold text-neutral-900 mb-2">
+      <motion.h2
+        variants={itemVariants}
+        className="text-2xl font-bold text-neutral-900 mb-2"
+      >
         Create your account
       </motion.h2>
 
       <motion.p variants={itemVariants} className="text-neutral-600 mb-6">
-        As a {role === 'SEEKER' ? 'Job Seeker' : 'Recruiter'}
+        As a {role === "SEEKER" ? "Job Seeker" : "Recruiter"}
       </motion.p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -171,9 +177,14 @@ export function RegisterForm({
         </div>
 
         <motion.div variants={itemVariants}>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">Email</label>
+          <label className="block text-sm font-medium text-neutral-700 mb-2">
+            Email
+          </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-3 text-neutral-400" size={18} />
+            <Mail
+              className="absolute left-3 top-3 text-neutral-400"
+              size={18}
+            />
             <input
               type="email"
               name="email"
@@ -185,9 +196,14 @@ export function RegisterForm({
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">Password</label>
+          <label className="block text-sm font-medium text-neutral-700 mb-2">
+            Password
+          </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-3 text-neutral-400" size={18} />
+            <Lock
+              className="absolute left-3 top-3 text-neutral-400"
+              size={18}
+            />
             <input
               type="password"
               name="password"
@@ -202,7 +218,7 @@ export function RegisterForm({
           {password && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               className="mt-3 space-y-2 p-3 bg-neutral-50 rounded-lg border border-neutral-200"
             >
               {PASSWORD_REQUIREMENTS.map((req) => (
@@ -221,7 +237,10 @@ export function RegisterForm({
             Confirm password
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-3 text-neutral-400" size={18} />
+            <Lock
+              className="absolute left-3 top-3 text-neutral-400"
+              size={18}
+            />
             <input
               type="password"
               name="confirmPassword"
@@ -236,7 +255,7 @@ export function RegisterForm({
           {password && confirmPassword && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               className="mt-2 flex items-center gap-2 text-sm"
             >
               {passwordsMatch ? (
@@ -274,7 +293,7 @@ export function RegisterForm({
           {isLoading ? (
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
             />
           ) : (

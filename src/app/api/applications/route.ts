@@ -4,7 +4,7 @@ import { verifyAuth } from "@/server/middleware/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await verifyAuth(request);
+    const user = await verifyAuth();
     if (!user) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
@@ -76,9 +76,9 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const user = await verifyAuth(request);
+    const user = await verifyAuth();
     if (!user) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
@@ -102,10 +102,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(
-      { success: true, applications },
-      { status: 200 },
-    );
+    return NextResponse.json({ success: true, applications }, { status: 200 });
   } catch (error) {
     console.error("Failed to fetch applications:", error);
     return NextResponse.json(
