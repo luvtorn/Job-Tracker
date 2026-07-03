@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     if (!vacancyId) {
       return NextResponse.json(
         { success: false, message: "Vacancy ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     if (!vacancy || vacancy.status !== "PUBLISHED") {
       return NextResponse.json(
         { success: false, message: "Vacancy not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -43,8 +43,11 @@ export async function POST(request: NextRequest) {
 
     if (existingApplication) {
       return NextResponse.json(
-        { success: false, message: "You have already applied for this position" },
-        { status: 400 }
+        {
+          success: false,
+          message: "You have already applied for this position",
+        },
+        { status: 400 },
       );
     }
 
@@ -57,14 +60,18 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      { success: true, message: "Application submitted successfully", application },
-      { status: 201 }
+      {
+        success: true,
+        message: "Application submitted successfully",
+        application,
+      },
+      { status: 201 },
     );
   } catch (error) {
     console.error("Failed to create application:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -75,7 +82,7 @@ export async function GET(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -97,13 +104,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       { success: true, applications },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Failed to fetch applications:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

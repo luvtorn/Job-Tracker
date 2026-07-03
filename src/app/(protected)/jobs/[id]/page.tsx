@@ -6,11 +6,10 @@ import { ArrowLeft, MapPin, DollarSign, Briefcase } from "lucide-react";
 import { ApplyButton } from "@/features/jobs/components/apply-button";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
+import { getUserByEmail } from "@/server/repositories/user-repository";
 
 interface JWTPayload {
-  userId: string;
-  email: string;
-  role: string;
+  email?: string;
 }
 
 export default async function JobDetailsPage({
@@ -37,25 +36,29 @@ export default async function JobDetailsPage({
   }
 
   let hasApplied = false;
-  let userId: string | null = null;
 
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || "") as JWTPayload;
-      userId = decoded.userId;
+      const decoded = jwt.decode(token) as JWTPayload | null;
 
-      const application = await prisma.application.findUnique({
-        where: {
-          userId_vacancyId: {
-            userId,
-            vacancyId: id,
-          },
-        },
-      });
-      hasApplied = !!application;
+      if (decoded?.email) {
+        const user = await getUserByEmail(decoded.email);
+
+        if (user) {
+          const application = await prisma.application.findUnique({
+            where: {
+              userId_vacancyId: {
+                userId: user.id,
+                vacancyId: id,
+              },
+            },
+          });
+          hasApplied = !!application;
+        }
+      }
     }
   } catch (error) {
     console.error("Failed to check application status:", error);
