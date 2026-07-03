@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const response = NextResponse.json(
       { success: true, message: "Logged out successfully" },
-      { status: 200 }
+      { status: 200 },
     );
 
     response.cookies.set("accessToken", "", {
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     console.error("Logout failed:", error);
     return NextResponse.json(
       { success: false, message: "Logout failed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
