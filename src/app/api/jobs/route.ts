@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       status: "PUBLISHED",
     };
@@ -64,13 +65,13 @@ export async function GET(request: NextRequest) {
           totalPages,
         },
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Failed to fetch vacancies:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
