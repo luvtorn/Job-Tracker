@@ -28,7 +28,8 @@ export function TopBar() {
     try {
       await logout();
       router.push('/auth/login');
-      router.refresh();
+      // Не нужен router.refresh() сразу после редиректа
+      // Middleware позаботится о редиректе если токена нет
     } catch (error) {
       console.error('Logout failed:', error);
     }

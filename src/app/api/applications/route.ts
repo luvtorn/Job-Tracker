@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const user = await verifyAuth();
     if (!user) {
@@ -86,8 +86,17 @@ export async function GET() {
       );
     }
 
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status");
+
+    type ApplicationWhere = { userId: string; status?: string };
+    const where: ApplicationWhere = { userId: user.id };
+    if (status) {
+      where.status = status as any;
+    }
+
     const applications = await prisma.application.findMany({
-      where: { userId: user.id },
+      where: where as any,
       include: {
         vacancy: {
           select: {
@@ -96,6 +105,9 @@ export async function GET() {
             company: true,
             location: true,
             position: true,
+            salaryMin: true,
+            salaryMax: true,
+            currency: true,
           },
         },
       },

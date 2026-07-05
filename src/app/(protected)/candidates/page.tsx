@@ -1,4 +1,5 @@
 import { TopBar } from "@/components/TopBar";
+import { CandidatesList } from "@/features/candidates/components/candidates-list";
 
 export default function CandidatesPage() {
   return (
@@ -10,9 +11,7 @@ export default function CandidatesPage() {
           <p className="text-neutral-600 mt-2">View all candidates who applied to your vacancies</p>
         </div>
 
-        <div className="bg-white rounded-lg border border-neutral-200 p-8 text-center">
-          <p className="text-neutral-600">No candidates yet.</p>
-        </div>
+        <CandidatesList />
       </main>
     </div>
   );
