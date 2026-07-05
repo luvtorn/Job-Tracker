@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     if (!token) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     if (!decoded || !decoded.email) {
       return NextResponse.json(
         { success: false, message: "Invalid token" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -37,14 +37,14 @@ export async function POST(request: NextRequest) {
     if (!file) {
       return NextResponse.json(
         { success: false, message: "No file provided" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!file.type.startsWith("image/")) {
       return NextResponse.json(
         { success: false, message: "File must be an image" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     if (file.size > maxSize) {
       return NextResponse.json(
         { success: false, message: "File size must be less than 5MB" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -70,13 +70,16 @@ export async function POST(request: NextRequest) {
         (error, result) => {
           if (error) reject(error);
           else resolve(result);
-        }
+        },
       );
 
       uploadStream.end(buffer);
     });
 
-    const uploadResult = uploadResponse as { secure_url: string; public_id: string };
+    const uploadResult = uploadResponse as {
+      secure_url: string;
+      public_id: string;
+    };
     const avatarUrl = uploadResult.secure_url;
     const avatarPublicId = uploadResult.public_id;
 
@@ -104,13 +107,13 @@ export async function POST(request: NextRequest) {
         user,
         message: "Avatar uploaded successfully",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Failed to upload avatar:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
