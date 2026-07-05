@@ -3,28 +3,29 @@
 import { useAuth } from '@/features/auth/context/auth-context';
 import { JobsList } from '@/features/jobs/components/jobs-list';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Briefcase, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 
 export default function Home() {
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-primary-50">
       {/* Header */}
-      <header className="border-b border-neutral-200 sticky top-0 bg-white z-50">
+      <header className="border-b border-neutral-200 sticky top-0 bg-white/80 backdrop-blur-sm z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">J</span>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center shadow-lg">
+              <Briefcase className="text-white" size={24} />
             </div>
-            <span className="font-semibold text-neutral-900">JobTracker</span>
+            <span className="font-bold text-xl text-neutral-900">JobTracker</span>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/jobs" className="text-neutral-600 hover:text-neutral-900 font-medium">
+            <Link href="/jobs" className="text-neutral-600 hover:text-primary-600 font-medium transition-colors">
               Browse Jobs
             </Link>
           </nav>
@@ -34,7 +35,7 @@ export default function Home() {
             {user ? (
               <Link
                 href="/dashboard"
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
               >
                 Dashboard
               </Link>
@@ -42,13 +43,13 @@ export default function Home() {
               <>
                 <Link
                   href="/auth/login"
-                  className="px-6 py-2 text-blue-600 border border-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors"
+                  className="px-6 py-2.5 text-primary-600 border-2 border-primary-600 rounded-lg font-medium hover:bg-primary-50 transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
                 >
                   Sign Up
                 </Link>
@@ -59,7 +60,7 @@ export default function Home() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 hover:bg-neutral-100 rounded-lg"
+            className="md:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors"
           >
             {mobileMenuOpen ? (
               <X size={24} className="text-neutral-600" />
@@ -71,10 +72,15 @@ export default function Home() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-neutral-200 px-6 py-4 space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="md:hidden border-t border-neutral-200 px-6 py-4 space-y-4 bg-white"
+          >
             <Link
               href="/jobs"
-              className="block text-neutral-600 hover:text-neutral-900 font-medium"
+              className="block text-neutral-600 hover:text-primary-600 font-medium"
               onClick={() => setMobileMenuOpen(false)}
             >
               Browse Jobs
@@ -82,7 +88,7 @@ export default function Home() {
             {user ? (
               <Link
                 href="/dashboard"
-                className="block px-6 py-2 bg-blue-600 text-white rounded-lg font-medium text-center"
+                className="block px-6 py-2.5 bg-primary-600 text-white rounded-lg font-medium text-center hover:bg-primary-700 transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Dashboard
@@ -91,34 +97,103 @@ export default function Home() {
               <>
                 <Link
                   href="/auth/login"
-                  className="block px-6 py-2 text-blue-600 border border-blue-600 rounded-lg font-medium text-center hover:bg-blue-50"
+                  className="block px-6 py-2.5 text-primary-600 border-2 border-primary-600 rounded-lg font-medium text-center hover:bg-primary-50 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="block px-6 py-2 bg-blue-600 text-white rounded-lg font-medium text-center hover:bg-blue-700"
+                  className="block px-6 py-2.5 bg-primary-600 text-white rounded-lg font-medium text-center hover:bg-primary-700 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Sign Up
                 </Link>
               </>
             )}
-          </div>
+          </motion.div>
         )}
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-neutral-900 mb-4">Find Your Next Opportunity</h1>
-          <p className="text-xl text-neutral-600">
-            Discover amazing job opportunities and track your applications all in one place.
-          </p>
-        </div>
+      {/* Hero Section */}
+      <main className="max-w-7xl mx-auto px-6 py-16 md:py-24">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <div className="inline-block mb-6">
+            <span className="px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-semibold">
+              ✨ Welcome to JobTracker
+            </span>
+          </div>
 
-        <JobsList />
+          <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 mb-6 leading-tight">
+            Find Your Next <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-700">Opportunity</span>
+          </h1>
+
+          <p className="text-xl text-neutral-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+            Discover amazing job opportunities and track your applications all in one place.
+            Join thousands of job seekers finding their dream positions.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/jobs"
+              className="group inline-flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-semibold hover:shadow-xl transition-all transform hover:scale-105"
+            >
+              Browse Jobs
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+
+            {!user && (
+              <Link
+                href="/auth/register"
+                className="inline-flex items-center justify-center px-8 py-3 border-2 border-primary-600 text-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
+              >
+                Get Started
+              </Link>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20"
+        >
+          <div className="bg-white rounded-2xl p-8 border border-neutral-200 text-center shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-4xl font-bold text-primary-600 mb-2">1000+</div>
+            <p className="text-neutral-600 font-medium">Job Opportunities</p>
+          </div>
+          <div className="bg-white rounded-2xl p-8 border border-neutral-200 text-center shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-4xl font-bold text-primary-600 mb-2">500+</div>
+            <p className="text-neutral-600 font-medium">Active Users</p>
+          </div>
+          <div className="bg-white rounded-2xl p-8 border border-neutral-200 text-center shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-4xl font-bold text-primary-600 mb-2">50+</div>
+            <p className="text-neutral-600 font-medium">Companies</p>
+          </div>
+        </motion.div>
+
+        {/* Featured Jobs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <div className="mb-12">
+            <h2 className="text-4xl font-bold text-neutral-900 mb-3">Latest Opportunities</h2>
+            <p className="text-lg text-neutral-600">
+              Browse the newest job postings from top companies
+            </p>
+          </div>
+
+          <JobsList />
+        </motion.div>
       </main>
     </div>
   );
