@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
-export default function Home() {
+export default function JobsPage() {
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -15,18 +15,23 @@ export default function Home() {
       {/* Header */}
       <header className="border-b border-neutral-200 sticky top-0 bg-white z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">J</span>
             </div>
             <span className="font-semibold text-neutral-900">JobTracker</span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/jobs" className="text-neutral-600 hover:text-neutral-900 font-medium">
+            <Link href="/jobs" className="text-blue-600 font-medium">
               Browse Jobs
             </Link>
+            {user && (
+              <Link href="/applications" className="text-neutral-600 hover:text-neutral-900 font-medium">
+                My Applications
+              </Link>
+            )}
           </nav>
 
           {/* Auth Buttons */}
@@ -74,11 +79,20 @@ export default function Home() {
           <div className="md:hidden border-t border-neutral-200 px-6 py-4 space-y-4">
             <Link
               href="/jobs"
-              className="block text-neutral-600 hover:text-neutral-900 font-medium"
+              className="block text-blue-600 font-medium"
               onClick={() => setMobileMenuOpen(false)}
             >
               Browse Jobs
             </Link>
+            {user && (
+              <Link
+                href="/applications"
+                className="block text-neutral-600 hover:text-neutral-900 font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                My Applications
+              </Link>
+            )}
             {user ? (
               <Link
                 href="/dashboard"
@@ -112,9 +126,9 @@ export default function Home() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-12">
-          <h1 className="text-4xl font-bold text-neutral-900 mb-4">Find Your Next Opportunity</h1>
+          <h1 className="text-4xl font-bold text-neutral-900 mb-4">Browse Job Opportunities</h1>
           <p className="text-xl text-neutral-600">
-            Discover amazing job opportunities and track your applications all in one place.
+            Search and apply to positions from top companies around the world.
           </p>
         </div>
 

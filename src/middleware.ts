@@ -12,16 +12,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Protect all other routes
-  if (!accessToken && pathname !== "/") {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+  // Public routes - allow without auth
+  if (pathname === "/" || pathname.startsWith("/jobs")) {
+    return NextResponse.next();
   }
 
-  // Root path
-  if (pathname === "/") {
-    if (accessToken) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
+  // Protected routes - require auth
+  if (!accessToken) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
