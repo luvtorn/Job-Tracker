@@ -11,12 +11,11 @@ import {
   Archive,
   Building2,
   Users,
-  FileText,
-  Tag,
   BarChart3,
   Clock,
   User,
   Settings,
+  Bell,
 } from "lucide-react";
 
 interface NavItem {
@@ -49,30 +48,20 @@ const navItems: NavItem[] = [
     icon: <Heart size={20} />,
   },
   {
+    label: "Notifications",
+    href: "/notifications",
+    icon: <Bell size={20} />,
+  },
+  {
     label: "Archived",
     href: "/archived",
     icon: <Archive size={20} />,
   },
   {
-    label: "Companies",
-    href: "/companies",
-    icon: <Building2 size={20} />,
-    section: "MANAGEMENT",
-  },
-  {
     label: "Contacts",
     href: "/contacts",
     icon: <Users size={20} />,
-  },
-  {
-    label: "Documents",
-    href: "/documents",
-    icon: <FileText size={20} />,
-  },
-  {
-    label: "Tags",
-    href: "/tags",
-    icon: <Tag size={20} />,
+    section: "MANAGEMENT",
   },
   {
     label: "Statistics",

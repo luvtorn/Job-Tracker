@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAuth } from "@/server/middleware/auth";
 import { updateApplicationStatusSchema } from "@/server/validators/application-validator";
+import { notificationService } from "@/server/services/notification-service";
+import { sseSubscriptionService } from "@/server/services/sse-subscription-service";
+
+const statusMessages: Record<string, string> = {
+  INTERVIEWING: "Your application has been moved to the interviewing stage",
+  REJECTED: "Your application has been rejected",
+  OFFER: "You've received an offer!",
+  ACCEPTED: "Your application has been accepted",
+  WITHDRAWN: "Your application has been withdrawn",
+};
 
 export async function PATCH(
   request: NextRequest,
@@ -64,6 +74,34 @@ export async function PATCH(
         },
       },
     });
+
+    const statusMessage = statusMessages[validation.data.status] || `Your application status has been updated to ${validation.data.status}`;
+
+    try {
+      await notificationService.createNotification({
+        type: "APPLICATION_STATUS_CHANGED",
+        userId: application.userId,
+        title: `Application Status: ${validation.data.status}`,
+        message: statusMessage,
+        applicationId: application.id,
+        vacancyId: application.vacancyId,
+      });
+
+      const unreadCount = await notificationService.getUnreadCount(application.userId);
+      sseSubscriptionService.notifyUser(application.userId, {
+        id: '',
+        type: "APPLICATION_STATUS_CHANGED",
+        title: `Application Status: ${validation.data.status}`,
+        message: statusMessage,
+        isRead: false,
+        userId: application.userId,
+        applicationId: application.id,
+        vacancyId: application.vacancyId,
+        createdAt: new Date(),
+      } as any, unreadCount);
+    } catch (notificationError) {
+      console.error("Failed to create notification:", notificationError);
+    }
 
     return NextResponse.json(
       {

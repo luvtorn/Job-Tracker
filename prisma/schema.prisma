@@ -42,6 +42,8 @@ model User {
   refreshTokens RefreshToken[]
   vacancies     Vacancy[]
   applications  Application[]
+  wishlist      Wishlist[]
+  notifications Notification[]
 
   @@index([email])
   @@index([role])
@@ -99,6 +101,7 @@ model Vacancy {
   recruiter   User   @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
 
   applications Application[]
+  wishlist     Wishlist[]
 
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
@@ -130,4 +133,43 @@ model Application {
   @@index([vacancyId])
   @@index([status])
   @@map("applications")
+}
+
+model Wishlist {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  vacancyId String  @db.Uuid
+  vacancy   Vacancy @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, vacancyId])
+  @@index([userId])
+  @@index([vacancyId])
+  @@map("wishlist")
+}
+
+model Notification {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  type String
+  title String
+  message String
+  isRead Boolean @default(false) @map("is_read")
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  applicationId String? @db.Uuid
+  vacancyId     String? @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt(sort: Desc)])
+  @@map("notifications")
 }

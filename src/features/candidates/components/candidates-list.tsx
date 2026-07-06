@@ -46,6 +46,7 @@ export function CandidatesList() {
   const [isUpdating, setIsUpdating] = useState<string>('');
   const [error, setError] = useState('');
   const [openDropdown, setOpenDropdown] = useState<string>('');
+  const [statusError, setStatusError] = useState<{ candidateId: string; message: string } | null>(null);
 
   useEffect(() => {
     fetchVacancies();
@@ -104,14 +105,22 @@ export function CandidatesList() {
   const handleStatusChange = async (candidateId: string, newStatus: string) => {
     try {
       setIsUpdating(candidateId);
+      setStatusError(null);
+
       const response = await fetch(`/api/applications/${candidateId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to update status');
+        setStatusError({
+          candidateId,
+          message: data.message || 'Failed to update status',
+        });
+        return;
       }
 
       setCandidates(
@@ -122,7 +131,10 @@ export function CandidatesList() {
       setOpenDropdown('');
     } catch (err) {
       console.error('Failed to update status:', err);
-      alert('Failed to update candidate status');
+      setStatusError({
+        candidateId,
+        message: 'An error occurred while updating the status',
+      });
     } finally {
       setIsUpdating('');
     }
@@ -173,6 +185,16 @@ export function CandidatesList() {
       </div>
 
       {/* Candidates List */}
+      {statusError && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
+        >
+          {statusError.message}
+        </motion.div>
+      )}
+
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader className="animate-spin text-blue-600" size={24} />

@@ -32,10 +32,30 @@ export default function JobDetailPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchJobDetail();
+    checkIfApplied();
   }, [jobId]);
+
+  const checkIfApplied = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch('/api/applications');
+      if (!response.ok) return;
+
+      const data = await response.json();
+      const applications = data.applications || [];
+      const hasAppliedToThisJob = applications.some(
+        (app: any) => app.vacancyId === jobId
+      );
+      setHasApplied(hasAppliedToThisJob);
+    } catch (err) {
+      console.error('Failed to check if applied:', err);
+    }
+  };
 
   const fetchJobDetail = async () => {
     try {
@@ -64,21 +84,27 @@ export default function JobDetailPage() {
 
     try {
       setIsApplying(true);
+      setError('');
+      setSuccessMessage('');
+
       const response = await fetch('/api/applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vacancyId: jobId }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to apply');
+        setError(data.message || 'Failed to submit application');
+        return;
       }
 
       setHasApplied(true);
+      setSuccessMessage('Application submitted successfully!');
     } catch (err) {
       console.error('Failed to apply:', err);
-      alert('Failed to submit application. ' + (err instanceof Error ? err.message : ''));
+      setError('An error occurred while submitting your application');
     } finally {
       setIsApplying(false);
     }
@@ -327,6 +353,28 @@ export default function JobDetailPage() {
                 transition={{ delay: 0.2 }}
                 className="bg-white rounded-2xl p-8 border border-neutral-200 shadow-sm sticky top-24 space-y-6"
               >
+                {/* Error Message */}
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+
+                {/* Success Message */}
+                {successMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm"
+                  >
+                    {successMessage}
+                  </motion.div>
+                )}
+
                 {/* Apply Section */}
                 {hasApplied ? (
                   <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">

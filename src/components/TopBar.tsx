@@ -5,18 +5,26 @@ import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/context/auth-context';
+import { useNotifications } from '@/hooks/use-notifications';
+import { NotificationsDropdown } from '@/features/notifications/components/notifications-dropdown';
 import Image from 'next/image';
 
 export function TopBar() {
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setProfileOpen(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setNotificationsOpen(false);
       }
     };
 
@@ -28,8 +36,6 @@ export function TopBar() {
     try {
       await logout();
       router.push('/auth/login');
-      // Не нужен router.refresh() сразу после редиректа
-      // Middleware позаботится о редиректе если токена нет
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -59,10 +65,21 @@ export function TopBar() {
 
         {/* Right section */}
         <div className="flex items-center gap-6 ml-auto">
-          <button className="p-2 hover:bg-neutral-100 rounded-lg transition-colors relative">
-            <Bell size={20} className="text-neutral-600" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-          </button>
+          {/* Notifications */}
+          <div className="relative" ref={notificationsRef}>
+            <button
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              className="p-2 hover:bg-neutral-100 rounded-lg transition-colors relative"
+            >
+              <Bell size={20} className="text-neutral-600" />
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+            <NotificationsDropdown isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+          </div>
 
           {/* Profile dropdown */}
           <div className="relative" ref={profileRef}>

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAuth } from "@/server/middleware/auth";
+import { notificationService } from "@/server/services/notification-service";
+import { sseSubscriptionService } from "@/server/services/sse-subscription-service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,6 +60,32 @@ export async function POST(request: NextRequest) {
         status: "APPLIED",
       },
     });
+
+    try {
+      await notificationService.createNotification({
+        type: "NEW_APPLICATION",
+        userId: vacancy.recruiterId,
+        title: "New Application",
+        message: `You received a new application for "${vacancy.title}" position`,
+        applicationId: application.id,
+        vacancyId: vacancy.id,
+      });
+
+      const unreadCount = await notificationService.getUnreadCount(vacancy.recruiterId);
+      sseSubscriptionService.notifyUser(vacancy.recruiterId, {
+        id: '',
+        type: "NEW_APPLICATION",
+        title: "New Application",
+        message: `You received a new application for "${vacancy.title}" position`,
+        isRead: false,
+        userId: vacancy.recruiterId,
+        applicationId: application.id,
+        vacancyId: vacancy.id,
+        createdAt: new Date(),
+      } as any, unreadCount);
+    } catch (notificationError) {
+      console.error("Failed to create notification:", notificationError);
+    }
 
     return NextResponse.json(
       {

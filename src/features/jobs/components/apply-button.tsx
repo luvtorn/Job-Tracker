@@ -42,7 +42,7 @@ export function ApplyButton({ vacancyId, hasApplied = false }: ApplyButtonProps)
       }
 
       setApplied(true);
-      router.refresh();
+      setError('');
     } catch (err) {
       console.error('Failed to apply:', err);
       setError('An error occurred while submitting your application');

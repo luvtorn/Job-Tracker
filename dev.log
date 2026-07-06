@@ -1,0 +1,19 @@
+
+> job-tracker@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by process 11148, using available port 3001 instead.
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.1.144:3001
+- Environments: .env.local, .env
+✓ Ready in 908ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+
+(node:8456) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/camel/Desktop/job-tracker/postcss.config.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\camel\Desktop\job-tracker\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Tailwind CSS configuration loaded successfully.
+ GET /api/applications/stats 200 in 672ms (next.js: 323ms, application-code: 349ms)
+[?25h
