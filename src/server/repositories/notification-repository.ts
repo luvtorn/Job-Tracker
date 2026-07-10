@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 
-type NotificationType = 'APPLICATION_STATUS_CHANGED' | 'NEW_APPLICATION';
+type NotificationType = 'APPLICATION_STATUS_CHANGED' | 'NEW_APPLICATION' | 'INTERVIEW_SCHEDULED';
 
 interface CreateNotificationInput {
   type: NotificationType;

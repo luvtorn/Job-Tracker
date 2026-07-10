@@ -1,7 +1,22 @@
+'use client';
+
 import { TopBar } from "@/components/TopBar";
-import { QuickStats } from "@/features/dashboard/components/quick-stats";
+import { SeekerDashboard } from "@/features/dashboard/components/seeker/dashboard";
+import { RecruiterDashboard } from "@/features/dashboard/components/recruiter/dashboard";
+import { useAuth } from "@/features/auth/context/auth-context";
+import { Loader } from "lucide-react";
 
 export default function DashboardPage() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Loader className="animate-spin text-primary-600" size={32} />
+      </div>
+    );
+  }
+
   return (
     <div className="h-full">
       <TopBar />
@@ -11,10 +26,7 @@ export default function DashboardPage() {
           <p className="text-neutral-600">Welcome back! 👋</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 border border-neutral-200 shadow-sm">
-          <h2 className="text-xl font-bold text-neutral-900 mb-6">Your Application Stats</h2>
-          <QuickStats />
-        </div>
+        {user?.role === 'RECRUITER' ? <RecruiterDashboard /> : <SeekerDashboard />}
       </main>
     </div>
   );

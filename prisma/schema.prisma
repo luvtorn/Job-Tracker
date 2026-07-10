@@ -107,9 +107,13 @@ model Vacancy {
   updatedAt   DateTime  @updatedAt @map("updated_at")
   publishedAt DateTime? @map("published_at")
   closedAt    DateTime? @map("closed_at")
+  expiresAt   DateTime? @map("expires_at")
+  archivedAt  DateTime? @map("archived_at")
 
   @@index([recruiterId])
   @@index([status])
+  @@index([archivedAt])
+  @@index([expiresAt])
   @@index([createdAt(sort: Desc)])
   @@map("vacancies")
 }
@@ -125,6 +129,10 @@ model Application {
   vacancyId String  @db.Uuid
   vacancy   Vacancy @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
 
+  interviewDate DateTime? @map("interview_date")
+  interviewTime String?   @map("interview_time")
+  interviewNotes String?  @map("interview_notes")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -132,6 +140,7 @@ model Application {
   @@index([userId])
   @@index([vacancyId])
   @@index([status])
+  @@index([createdAt(sort: Desc)])
   @@map("applications")
 }
 

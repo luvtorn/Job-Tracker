@@ -76,6 +76,47 @@ export class VacancyService {
       },
     });
   }
+
+  async archiveVacancy(vacancyId: string) {
+    return prisma.vacancy.update({
+      where: { id: vacancyId },
+      data: { archivedAt: new Date() },
+    });
+  }
+
+  async reactivateVacancy(vacancyId: string) {
+    return prisma.vacancy.update({
+      where: { id: vacancyId },
+      data: {
+        archivedAt: null,
+        createdAt: new Date(),
+      },
+    });
+  }
+
+  async closeVacancy(vacancyId: string) {
+    return prisma.vacancy.update({
+      where: { id: vacancyId },
+      data: {
+        status: "CLOSED",
+        closedAt: new Date(),
+      },
+    });
+  }
+
+  async deleteExpiredVacancies() {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const deleted = await prisma.vacancy.deleteMany({
+      where: {
+        archivedAt: {
+          lt: sevenDaysAgo,
+        },
+      },
+    });
+
+    return deleted.count;
+  }
 }
 
 export const vacancyService = new VacancyService();

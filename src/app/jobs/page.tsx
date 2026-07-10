@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/features/auth/context/auth-context';
-import { JobsList } from '@/features/jobs/components/jobs-list';
-import Link from 'next/link';
-import { Menu, X, Briefcase } from 'lucide-react';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useAuth } from "@/features/auth/context/auth-context";
+import { JobsList } from "@/features/jobs/components/jobs-list";
+import Link from "next/link";
+import { Menu, X, Briefcase } from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 export default function JobsPage() {
   const { user } = useAuth();
@@ -16,11 +16,16 @@ export default function JobsPage() {
       {/* Header */}
       <header className="border-b border-neutral-200 sticky top-0 bg-white/80 backdrop-blur-sm z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Link
+            href="/"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
             <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center shadow-lg">
               <Briefcase className="text-white" size={24} />
             </div>
-            <span className="font-bold text-xl text-neutral-900">JobTracker</span>
+            <span className="font-bold text-xl text-neutral-900">
+              JobTracker
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -28,8 +33,11 @@ export default function JobsPage() {
             <Link href="/jobs" className="text-primary-600 font-medium">
               Browse Jobs
             </Link>
-            {user && (
-              <Link href="/applications" className="text-neutral-600 hover:text-primary-600 font-medium transition-colors">
+            {user && user.role !== "RECRUITER" && (
+              <Link
+                href="/applications"
+                className="text-neutral-600 hover:text-primary-600 font-medium transition-colors"
+              >
                 My Applications
               </Link>
             )}
@@ -138,10 +146,14 @@ export default function JobsPage() {
           className="mb-12"
         >
           <h1 className="text-5xl font-bold text-neutral-900 mb-4">
-            Browse <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-700">Job Opportunities</span>
+            Browse{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-700">
+              Job Opportunities
+            </span>
           </h1>
           <p className="text-xl text-neutral-600 max-w-2xl">
-            Search and apply to positions from top companies around the world. Track your applications and manage your job search in one place.
+            Search and apply to positions from top companies around the world.
+            Track your applications and manage your job search in one place.
           </p>
         </motion.div>
 

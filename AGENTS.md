@@ -10,6 +10,16 @@ Every feature must be implemented as if it were intended for production.
 
 ---
 
+# Before adding code:
+
+1. Skip anything not required by the task.
+2. Reuse existing project code before creating new code.
+3. Prefer the standard library, platform APIs, and existing dependencies.
+4. Make the smallest clear change that works.
+5. Do not add abstractions, dependencies, refactors, or features unless required.
+6. Inspect and edit only relevant files.
+7. Stop after the requested result is verified.
+
 # Tech Stack
 
 ## Frontend

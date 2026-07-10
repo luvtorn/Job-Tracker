@@ -8,13 +8,9 @@ import {
   LayoutDashboard,
   ListTodo,
   Heart,
-  Archive,
   Building2,
-  Users,
   BarChart3,
-  Clock,
   User,
-  Settings,
   Bell,
 } from "lucide-react";
 
@@ -53,37 +49,16 @@ const navItems: NavItem[] = [
     icon: <Bell size={20} />,
   },
   {
-    label: "Archived",
-    href: "/archived",
-    icon: <Archive size={20} />,
-  },
-  {
-    label: "Contacts",
-    href: "/contacts",
-    icon: <Users size={20} />,
-    section: "MANAGEMENT",
-  },
-  {
     label: "Statistics",
     href: "/statistics",
     icon: <BarChart3 size={20} />,
     section: "ANALYTICS",
   },
   {
-    label: "Activity",
-    href: "/activity",
-    icon: <Clock size={20} />,
-  },
-  {
     label: "Profile",
     href: "/profile",
     icon: <User size={20} />,
     section: "SETTINGS",
-  },
-  {
-    label: "Settings",
-    href: "/settings",
-    icon: <Settings size={20} />,
   },
 ];
 

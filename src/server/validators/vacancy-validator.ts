@@ -12,4 +12,20 @@ export const createVacancySchema = z.object({
   currency: z.string().default('USD'),
 });
 
+export const scheduleInterviewSchema = z.object({
+  interviewDate: z.string().refine(
+    (date) => new Date(date) > new Date(),
+    'Interview date must be in the future'
+  ),
+  interviewTime: z.string().regex(/^\d{2}:\d{2}$/, 'Time format must be HH:mm'),
+  interviewNotes: z.string().optional(),
+});
+
+export const updateVacancyStatusSchema = z.object({
+  status: z.enum(['PUBLISHED', 'CLOSED', 'ARCHIVED']),
+  expiresAt: z.string().optional().nullable(),
+});
+
 export type CreateVacancyInput = z.infer<typeof createVacancySchema>;
+export type ScheduleInterviewInput = z.infer<typeof scheduleInterviewSchema>;
+export type UpdateVacancyStatusInput = z.infer<typeof updateVacancyStatusSchema>;
