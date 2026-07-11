@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Loader, ChevronDown, Mail, Calendar } from 'lucide-react';
+import { Loader, ChevronDown, Mail, Calendar, Clock } from 'lucide-react';
 import Image from 'next/image';
 import { ScheduleInterviewModal } from './schedule-interview-modal';
 
@@ -58,6 +58,7 @@ export function CandidatesList() {
   const [openDropdown, setOpenDropdown] = useState<string>('');
   const [statusError, setStatusError] = useState<{ candidateId: string; message: string } | null>(null);
   const [selectedCandidateForInterview, setSelectedCandidateForInterview] = useState<SelectedCandidate | null>(null);
+  const [showInterviewsPanel, setShowInterviewsPanel] = useState(false);
 
   useEffect(() => {
     fetchVacancies();
@@ -258,6 +259,60 @@ export function CandidatesList() {
           onSubmit={handleScheduleInterview}
         />
       )}
+
+      {/* Interviews Summary Panel */}
+      <div className="bg-white rounded-lg border border-neutral-200 p-4">
+        <button
+          onClick={() => setShowInterviewsPanel(!showInterviewsPanel)}
+          className="w-full flex items-center justify-between font-medium text-neutral-900 hover:text-blue-600 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Clock size={18} />
+            Scheduled Interviews ({candidates.filter(c => c.status === 'INTERVIEWING' && c.interviewDate).length})
+          </div>
+          <ChevronDown
+            size={18}
+            className={`transition-transform ${showInterviewsPanel ? 'rotate-180' : ''}`}
+          />
+        </button>
+
+        {showInterviewsPanel && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="mt-4 space-y-3 max-h-96 overflow-y-auto"
+          >
+            {candidates.filter(c => c.status === 'INTERVIEWING' && c.interviewDate).length === 0 ? (
+              <p className="text-sm text-neutral-500 italic">No interviews scheduled yet</p>
+            ) : (
+              candidates
+                .filter(c => c.status === 'INTERVIEWING' && c.interviewDate)
+                .sort((a, b) => new Date(a.interviewDate!).getTime() - new Date(b.interviewDate!).getTime())
+                .map((candidate) => (
+                  <div key={candidate.id} className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-neutral-900 truncate">
+                          {candidate.user.firstName} {candidate.user.lastName}
+                        </p>
+                        <p className="text-sm text-neutral-600 truncate">{candidate.user.email}</p>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-sm text-purple-700">
+                      <Calendar size={14} />
+                      {new Date(candidate.interviewDate!).toLocaleDateString()} at {candidate.interviewTime}
+                    </div>
+                    {candidate.interviewNotes && (
+                      <p className="mt-2 text-xs text-purple-700 p-2 bg-white rounded border-l-2 border-purple-300 italic">
+                        📝 {candidate.interviewNotes}
+                      </p>
+                    )}
+                  </div>
+                ))
+            )}
+          </motion.div>
+        )}
+      </div>
 
       {/* Vacancy Selector */}
       <div className="bg-white rounded-lg border border-neutral-200 p-6">
