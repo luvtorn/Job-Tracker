@@ -1,11 +1,26 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { InterviewSidePanel } from './interview-side-panel';
+import { Calendar, dateFnsLocalizer, View, SlotInfo } from 'react-big-calendar';
+import { format, parse, startOfWeek, getDay } from 'date-fns';
+import { enUS } from 'date-fns/locale';
+import { Loader, Plus } from 'lucide-react';
 import { ScheduleInterviewModal } from '@/features/candidates/components/schedule-interview-modal';
+import { InterviewSidePanel } from './interview-side-panel';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import './calendar-custom.css';
+
+const locales = {
+  'en-US': enUS,
+};
+
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek,
+  getDay,
+  locales,
+});
 
 interface Interview {
   id: string;
@@ -20,27 +35,37 @@ interface Interview {
   status: string;
 }
 
+interface CalendarEvent {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  resource: Interview;
+}
+
 export function CalendarInterviews() {
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const [interviews, setInterviews] = useState<Interview[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [view, setView] = useState<View>('month');
+  const [date, setDate] = useState(new Date());
+  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingInterviewId, setEditingInterviewId] = useState<string | null>(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
 
   useEffect(() => {
     fetchInterviews();
-  }, [currentDate]);
+  }, [date]);
 
   const fetchInterviews = async () => {
     try {
       setIsLoading(true);
       setError('');
 
-      const month = currentDate.getMonth() + 1;
-      const year = currentDate.getFullYear();
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
 
       const response = await fetch(
         `/api/recruiter/interviews?month=${month}&year=${year}`
@@ -51,7 +76,26 @@ export function CalendarInterviews() {
       }
 
       const data = await response.json();
-      setInterviews(data.interviews || []);
+      const interviews: Interview[] = data.interviews || [];
+
+      const calendarEvents: CalendarEvent[] = interviews.map((interview) => {
+        const [hours, minutes] = interview.interviewTime.split(':').map(Number);
+        const startDate = new Date(interview.interviewDate);
+        startDate.setHours(hours, minutes, 0, 0);
+
+        const endDate = new Date(startDate);
+        endDate.setHours(hours + 1, minutes, 0, 0);
+
+        return {
+          id: interview.id,
+          title: `${interview.candidateName} - ${interview.vacancyTitle}`,
+          start: startDate,
+          end: endDate,
+          resource: interview,
+        };
+      });
+
+      setEvents(calendarEvents);
     } catch (err) {
       console.error('Failed to fetch interviews:', err);
       setError('Failed to load interviews');
@@ -60,34 +104,13 @@ export function CalendarInterviews() {
     }
   };
 
-  const interviewDates = interviews.map(i => {
-    const date = new Date(i.interviewDate);
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  });
-
-  const getInterviewsForDate = (date: Date) => {
-    return interviews.filter(i => {
-      const interviewDate = new Date(i.interviewDate);
-      return (
-        interviewDate.getFullYear() === date.getFullYear() &&
-        interviewDate.getMonth() === date.getMonth() &&
-        interviewDate.getDate() === date.getDate()
-      );
-    });
+  const handleSelectEvent = (event: CalendarEvent) => {
+    setSelectedInterview(event.resource);
   };
 
-  const selectedDateInterviews = getInterviewsForDate(selectedDate);
-
-  const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
-  };
-
-  const handleSelectInterview = (interview: Interview) => {
-    setSelectedInterview(interview);
+  const handleSelectSlot = (slotInfo: SlotInfo) => {
+    setSelectedSlot({ start: slotInfo.start, end: slotInfo.end });
+    setShowScheduleModal(true);
   };
 
   const handleEditInterview = () => {
@@ -102,11 +125,12 @@ export function CalendarInterviews() {
     interviewTime: string;
     interviewNotes?: string;
   }) => {
-    if (!editingInterviewId) return;
+    const interviewId = editingInterviewId || selectedInterview?.id;
+    if (!interviewId) return;
 
     try {
       const interviewRes = await fetch(
-        `/api/applications/${editingInterviewId}/interview`,
+        `/api/applications/${interviewId}/interview`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -119,8 +143,10 @@ export function CalendarInterviews() {
       }
 
       setShowEditModal(false);
+      setShowScheduleModal(false);
       setEditingInterviewId(null);
       setSelectedInterview(null);
+      setSelectedSlot(null);
       fetchInterviews();
     } catch (err) {
       console.error('Failed to update interview:', err);
@@ -128,13 +154,20 @@ export function CalendarInterviews() {
     }
   };
 
-  if (error && interviews.length === 0) {
+  if (error && events.length === 0) {
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
         {error}
       </div>
     );
   }
+
+  const EventComponent = (props: any) => (
+    <div className="p-1 text-xs">
+      <div className="font-medium truncate">{props.event.resource.candidateName}</div>
+      <div className="text-gray-600 truncate text-xs">{props.event.resource.interviewTime}</div>
+    </div>
+  );
 
   return (
     <>
@@ -149,111 +182,73 @@ export function CalendarInterviews() {
         />
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Calendar Section */}
-        <div className="lg:col-span-3">
-          <div className="bg-white rounded-lg border border-neutral-200 p-6">
-            {/* Header with navigation */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-neutral-900">
-                {currentDate.toLocaleDateString('en-US', {
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={handlePrevMonth}
-                  className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <button
-                  onClick={handleNextMonth}
-                  className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            </div>
+      {/* Schedule Modal for new event */}
+      {selectedSlot && (
+        <ScheduleInterviewModal
+          isOpen={showScheduleModal}
+          candidateName=""
+          vacancyTitle="New Interview"
+          onClose={() => {
+            setShowScheduleModal(false);
+            setSelectedSlot(null);
+          }}
+          onSubmit={handleScheduleInterview}
+        />
+      )}
 
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader className="animate-spin text-blue-600" size={24} />
-              </div>
-            ) : (
-              <div className="flex justify-center">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    if (date) setSelectedDate(date);
-                  }}
-                  disabled={(date) => {
-                    const dateStr = date.toISOString().split('T')[0];
-                    const interviewDateStrs = interviews.map(i => i.interviewDate);
-                    return !interviewDateStrs.includes(dateStr);
-                  }}
-                  modifiers={{
-                    hasInterview: interviewDates,
-                  }}
-                  modifiersClassNames={{
-                    hasInterview: 'bg-blue-100 font-bold text-blue-900',
-                  }}
-                  className="rounded-md border"
-                />
-              </div>
-            )}
+      <div className="space-y-6">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader className="animate-spin text-blue-600" size={24} />
           </div>
-        </div>
-
-        {/* Side Panel Section */}
-        <div className="lg:col-span-1">
-          {selectedDateInterviews.length === 0 ? (
-            <div className="bg-white rounded-lg border border-neutral-200 p-6 text-center">
-              <p className="text-neutral-600 text-sm">
-                No interviews scheduled for this day
-              </p>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Calendar Section */}
+            <div className="lg:col-span-3 bg-white rounded-lg border border-neutral-200 p-6">
+              <Calendar
+                localizer={localizer}
+                events={events}
+                startAccessor="start"
+                endAccessor="end"
+                style={{ height: 600 }}
+                view={view}
+                onView={setView}
+                date={date}
+                onNavigate={setDate}
+                onSelectEvent={handleSelectEvent}
+                onSelectSlot={handleSelectSlot}
+                selectable
+                popup
+                eventPropGetter={(_event) => ({
+                  className: 'bg-blue-600 text-white hover:bg-blue-700',
+                })}
+                components={{
+                  event: EventComponent,
+                }}
+              />
             </div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-3"
-            >
-              {selectedDateInterviews.map((interview) => (
-                <button
-                  key={interview.id}
-                  onClick={() => handleSelectInterview(interview)}
-                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                    selectedInterview?.id === interview.id
-                      ? 'border-blue-600 bg-blue-50'
-                      : 'border-neutral-200 bg-white hover:border-blue-300'
-                  }`}
-                >
-                  <p className="font-medium text-neutral-900 text-sm truncate">
-                    {interview.candidateName}
-                  </p>
-                  <p className="text-xs text-neutral-600 mt-1">
-                    {interview.interviewTime}
-                  </p>
-                  <p className="text-xs text-neutral-500 mt-1 truncate">
-                    {interview.vacancyTitle}
-                  </p>
-                </button>
-              ))}
-            </motion.div>
-          )}
-        </div>
-      </div>
 
-      {/* Interview Side Panel */}
-      <InterviewSidePanel
-        interview={selectedInterview}
-        isOpen={!!selectedInterview}
-        onClose={() => setSelectedInterview(null)}
-        onEdit={handleEditInterview}
-      />
+            {/* Interview Details */}
+            <div className="lg:col-span-1 space-y-4">
+              {selectedInterview ? (
+                <InterviewSidePanel
+                  interview={selectedInterview}
+                  isOpen={true}
+                  onClose={() => setSelectedInterview(null)}
+                  onEdit={handleEditInterview}
+                />
+              ) : (
+                <div className="bg-white rounded-lg border border-neutral-200 p-6 text-center">
+                  <Plus className="mx-auto mb-2 text-neutral-400" size={24} />
+                  <p className="text-sm text-neutral-600">
+                    Click on an event to view details or select a date to create a new interview
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 }
