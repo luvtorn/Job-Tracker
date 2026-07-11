@@ -11,6 +11,7 @@ import {
   BarChart3,
   Settings,
   User,
+  Clock,
 } from "lucide-react";
 
 interface NavItem {
@@ -36,6 +37,11 @@ const navItems: NavItem[] = [
     label: "Candidates",
     href: "/candidates",
     icon: <Users size={20} />,
+  },
+  {
+    label: "Calendar",
+    href: "/calendar",
+    icon: <Clock size={20} />,
   },
   {
     label: "Statistics",
