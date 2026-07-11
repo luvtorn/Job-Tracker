@@ -44,6 +44,7 @@ model User {
   applications  Application[]
   wishlist      Wishlist[]
   notifications Notification[]
+  calendarEvents CalendarEvent[]
 
   @@index([email])
   @@index([role])
@@ -79,6 +80,15 @@ enum ApplicationStatus {
   OFFER
   ACCEPTED
   WITHDRAWN
+}
+
+enum CalendarEventType {
+  INTERVIEW
+  MEETING
+  DEADLINE
+  FOLLOW_UP
+  NOTE
+  OTHER
 }
 
 model Vacancy {
@@ -133,6 +143,8 @@ model Application {
   interviewTime String?   @map("interview_time")
   interviewNotes String?  @map("interview_notes")
 
+  calendarEvent CalendarEvent?
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -181,4 +193,34 @@ model Notification {
   @@index([isRead])
   @@index([createdAt(sort: Desc)])
   @@map("notifications")
+}
+
+model CalendarEvent {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  title       String @db.VarChar(255)
+  description String? @db.Text
+  eventType   CalendarEventType @default(INTERVIEW)
+  color       String @default("blue")
+
+  startTime   DateTime @map("start_time")
+  endTime     DateTime @map("end_time")
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  applicationId String?      @unique @db.Uuid
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  location    String?
+  isCompleted Boolean @default(false) @map("is_completed")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([applicationId])
+  @@index([startTime(sort: Asc)])
+  @@index([eventType])
+  @@map("calendar_events")
 }
