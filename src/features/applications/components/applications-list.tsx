@@ -20,6 +20,9 @@ interface Application {
   id: string;
   status: string;
   createdAt: string;
+  interviewDate?: string;
+  interviewTime?: string;
+  interviewNotes?: string;
   vacancy: Vacancy;
 }
 
@@ -188,6 +191,26 @@ export function ApplicationsList() {
                     {application.vacancy.position && (
                       <div className="inline-block px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
                         {application.vacancy.position}
+                      </div>
+                    )}
+
+                    {application.status === 'INTERVIEWING' && application.interviewDate && (
+                      <div className="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <p className="text-xs font-semibold text-purple-700">Interview Scheduled</p>
+                        <p className="text-sm text-purple-900 mt-1">
+                          📅 {new Date(application.interviewDate).toLocaleDateString()} at {application.interviewTime}
+                        </p>
+                        {application.interviewNotes && (
+                          <p className="text-xs text-purple-700 mt-2 p-2 bg-white rounded border-l-2 border-purple-300 italic">
+                            📝 {application.interviewNotes}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {application.status === 'INTERVIEWING' && !application.interviewDate && (
+                      <div className="mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <p className="text-xs text-yellow-700 italic">Interview being scheduled...</p>
                       </div>
                     )}
                   </div>

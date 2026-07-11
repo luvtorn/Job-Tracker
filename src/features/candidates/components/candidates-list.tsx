@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Loader, ChevronDown, Mail, Calendar } from 'lucide-react';
 import Image from 'next/image';
+import { ScheduleInterviewModal } from './schedule-interview-modal';
 
 interface User {
   id: string;
@@ -17,6 +18,9 @@ interface Candidate {
   id: string;
   status: string;
   createdAt: string;
+  interviewDate?: string;
+  interviewTime?: string;
+  interviewNotes?: string;
   user: User;
 }
 
@@ -38,6 +42,12 @@ const statusColors: Record<string, { bg: string; text: string; badge: string }> 
 
 const statusOptions = ['APPLIED', 'INTERVIEWING', 'OFFER', 'ACCEPTED', 'REJECTED', 'WITHDRAWN'];
 
+interface SelectedCandidate {
+  candidateId: string;
+  name: string;
+  vacancyTitle: string;
+}
+
 export function CandidatesList() {
   const [vacancies, setVacancies] = useState<Vacancy[]>([]);
   const [selectedVacancyId, setSelectedVacancyId] = useState<string>('');
@@ -47,6 +57,7 @@ export function CandidatesList() {
   const [error, setError] = useState('');
   const [openDropdown, setOpenDropdown] = useState<string>('');
   const [statusError, setStatusError] = useState<{ candidateId: string; message: string } | null>(null);
+  const [selectedCandidateForInterview, setSelectedCandidateForInterview] = useState<SelectedCandidate | null>(null);
 
   useEffect(() => {
     fetchVacancies();
@@ -103,6 +114,19 @@ export function CandidatesList() {
   };
 
   const handleStatusChange = async (candidateId: string, newStatus: string) => {
+    if (newStatus === 'INTERVIEWING') {
+      const candidate = candidates.find(c => c.id === candidateId);
+      if (candidate) {
+        setSelectedCandidateForInterview({
+          candidateId,
+          name: `${candidate.user.firstName} ${candidate.user.lastName}`,
+          vacancyTitle: vacancies.find(v => v.id === selectedVacancyId)?.title || '',
+        });
+      }
+      setOpenDropdown('');
+      return;
+    }
+
     try {
       setIsUpdating(candidateId);
       setStatusError(null);
@@ -140,6 +164,64 @@ export function CandidatesList() {
     }
   };
 
+  const handleScheduleInterview = async (data: {
+    interviewDate: string;
+    interviewTime: string;
+    interviewNotes?: string;
+  }) => {
+    const candidateId = selectedCandidateForInterview?.candidateId;
+    if (!candidateId) return;
+
+    try {
+      const interviewRes = await fetch(
+        `/api/applications/${candidateId}/interview`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        }
+      );
+
+      if (!interviewRes.ok) {
+        const err = await interviewRes.json();
+        throw new Error(err.message || 'Failed to schedule interview');
+      }
+
+      const statusRes = await fetch(
+        `/api/applications/${candidateId}/status`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'INTERVIEWING' }),
+        }
+      );
+
+      if (!statusRes.ok) {
+        const err = await statusRes.json();
+        throw new Error(err.message || 'Failed to update status');
+      }
+
+      setCandidates(
+        candidates.map((c) =>
+          c.id === candidateId
+            ? {
+                ...c,
+                status: 'INTERVIEWING',
+              }
+            : c
+        )
+      );
+
+      setSelectedCandidateForInterview(null);
+    } catch (err) {
+      console.error('Failed to schedule interview:', err);
+      setStatusError({
+        candidateId: selectedCandidateForInterview?.candidateId || '',
+        message: err instanceof Error ? err.message : 'An error occurred',
+      });
+    }
+  };
+
   if (isLoading && vacancies.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -166,6 +248,17 @@ export function CandidatesList() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+      {/* Schedule Interview Modal */}
+      {selectedCandidateForInterview && (
+        <ScheduleInterviewModal
+          isOpen={!!selectedCandidateForInterview}
+          candidateName={selectedCandidateForInterview.name}
+          vacancyTitle={selectedCandidateForInterview.vacancyTitle}
+          onClose={() => setSelectedCandidateForInterview(null)}
+          onSubmit={handleScheduleInterview}
+        />
+      )}
+
       {/* Vacancy Selector */}
       <div className="bg-white rounded-lg border border-neutral-200 p-6">
         <label className="block text-sm font-medium text-neutral-700 mb-3">
@@ -249,6 +342,20 @@ export function CandidatesList() {
                         Applied {new Date(candidate.createdAt).toLocaleDateString()}
                       </div>
                     </div>
+
+                    {candidate.status === 'INTERVIEWING' && candidate.interviewDate && (
+                      <div className="mt-3 p-2 bg-purple-50 rounded border border-purple-200">
+                        <p className="text-xs font-semibold text-purple-700">Interview Scheduled</p>
+                        <p className="text-sm text-purple-900 mt-1">
+                          📅 {new Date(candidate.interviewDate).toLocaleDateString()} at {candidate.interviewTime}
+                        </p>
+                        {candidate.interviewNotes && (
+                          <p className="text-xs text-purple-700 mt-2 italic">
+                            📝 {candidate.interviewNotes}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
