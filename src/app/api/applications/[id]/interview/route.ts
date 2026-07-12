@@ -4,6 +4,7 @@ import { verifyAuth } from "@/server/middleware/auth";
 import { scheduleInterviewSchema } from "@/server/validators/vacancy-validator";
 import { notificationService } from "@/server/services/notification-service";
 import { sseSubscriptionService } from "@/server/services/sse-subscription-service";
+import { calendarEventService } from "@/server/services/calendar-event-service";
 
 export async function PATCH(
   request: NextRequest,
@@ -57,6 +58,23 @@ export async function PATCH(
       },
       include: { vacancy: true, user: true },
     });
+
+    const candidateName = `${updated.user.firstName} ${updated.user.lastName}`;
+    const vacancyTitle = updated.vacancy.title;
+
+    try {
+      await calendarEventService.createInterviewEvent(
+        application.vacancy.recruiterId,
+        id,
+        candidateName,
+        vacancyTitle,
+        new Date(validated.data.interviewDate),
+        validated.data.interviewTime,
+        validated.data.interviewNotes
+      );
+    } catch (calendarError) {
+      console.error("Failed to create calendar event:", calendarError);
+    }
 
     const interviewDateStr = new Date(validated.data.interviewDate).toLocaleDateString();
     const message = `Interview scheduled for ${interviewDateStr} at ${validated.data.interviewTime}`;

@@ -6,17 +6,22 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 const createPrismaClient = () => {
-  const neon = new PrismaNeon({
-    connectionString: process.env.DATABASE_URL,
-  });
+  try {
+    const neon = new PrismaNeon({
+      connectionString: process.env.DATABASE_URL,
+    });
 
-  return new PrismaClient({
-    adapter: neon,
-    log:
-      process.env.NODE_ENV === "development"
-        ? ["error", "warn"]
-        : ["error"],
-  });
+    return new PrismaClient({
+      adapter: neon,
+      log:
+        process.env.NODE_ENV === "development"
+          ? ["error", "warn"]
+          : ["error"],
+    });
+  } catch (error) {
+    console.error("Failed to create PrismaClient:", error);
+    throw error;
+  }
 };
 
 export const prisma =
