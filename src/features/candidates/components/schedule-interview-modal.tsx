@@ -8,6 +8,11 @@ interface ScheduleInterviewModalProps {
   isOpen: boolean;
   candidateName: string;
   vacancyTitle: string;
+  initialData?: {
+    interviewDate: string;
+    interviewTime: string;
+    interviewNotes?: string;
+  };
   onClose: () => void;
   onSubmit: (data: {
     interviewDate: string;
@@ -20,12 +25,13 @@ export function ScheduleInterviewModal({
   isOpen,
   candidateName,
   vacancyTitle,
+  initialData,
   onClose,
   onSubmit,
 }: ScheduleInterviewModalProps) {
-  const [interviewDate, setInterviewDate] = useState('');
-  const [interviewTime, setInterviewTime] = useState('');
-  const [interviewNotes, setInterviewNotes] = useState('');
+  const [interviewDate, setInterviewDate] = useState(initialData?.interviewDate ?? '');
+  const [interviewTime, setInterviewTime] = useState(initialData?.interviewTime ?? '');
+  const [interviewNotes, setInterviewNotes] = useState(initialData?.interviewNotes ?? '');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -46,9 +52,6 @@ export function ScheduleInterviewModal({
         interviewTime,
         interviewNotes: interviewNotes || undefined,
       });
-      setInterviewDate('');
-      setInterviewTime('');
-      setInterviewNotes('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to schedule interview');
     } finally {

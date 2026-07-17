@@ -142,10 +142,6 @@ export const calendarEventRepository = {
       throw new Error("Event not found or unauthorized");
     }
 
-    if (event.eventType === "INTERVIEW") {
-      throw new Error("Cannot delete interview events directly");
-    }
-
     return prisma.calendarEvent.delete({
       where: { id: eventId },
     });

@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Calendar, dateFnsLocalizer, View, SlotInfo } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale';
-import { Loader, Plus } from 'lucide-react';
+import { Loader, Plus, AlertTriangle } from 'lucide-react';
 import { ScheduleInterviewModal } from '@/features/candidates/components/schedule-interview-modal';
 import { InterviewSidePanel } from './interview-side-panel';
 import { CreateEventModal } from './create-event-modal';
@@ -48,6 +48,20 @@ interface CalendarEventData {
   reminder?: number;
   isCompleted: boolean;
   applicationId?: string;
+  application?: {
+    id: string;
+    status: string;
+    user?: {
+      firstName?: string | null;
+      lastName?: string | null;
+      email?: string;
+      avatarUrl?: string | null;
+    };
+    vacancy?: {
+      id: string;
+      title: string;
+    };
+  };
 }
 
 interface CalendarEvent {
@@ -71,12 +85,10 @@ export function CalendarInterviews() {
   const [editingInterviewId, setEditingInterviewId] = useState<string | null>(null);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
+  const [showDeleteInterviewModal, setShowDeleteInterviewModal] = useState(false);
+  const [deletingInterviewId, setDeletingInterviewId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchData();
-  }, [date]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
       setError('');
@@ -84,73 +96,65 @@ export function CalendarInterviews() {
       const month = date.getMonth() + 1;
       const year = date.getFullYear();
 
-      const [interviewRes, eventsRes] = await Promise.all([
-        fetch(`/api/recruiter/interviews?month=${month}&year=${year}`),
-        fetch(`/api/calendar/events?month=${month}&year=${year}`),
-      ]);
+      const eventsRes = await fetch(`/api/calendar/events?month=${month}&year=${year}`);
 
-      if (!interviewRes.ok || !eventsRes.ok) {
-        console.error('Interviews response:', interviewRes.status, interviewRes.statusText);
+      if (!eventsRes.ok) {
         console.error('Events response:', eventsRes.status, eventsRes.statusText);
 
-        if (!eventsRes.ok) {
-          const errData = await eventsRes.json().catch(() => ({}));
-          console.error('Events error:', errData);
-
-          if (eventsRes.status === 401) {
-            setError('Not authorized to view calendar');
-            return;
-          }
-        }
-
-        if (!interviewRes.ok) {
-          const errData = await interviewRes.json().catch(() => ({}));
-          console.error('Interviews error:', errData);
+        if (eventsRes.status === 401) {
+          setError('Not authorized to view calendar');
+          return;
         }
 
         throw new Error('Failed to fetch calendar data');
       }
 
-      const interviewData = await interviewRes.json();
       const eventsData = await eventsRes.json();
-      const interviews: Interview[] = interviewData.interviews || [];
       const calendarEvents: CalendarEventData[] = eventsData.events || [];
 
-      const interviewEvents: CalendarEvent[] = interviews.map((interview) => {
-        const [hours, minutes] = interview.interviewTime.split(':').map(Number);
-        const startDate = new Date(interview.interviewDate);
-        startDate.setHours(hours, minutes, 0, 0);
+      // Both interviews and custom events come from the same API
+      // Calendar events include application data for interviews
+      const allEvents: CalendarEvent[] = calendarEvents.map((event) => {
+        const isInterview = event.eventType === 'INTERVIEW';
 
-        const endDate = new Date(startDate);
-        endDate.setHours(hours + 1, minutes, 0, 0);
+        // For interview events, build the Interview resource
+        const interviewResource: Interview = isInterview && event.applicationId ? {
+          id: event.applicationId,
+          candidateName: event.application?.user ?
+            `${event.application.user.firstName} ${event.application.user.lastName}` : 'Unknown',
+          candidateEmail: event.application?.user?.email || '',
+          candidateAvatar: event.application?.user?.avatarUrl || undefined,
+          vacancyTitle: event.application?.vacancy?.title || event.title,
+          vacancyId: event.application?.vacancy?.id || '',
+          interviewDate: format(new Date(event.startTime), 'yyyy-MM-dd'),
+          interviewTime: new Date(event.startTime).toTimeString().slice(0, 5),
+          interviewNotes: event.description || '',
+          status: event.application?.status || 'INTERVIEWING',
+        } : {} as Interview;
 
         return {
-          id: interview.id,
-          title: `${interview.candidateName} - ${interview.vacancyTitle}`,
-          start: startDate,
-          end: endDate,
-          resource: interview,
-          type: 'interview',
+          id: event.id,
+          title: event.title,
+          start: new Date(event.startTime),
+          end: new Date(event.endTime),
+          resource: isInterview ? interviewResource : event,
+          type: isInterview ? 'interview' : 'event',
         };
       });
 
-      const customEvents: CalendarEvent[] = calendarEvents.map((event) => ({
-        id: event.id,
-        title: event.title,
-        start: new Date(event.startTime),
-        end: new Date(event.endTime),
-        resource: event,
-        type: 'event',
-      }));
-
-      setEvents([...interviewEvents, ...customEvents]);
+      setEvents(allEvents);
     } catch (err) {
       console.error('Failed to fetch calendar data:', err);
       setError('Failed to load calendar data');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [date]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Fetching is synchronized with the visible calendar month.
+    void fetchData();
+  }, [fetchData]);
 
   const handleSelectEvent = (event: CalendarEvent) => {
     if (event.type === 'interview') {
@@ -235,7 +239,14 @@ export function CalendarInterviews() {
     }
   };
 
-  const handleDeleteEvent = async (eventId: string) => {
+  const handleDeleteEvent = async (eventId: string, eventType?: string) => {
+    // If it's an interview event, show confirmation modal
+    if (eventType === 'INTERVIEW') {
+      setDeletingInterviewId(eventId);
+      setShowDeleteInterviewModal(true);
+      return;
+    }
+
     try {
       const res = await fetch(`/api/calendar/events/${eventId}`, {
         method: 'DELETE',
@@ -253,6 +264,31 @@ export function CalendarInterviews() {
     }
   };
 
+  const handleConfirmDeleteInterview = async () => {
+    if (!deletingInterviewId || !selectedInterview) return;
+
+    try {
+      // Change status to APPLIED
+      const res = await fetch(`/api/applications/${selectedInterview.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'APPLIED' }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to change status');
+      }
+
+      setShowDeleteInterviewModal(false);
+      setDeletingInterviewId(null);
+      setSelectedInterview(null);
+      await fetchData();
+    } catch (err) {
+      console.error('Failed to change status:', err);
+      setError(err instanceof Error ? err.message : 'Failed to change status');
+    }
+  };
+
   if (error && events.length === 0) {
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
@@ -261,16 +297,21 @@ export function CalendarInterviews() {
     );
   }
 
-  const EventComponent = (props: any) => {
+  const EventComponent = (props: { event: CalendarEvent }) => {
     const event = props.event;
     const isInterview = event.type === 'interview';
-    const resource = event.resource;
+    const title = isInterview
+      ? (event.resource as Interview).candidateName
+      : (event.resource as CalendarEventData).title;
+    const interviewTime = isInterview
+      ? (event.resource as Interview).interviewTime
+      : null;
 
     return (
       <div className="p-1 text-xs">
-        <div className="font-medium truncate">{resource.candidateName || resource.title}</div>
+        <div className="font-medium truncate">{title}</div>
         {isInterview && (
-          <div className="text-gray-600 truncate text-xs">{resource.interviewTime}</div>
+          <div className="text-gray-600 truncate text-xs">{interviewTime}</div>
         )}
       </div>
     );
@@ -321,12 +362,53 @@ export function CalendarInterviews() {
 
       {selectedInterview && (
         <ScheduleInterviewModal
+          key={selectedInterview.id}
           isOpen={showEditModal}
           candidateName={selectedInterview.candidateName}
           vacancyTitle={selectedInterview.vacancyTitle}
+          initialData={{
+            interviewDate: selectedInterview.interviewDate,
+            interviewTime: selectedInterview.interviewTime,
+            interviewNotes: selectedInterview.interviewNotes,
+          }}
           onClose={() => setShowEditModal(false)}
           onSubmit={handleScheduleInterview}
         />
+      )}
+
+      {/* Delete Interview Confirmation Modal */}
+      {showDeleteInterviewModal && selectedInterview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-yellow-100 rounded-full">
+                <AlertTriangle className="text-yellow-600" size={24} />
+              </div>
+              <h3 className="text-lg font-semibold text-neutral-900">Remove Interview?</h3>
+            </div>
+            <p className="text-neutral-600 mb-6">
+              This will change <strong>{selectedInterview.candidateName}</strong>&apos;s status from INTERVIEWING back to APPLIED.
+              The calendar event will be removed.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleConfirmDeleteInterview}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+              >
+                Yes, Change Status
+              </button>
+              <button
+                onClick={() => {
+                  setShowDeleteInterviewModal(false);
+                  setDeletingInterviewId(null);
+                }}
+                className="flex-1 px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="space-y-6">
@@ -365,6 +447,10 @@ export function CalendarInterviews() {
                   isOpen={true}
                   onClose={() => setSelectedInterview(null)}
                   onEdit={handleEditInterview}
+                  onDelete={() => {
+                    setDeletingInterviewId(selectedInterview.id);
+                    setShowDeleteInterviewModal(true);
+                  }}
                 />
               ) : selectedEvent ? (
                 <div className="bg-white rounded-lg border border-neutral-200 p-6 space-y-4">
@@ -391,7 +477,7 @@ export function CalendarInterviews() {
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handleDeleteEvent(selectedEvent.id)}
+                      onClick={() => handleDeleteEvent(selectedEvent.id, selectedEvent.eventType)}
                       className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
                     >
                       Delete

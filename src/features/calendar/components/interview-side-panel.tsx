@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { X, Mail, Calendar, Clock, Edit2 } from 'lucide-react';
+import { X, Mail, Calendar, Clock, Edit2, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 
 interface Interview {
@@ -22,6 +22,7 @@ interface InterviewSidePanelProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit: () => void;
+  onDelete: () => void;
   isLoading?: boolean;
 }
 
@@ -30,6 +31,7 @@ export function InterviewSidePanel({
   isOpen,
   onClose,
   onEdit,
+  onDelete,
   isLoading,
 }: InterviewSidePanelProps) {
   if (!isOpen || !interview) return null;
@@ -156,6 +158,14 @@ export function InterviewSidePanel({
           >
             <Edit2 size={16} />
             Edit Interview
+          </button>
+          <button
+            onClick={onDelete}
+            disabled={isLoading}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-red-200 text-red-700 rounded-lg hover:bg-red-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Trash2 size={16} />
+            Remove Interview
           </button>
           <button
             onClick={onClose}

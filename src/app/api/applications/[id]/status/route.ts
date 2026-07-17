@@ -4,6 +4,8 @@ import { verifyAuth } from "@/server/middleware/auth";
 import { updateApplicationStatusSchema } from "@/server/validators/application-validator";
 import { notificationService } from "@/server/services/notification-service";
 import { sseSubscriptionService } from "@/server/services/sse-subscription-service";
+import { calendarEventService } from "@/server/services/calendar-event-service";
+import { calendarEventRepository } from "@/server/repositories/calendar-event-repository";
 
 const statusMessages: Record<string, string> = {
   INTERVIEWING: "Your application has been moved to the interviewing stage",
@@ -77,8 +79,37 @@ export async function PATCH(
 
     const statusMessage = statusMessages[validation.data.status] || `Your application status has been updated to ${validation.data.status}`;
 
+    // Handle calendar event when status changes to/from INTERVIEWING
+    if (validation.data.status === 'INTERVIEWING' && application.interviewDate) {
+      // Status changed to INTERVIEWING - create calendar event
+      try {
+        const candidateName = `${updatedApplication.user.firstName} ${updatedApplication.user.lastName}`.trim();
+        await calendarEventService.createInterviewEvent(
+          application.vacancy.recruiterId,
+          applicationId,
+          candidateName,
+          application.vacancy.title,
+          application.interviewDate,
+          application.interviewTime || '10:00',
+          application.interviewNotes || undefined
+        );
+      } catch (calendarError) {
+        console.error('Failed to create calendar event:', calendarError);
+      }
+    } else if (application.status === 'INTERVIEWING' && validation.data.status !== 'INTERVIEWING') {
+      // Status changed from INTERVIEWING to something else - delete calendar event
+      try {
+        const existingEvent = await calendarEventRepository.findByApplicationId(applicationId);
+        if (existingEvent) {
+          await calendarEventRepository.deleteById(existingEvent.id, application.vacancy.recruiterId);
+        }
+      } catch (calendarError) {
+        console.error('Failed to delete calendar event:', calendarError);
+      }
+    }
+
     try {
-      await notificationService.createNotification({
+      const notification = await notificationService.createNotification({
         type: "APPLICATION_STATUS_CHANGED",
         userId: application.userId,
         title: `Application Status: ${validation.data.status}`,
@@ -88,17 +119,7 @@ export async function PATCH(
       });
 
       const unreadCount = await notificationService.getUnreadCount(application.userId);
-      sseSubscriptionService.notifyUser(application.userId, {
-        id: '',
-        type: "APPLICATION_STATUS_CHANGED",
-        title: `Application Status: ${validation.data.status}`,
-        message: statusMessage,
-        isRead: false,
-        userId: application.userId,
-        applicationId: application.id,
-        vacancyId: application.vacancyId,
-        createdAt: new Date(),
-      } as any, unreadCount);
+      sseSubscriptionService.notifyUser(application.userId, notification, unreadCount);
     } catch (notificationError) {
       console.error("Failed to create notification:", notificationError);
     }
