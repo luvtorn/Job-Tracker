@@ -16,63 +16,69 @@ import {
   ContactRound,
   NotebookPen,
   AlarmClock,
+  Settings,
 } from "lucide-react";
+import { useTranslations } from 'next-intl';
+
+type NavigationKey = 'dashboard' | 'applications' | 'findJobs' | 'wishlist' | 'calendar' | 'companies' | 'contacts' | 'notes' | 'reminders' | 'notifications' | 'statistics' | 'profile' | 'settings';
+type SectionKey = 'workspace' | 'analytics' | 'settings' | 'applications';
 
 interface NavItem {
-  label: string;
+  label: NavigationKey;
   href: string;
   icon: React.ReactNode;
-  section?: string;
+  section?: SectionKey;
 }
 
 const navItems: NavItem[] = [
   {
-    label: "Dashboard",
+    label: "dashboard",
     href: "/dashboard",
     icon: <LayoutDashboard size={20} />,
   },
   {
-    label: "All Applications",
+    label: "applications",
     href: "/applications",
     icon: <ListTodo size={20} />,
-    section: "APPLICATIONS",
+    section: "applications",
   },
   {
-    label: "Find Jobs",
+    label: "findJobs",
     href: "/jobs",
     icon: <Building2 size={20} />,
   },
   {
-    label: "Wishlist",
+    label: "wishlist",
     href: "/wishlist",
     icon: <Heart size={20} />,
   },
   {
-    label: "Calendar",
+    label: "calendar",
     href: "/calendar",
     icon: <CalendarDays size={20} />,
   },
-  { label: "Companies", href: "/companies", icon: <Building2 size={20} />, section: "WORKSPACE" },
-  { label: "Contacts", href: "/contacts", icon: <ContactRound size={20} /> },
-  { label: "Notes", href: "/notes", icon: <NotebookPen size={20} /> },
-  { label: "Reminders", href: "/reminders", icon: <AlarmClock size={20} /> },
+  { label: "companies", href: "/companies", icon: <Building2 size={20} />, section: "workspace" },
+  { label: "contacts", href: "/contacts", icon: <ContactRound size={20} /> },
+  { label: "notes", href: "/notes", icon: <NotebookPen size={20} /> },
+  { label: "reminders", href: "/reminders", icon: <AlarmClock size={20} /> },
   {
-    label: "Notifications",
+    label: "notifications",
     href: "/notifications",
     icon: <Bell size={20} />,
   },
   {
-    label: "Statistics",
+    label: "statistics",
     href: "/statistics",
     icon: <BarChart3 size={20} />,
-    section: "ANALYTICS",
+    section: "analytics",
   },
   {
-    label: "Profile",
+    label: "profile",
     href: "/profile",
     icon: <User size={20} />,
-    section: "SETTINGS",
+    section: "settings",
   },
+  { label: 'settings', href: '/settings', icon: <Settings size={20} /> },
 ];
 
 export function Sidebar({
@@ -83,6 +89,7 @@ export function Sidebar({
   onClose: () => void;
 }) {
   const pathname = usePathname();
+  const t = useTranslations('navigation');
 
   const getSections = () => {
     const sections: { [key: string]: NavItem[] } = {};
@@ -145,7 +152,7 @@ export function Sidebar({
               <div key={section}>
                 {section !== "main" && (
                   <h3 className="px-2 mb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">
-                    {section}
+                    {t(section as SectionKey)}
                   </h3>
                 )}
                 <div className="space-y-1">
@@ -173,7 +180,7 @@ export function Sidebar({
                           {item.icon}
                         </div>
                         <span className="text-sm font-medium">
-                          {item.label}
+                          {t(item.label)}
                         </span>
                       </Link>
                     );

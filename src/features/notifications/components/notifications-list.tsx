@@ -4,11 +4,17 @@ import { useState } from 'react';
 import { Trash2, CheckCircle2, Circle } from 'lucide-react';
 import { useNotifications } from '@/hooks/use-notifications';
 import { formatDistanceToNow } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { enUS, pl, ru } from 'date-fns/locale';
+import { useLocale, useTranslations } from 'next-intl';
+import type { AppLocale } from '@/i18n/config';
+
+const dateLocales = { en: enUS, pl, ru };
 
 export function NotificationsList() {
   const { notifications, markAsRead, deleteNotification, markAllAsRead, isLoading, error } = useNotifications();
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
+  const locale = useLocale() as AppLocale;
+  const t = useTranslations('notifications');
 
   const filteredNotifications = notifications.filter((n) => {
     if (filter === 'unread') return !n.isRead;
@@ -21,7 +27,7 @@ export function NotificationsList() {
   if (isLoading) {
     return (
       <div className="p-8 text-center">
-        <p className="text-sm text-neutral-500">Loading notifications...</p>
+        <p className="text-sm text-neutral-500">{t('loading')}</p>
       </div>
     );
   }
@@ -29,7 +35,7 @@ export function NotificationsList() {
   if (error) {
     return (
       <div className="p-8 text-center">
-        <p className="text-sm text-red-500">Error loading notifications: {error}</p>
+        <p className="text-sm text-red-500">{t('loadError', { error })}</p>
       </div>
     );
   }
@@ -47,7 +53,7 @@ export function NotificationsList() {
                 : 'text-neutral-600 hover:bg-neutral-100'
             }`}
           >
-            All
+            {t('all')}
           </button>
           <button
             onClick={() => setFilter('unread')}
@@ -57,7 +63,7 @@ export function NotificationsList() {
                 : 'text-neutral-600 hover:bg-neutral-100'
             }`}
           >
-            Unread ({unreadCount})
+            {t('unread', { count: unreadCount })}
           </button>
           <button
             onClick={() => setFilter('read')}
@@ -67,7 +73,7 @@ export function NotificationsList() {
                 : 'text-neutral-600 hover:bg-neutral-100'
             }`}
           >
-            Read
+            {t('read')}
           </button>
         </div>
 
@@ -76,7 +82,7 @@ export function NotificationsList() {
             onClick={() => markAllAsRead()}
             className="text-sm text-primary-600 hover:text-primary-700 font-medium"
           >
-            Mark all as read
+            {t('markAll')}
           </button>
         )}
       </div>
@@ -86,7 +92,7 @@ export function NotificationsList() {
         {filteredNotifications.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-sm text-neutral-500">
-              {filter === 'unread' ? 'No unread notifications' : 'No notifications'}
+              {filter === 'unread' ? t('noUnread') : t('empty')}
             </p>
           </div>
         ) : (
@@ -100,7 +106,7 @@ export function NotificationsList() {
               <button
                 onClick={() => markAsRead(notification.id)}
                 className="flex-shrink-0 p-1 hover:bg-white rounded transition-colors"
-                title={notification.isRead ? 'Already read' : 'Mark as read'}
+                title={notification.isRead ? t('alreadyRead') : t('markRead')}
               >
                 {notification.isRead ? (
                   <CheckCircle2 size={20} className="text-neutral-400" />
@@ -121,7 +127,7 @@ export function NotificationsList() {
                     <p className="text-xs text-neutral-500 mt-3">
                       {formatDistanceToNow(new Date(notification.createdAt), {
                         addSuffix: true,
-                        locale: ru,
+                        locale: dateLocales[locale],
                       })}
                     </p>
                   </div>
@@ -131,7 +137,7 @@ export function NotificationsList() {
               <button
                 onClick={() => deleteNotification(notification.id)}
                 className="flex-shrink-0 p-2 hover:bg-red-50 rounded transition-colors"
-                title="Delete"
+                title={t('delete')}
               >
                 <Trash2 size={18} className="text-neutral-400 hover:text-red-500" />
               </button>

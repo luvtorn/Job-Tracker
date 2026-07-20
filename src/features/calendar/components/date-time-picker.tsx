@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLocale } from 'next-intl';
 
 interface DateTimePickerProps {
   startDate?: Date;
@@ -21,6 +22,7 @@ export function DateTimePicker({
   const [showStartCalendar, setShowStartCalendar] = useState(false);
   const [showEndCalendar, setShowEndCalendar] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const locale = useLocale();
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -43,7 +45,7 @@ export function DateTimePicker({
       days.push(i);
     }
 
-    const monthName = currentMonth.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    const monthName = currentMonth.toLocaleString(locale, { month: 'long', year: 'numeric' });
 
     return (
       <div className="bg-white rounded-lg border border-neutral-200 p-4 shadow-lg">
@@ -154,7 +156,7 @@ export function DateTimePicker({
             className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-left bg-white hover:bg-neutral-50 transition-colors"
           >
             {startDate
-              ? startDate.toLocaleString('en-US', {
+              ? startDate.toLocaleString(locale, {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',
@@ -183,7 +185,7 @@ export function DateTimePicker({
             className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-left bg-white hover:bg-neutral-50 transition-colors"
           >
             {endDate
-              ? endDate.toLocaleString('en-US', {
+              ? endDate.toLocaleString(locale, {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',

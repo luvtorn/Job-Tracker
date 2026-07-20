@@ -6,12 +6,15 @@ import { useRouter } from 'next/navigation';
 import { LoginForm, type LoginFormData } from '@/features/auth/components/login-form';
 import { AuthLogo } from '@/features/auth/components/auth-logo';
 import { useAuth } from '@/features/auth/context/auth-context';
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 export default function LoginPage() {
   const router = useRouter();
   const { user, isLoading: isSessionLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const t = useTranslations('auth');
 
   useEffect(() => {
     if (!isSessionLoading && user) router.replace('/dashboard');
@@ -32,25 +35,25 @@ export default function LoginPage() {
         const contentType = response.headers.get('content-type');
         if (contentType?.includes('application/json')) {
           const responseData = await response.json();
-          setError(responseData.message || 'Login failed');
+          setError(responseData.message || t('loginFailed'));
         } else {
-          setError('Login failed. Please try again.');
+          setError(t('loginRetry'));
         }
         return;
       }
 
       window.location.href = '/dashboard';
     } catch {
-      setError('Something went wrong. Please try again.');
+      setError(t('unexpected'));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50 to-neutral-50 flex items-center justify-center px-4">
+    <div className="relative min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50 to-neutral-50 flex items-center justify-center px-4"><div className="absolute right-4 top-4"><LanguageSwitcher /></div>
       <div className="w-full max-w-md">
-        <AuthLogo subtitle="Track your job journey" />
+        <AuthLogo subtitle={t('tagline')} />
 
         <LoginForm onSubmit={handleSubmit} isLoading={isLoading} error={error} />
 
@@ -59,12 +62,12 @@ export default function LoginPage() {
             href="/auth/register"
             className="text-primary-600 hover:text-primary-700 font-medium inline-flex items-center gap-2"
           >
-            Create an account
+            {t('createAccount')}
           </Link>
         </div>
 
         <p className="text-center text-sm text-neutral-600 mt-6">
-          By signing in, you agree to our Terms of Service
+          {t('terms')}
         </p>
       </div>
     </div>

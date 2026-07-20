@@ -2,6 +2,7 @@
 
 import { motion, Variants } from "framer-motion";
 import { Mail, Lock, ArrowRight } from "lucide-react";
+import { useTranslations } from 'next-intl';
 
 interface LoginFormProps {
   onSubmit: (data: LoginFormData) => Promise<void>;
@@ -27,6 +28,7 @@ const itemVariants: Variants = {
 };
 
 export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
+  const t = useTranslations('auth');
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -54,17 +56,17 @@ export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
         variants={itemVariants}
         className="text-2xl font-bold text-neutral-900 mb-2"
       >
-        Welcome back
+        {t('welcome')}
       </motion.h2>
 
       <motion.p variants={itemVariants} className="text-neutral-600 mb-6">
-        Sign in to your account
+        {t('signInAccount')}
       </motion.p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <motion.div variants={itemVariants}>
           <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Email
+            {t('email')}
           </label>
           <div className="relative">
             <Mail
@@ -83,7 +85,7 @@ export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
 
         <motion.div variants={itemVariants}>
           <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Password
+            {t('password')}
           </label>
           <div className="relative">
             <Lock
@@ -125,7 +127,7 @@ export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
             />
           ) : (
             <>
-              <span className="text-white">Sign in</span>
+              <span className="text-white">{t('signIn')}</span>
               <ArrowRight size={18} />
             </>
           )}
@@ -137,7 +139,7 @@ export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
         className="my-6 flex items-center gap-3"
       >
         <div className="flex-1 h-px bg-neutral-200" />
-        <span className="text-sm text-neutral-500">New here?</span>
+        <span className="text-sm text-neutral-500">{t('newHere')}</span>
         <div className="flex-1 h-px bg-neutral-200" />
       </motion.div>
     </motion.div>

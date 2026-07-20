@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Calendar, dateFnsLocalizer, View, SlotInfo } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
-import { enUS } from 'date-fns/locale';
+import { enUS, pl, ru } from 'date-fns/locale';
 import { Loader, Plus, AlertTriangle } from 'lucide-react';
 import { ScheduleInterviewModal } from '@/features/candidates/components/schedule-interview-modal';
 import { InterviewSidePanel } from './interview-side-panel';
@@ -11,9 +11,13 @@ import { CreateEventModal } from './create-event-modal';
 import { useAuth } from '@/features/auth/context/auth-context';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './calendar-custom.css';
+import { useLocale } from 'next-intl';
+import type { AppLocale } from '@/i18n/config';
 
 const locales = {
-  'en-US': enUS,
+  en: enUS,
+  pl,
+  ru,
 };
 
 const localizer = dateFnsLocalizer({
@@ -78,6 +82,7 @@ interface CalendarEvent {
 }
 
 export function CalendarInterviews() {
+  const locale = useLocale() as AppLocale;
   const { user } = useAuth();
   const isRecruiter = user?.role === 'RECRUITER';
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -441,6 +446,7 @@ export function CalendarInterviews() {
             <div className="lg:col-span-3 bg-white rounded-lg border border-neutral-200 p-6">
               <Calendar
                 localizer={localizer}
+                culture={locale}
                 events={events}
                 startAccessor="start"
                 endAccessor="end"

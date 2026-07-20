@@ -3,12 +3,14 @@
 import { motion, Variants } from "framer-motion";
 import { Building2, Users } from "lucide-react";
 import type { UserRole } from "@/types/auth";
+import { useTranslations } from 'next-intl';
 
 interface RoleSelectionProps {
   onSelect: (role: UserRole) => void;
 }
 
 export function RoleSelection({ onSelect }: RoleSelectionProps) {
+  const t = useTranslations('auth');
   const itemVariants: Variants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: {
@@ -35,7 +37,7 @@ export function RoleSelection({ onSelect }: RoleSelectionProps) {
         variants={itemVariants}
         className="text-2xl font-bold text-neutral-900 text-center mb-6"
       >
-        Who are you?
+        {t('who')}
       </motion.h2>
 
       <motion.button
@@ -50,9 +52,9 @@ export function RoleSelection({ onSelect }: RoleSelectionProps) {
             <Users size={24} className="text-primary-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-neutral-900 mb-1">Job Seeker</h3>
+            <h3 className="font-semibold text-neutral-900 mb-1">{t('seeker')}</h3>
             <p className="text-sm text-neutral-600">
-              Looking for new opportunities
+              {t('seekerDescription')}
             </p>
           </div>
         </div>
@@ -70,8 +72,8 @@ export function RoleSelection({ onSelect }: RoleSelectionProps) {
             <Building2 size={24} className="text-primary-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-neutral-900 mb-1">Recruiter</h3>
-            <p className="text-sm text-neutral-600">Hiring great talent</p>
+            <h3 className="font-semibold text-neutral-900 mb-1">{t('recruiter')}</h3>
+            <p className="text-sm text-neutral-600">{t('recruiterDescription')}</p>
           </div>
         </div>
       </motion.button>

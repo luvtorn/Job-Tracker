@@ -6,6 +6,7 @@ import { Archive, CheckCircle2, Loader, RotateCcw, Search, Trash2, Edit2, XCircl
 import Link from 'next/link';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/toast';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface Vacancy {
   id: string;
@@ -40,6 +41,8 @@ export function VacanciesList() {
   const [pendingAction, setPendingAction] = useState<VacancyAction | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const { showToast } = useToast();
+  const t = useTranslations('vacancies');
+  const locale = useLocale();
 
   useEffect(() => {
     const loadVacancies = async () => {
@@ -55,14 +58,14 @@ export function VacanciesList() {
         setVacancies(data.vacancies || []);
       } catch (err) {
         console.error('Failed to fetch vacancies:', err);
-        setError('Failed to load vacancies');
+        setError(t('loadFailed'));
       } finally {
         setIsLoading(false);
       }
     };
 
     void loadVacancies();
-  }, [scope, status, search, sortBy, sortDirection]);
+  }, [scope, status, search, sortBy, sortDirection, t]);
 
   const executeDelete = async (vacancyId: string) => {
     try {
@@ -75,11 +78,11 @@ export function VacanciesList() {
       }
 
       setVacancies((currentVacancies) => currentVacancies.filter((vacancy) => vacancy.id !== vacancyId));
-      showToast('Vacancy deleted successfully.', 'success');
+      showToast(t('deleted'), 'success');
       setPendingAction(null);
     } catch (err) {
       console.error('Failed to delete vacancy:', err);
-      showToast('Failed to delete vacancy.', 'error');
+      showToast(t('deleteFailed'), 'error');
     }
   };
 
@@ -95,11 +98,11 @@ export function VacanciesList() {
       setVacancies((currentVacancies) => currentVacancies.map((vacancy) => (
         vacancy.id === data.vacancy.id ? { ...vacancy, ...data.vacancy } : vacancy
       )));
-      showToast('Vacancy status updated successfully.', 'success');
+      showToast(t('updated'), 'success');
       setPendingAction(null);
     } catch (statusError) {
       console.error('Failed to update vacancy status:', statusError);
-      showToast('Failed to update vacancy status.', 'error');
+      showToast(t('updateFailed'), 'error');
     }
   };
 
@@ -156,14 +159,14 @@ export function VacanciesList() {
         <div className="flex flex-wrap gap-2 border-b border-neutral-100 pb-4">
           {(['active', 'archived'] as const).map((nextScope) => (
             <button key={nextScope} onClick={() => { setScope(nextScope); setStatus('ALL'); }} className={`rounded-lg px-3 py-2 text-sm font-medium ${scope === nextScope ? 'bg-primary-600 text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}>
-              {nextScope === 'active' ? 'Active' : 'Archived'}
+              {t(nextScope)}
             </button>
           ))}
         </div>
         <div className="flex flex-col gap-3 md:flex-row">
-          <label className="relative flex-1"><Search size={18} className="absolute left-3 top-2.5 text-neutral-400" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title or company" className="w-full rounded-lg border border-neutral-200 py-2 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" /></label>
+          <label className="relative flex-1"><Search size={18} className="absolute left-3 top-2.5 text-neutral-400" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('search')} className="w-full rounded-lg border border-neutral-200 py-2 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" /></label>
           <select value={status} onChange={(event) => setStatus(event.target.value as StatusFilter)} className="rounded-lg border border-neutral-200 px-3 py-2 text-sm">
-            <option value="ALL">All statuses</option><option value="PUBLISHED">Published</option><option value="CLOSED">Closed</option><option value="ARCHIVED">Archived</option>
+            <option value="ALL">{t('allStatuses')}</option><option value="PUBLISHED">{t('published')}</option><option value="CLOSED">{t('closed')}</option><option value="ARCHIVED">{t('archived')}</option>
           </select>
           <select value={`${sortBy}:${sortDirection}`} onChange={(event) => { const [nextSortBy, nextSortDirection] = event.target.value.split(':') as ['createdAt' | 'publishedAt', 'asc' | 'desc']; setSortBy(nextSortBy); setSortDirection(nextSortDirection); }} className="rounded-lg border border-neutral-200 px-3 py-2 text-sm">
             <option value="createdAt:desc">Newest created</option><option value="createdAt:asc">Oldest created</option><option value="publishedAt:desc">Newest published</option><option value="publishedAt:asc">Oldest published</option>
@@ -174,8 +177,8 @@ export function VacanciesList() {
       {vacancies.length === 0 ? (
         <div className="rounded-lg border border-dashed border-neutral-300 bg-white p-8 text-center text-neutral-600">
           {search || status !== 'ALL' || scope === 'archived'
-            ? 'No vacancies match these filters.'
-            : 'No vacancies yet. Create your first vacancy to get started.'}
+            ? t('noMatch')
+            : t('empty')}
         </div>
       ) : vacancies.map((vacancy) => (
         <div
@@ -242,7 +245,7 @@ export function VacanciesList() {
           </div>
 
           <div className="text-xs text-neutral-500">
-            Created {new Date(vacancy.createdAt).toLocaleDateString()}
+            {t('created', { date: new Date(vacancy.createdAt).toLocaleDateString(locale) })}
           </div>
         </div>
       ))}

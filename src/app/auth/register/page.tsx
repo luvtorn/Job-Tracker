@@ -6,12 +6,15 @@ import { RoleSelection } from '@/features/auth/components/role-selection';
 import { RegisterForm, type RegisterFormData } from '@/features/auth/components/register-form';
 import { AuthLogo } from '@/features/auth/components/auth-logo';
 import type { UserRole } from '@/types/auth';
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 export default function RegisterPage() {
   const [step, setStep] = useState<'role' | 'form'>('role');
   const [role, setRole] = useState<UserRole>('SEEKER');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const t = useTranslations('auth');
 
   const handleRoleSelect = (selectedRole: UserRole) => {
     setRole(selectedRole);
@@ -22,12 +25,12 @@ export default function RegisterPage() {
     setError('');
 
     if (data.password !== data.confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('passwordsMismatch'));
       return;
     }
 
     if (data.password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('atLeastEight'));
       return;
     }
 
@@ -50,23 +53,23 @@ export default function RegisterPage() {
         const contentType = response.headers.get('content-type');
         if (contentType?.includes('application/json')) {
           const responseData = await response.json();
-          setError(responseData.message || 'Registration failed');
+          setError(responseData.message || t('registrationFailed'));
         } else {
-          setError('Registration failed. Please try again.');
+          setError(t('registrationRetry'));
         }
         return;
       }
 
       window.location.href = '/dashboard';
-    } catch (err) {
-      setError('Something went wrong. Please try again.');
+    } catch {
+      setError(t('unexpected'));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50 to-neutral-50 flex items-center justify-center px-4">
+    <div className="relative min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50 to-neutral-50 flex items-center justify-center px-4"><div className="absolute right-4 top-4"><LanguageSwitcher /></div>
       <div className="w-full max-w-md">
         <AuthLogo />
 
@@ -83,9 +86,9 @@ export default function RegisterPage() {
             />
 
             <p className="text-center text-sm text-neutral-600 mt-6">
-              Already have an account?{' '}
+              {t('alreadyAccount')}{' '}
               <Link href="/auth/login" className="text-primary-600 hover:text-primary-700 font-medium">
-                Sign in
+                {t('signIn')}
               </Link>
             </p>
           </>

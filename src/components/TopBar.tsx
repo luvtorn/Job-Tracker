@@ -8,6 +8,8 @@ import { useAuth } from '@/features/auth/context/auth-context';
 import { useNotifications } from '@/hooks/use-notifications';
 import { NotificationsDropdown } from '@/features/notifications/components/notifications-dropdown';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 export function TopBar() {
   const [profileOpen, setProfileOpen] = useState(false);
@@ -17,6 +19,7 @@ export function TopBar() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const { unreadCount } = useNotifications();
+  const t = useTranslations();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -57,21 +60,22 @@ export function TopBar() {
             <Search className="absolute left-3 top-3 text-neutral-400" size={18} />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={t('common.search')}
               className="w-full pl-10 pr-4 py-2 bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
             />
           </div>
         </div>
 
         {/* Right section */}
-        <div className="flex items-center gap-6 ml-auto">
+        <div className="flex items-center gap-3 sm:gap-6 ml-auto">
+          <LanguageSwitcher />
           {/* Notifications */}
           <div className="relative" ref={notificationsRef}>
             <button
               onClick={() => setNotificationsOpen(!notificationsOpen)}
               className="p-2 hover:bg-neutral-100 rounded-lg transition-colors relative"
             >
-              <Bell size={20} className="text-neutral-600" />
+              <Bell size={20} className="text-neutral-600" aria-label={t('topbar.notifications')} />
               {unreadCount > 0 && (
                 <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                   {unreadCount > 9 ? '9+' : unreadCount}
@@ -90,7 +94,7 @@ export function TopBar() {
               {user?.avatarUrl ? (
                 <Image
                   src={user.avatarUrl}
-                  alt="Avatar"
+                  alt={t('topbar.avatar')}
                   width={32}
                   height={32}
                   className="w-8 h-8 rounded-full object-cover"
@@ -112,14 +116,14 @@ export function TopBar() {
                   className="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
                   onClick={() => setProfileOpen(false)}
                 >
-                  Profile Settings
+                  {t('topbar.profileSettings')}
                 </Link>
                 <Link
                   href="/settings"
                   className="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
                   onClick={() => setProfileOpen(false)}
                 >
-                  Settings
+                  {t('topbar.settings')}
                 </Link>
                 <div className="border-t border-neutral-200 my-1" />
                 <button
@@ -127,7 +131,7 @@ export function TopBar() {
                   className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
                 >
                   <LogOut size={16} />
-                  Logout
+                  {t('topbar.logout')}
                 </button>
               </div>
             )}

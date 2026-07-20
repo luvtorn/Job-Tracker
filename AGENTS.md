@@ -351,6 +351,14 @@ Empty states.
 
 Error states.
 
+## Localization
+
+- Every new or changed user-facing interface must be implemented in all supported languages at the same time: English (`en`), Polish (`pl`), and Russian (`ru`).
+- Never hardcode new user-facing text in React components. Add typed translation keys to all locale dictionaries and render them through the project i18n layer.
+- Keep all locale dictionaries structurally complete; a feature is not finished while any supported language is missing its translations.
+- Localize labels, validation messages, dialogs, toasts, loading/error/empty states, dates, times, numbers, and accessibility text.
+- Never translate user-created content such as vacancy titles, descriptions, requirements, company names, notes, contacts, or document contents.
+
 ---
 
 # Performance

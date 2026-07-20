@@ -4,11 +4,17 @@ import { X, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useNotifications } from '@/hooks/use-notifications';
 import { formatDistanceToNow } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { enUS, pl, ru } from 'date-fns/locale';
+import { useLocale, useTranslations } from 'next-intl';
+import type { AppLocale } from '@/i18n/config';
+
+const dateLocales = { en: enUS, pl, ru };
 
 export function NotificationsDropdown({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { notifications, markAsRead, deleteNotification, markAllAsRead } = useNotifications();
   const unreadNotifications = notifications.filter((n) => !n.isRead);
+  const locale = useLocale() as AppLocale;
+  const t = useTranslations('notifications');
 
   if (!isOpen) return null;
 
@@ -20,13 +26,13 @@ export function NotificationsDropdown({ isOpen, onClose }: { isOpen: boolean; on
       />
       <div className="absolute right-0 mt-2 w-96 bg-white border border-neutral-200 rounded-lg shadow-xl z-40">
         <div className="p-4 border-b border-neutral-200 flex items-center justify-between">
-          <h3 className="font-semibold text-neutral-900">Notifications</h3>
+          <h3 className="font-semibold text-neutral-900">{t('title')}</h3>
           {unreadNotifications.length > 0 && (
             <button
               onClick={() => markAllAsRead()}
               className="text-xs text-primary-600 hover:text-primary-700 font-medium"
             >
-              Mark all as read
+              {t('markAll')}
             </button>
           )}
         </div>
@@ -34,7 +40,7 @@ export function NotificationsDropdown({ isOpen, onClose }: { isOpen: boolean; on
         <div className="max-h-96 overflow-y-auto">
           {notifications.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-sm text-neutral-500">No notifications yet</p>
+              <p className="text-sm text-neutral-500">{t('emptyYet')}</p>
             </div>
           ) : (
             notifications.slice(0, 8).map((notification) => (
@@ -56,7 +62,7 @@ export function NotificationsDropdown({ isOpen, onClose }: { isOpen: boolean; on
                       <p className="text-xs text-neutral-500 mt-2">
                         {formatDistanceToNow(new Date(notification.createdAt), {
                           addSuffix: true,
-                          locale: ru,
+                          locale: dateLocales[locale],
                         })}
                       </p>
                     </div>
@@ -64,7 +70,7 @@ export function NotificationsDropdown({ isOpen, onClose }: { isOpen: boolean; on
                       <button
                         onClick={() => markAsRead(notification.id)}
                         className="flex-shrink-0 p-1 hover:bg-white rounded transition-colors"
-                        title="Mark as read"
+                        title={t('markRead')}
                       >
                         <Check size={16} className="text-primary-600" />
                       </button>
@@ -74,7 +80,7 @@ export function NotificationsDropdown({ isOpen, onClose }: { isOpen: boolean; on
                 <button
                   onClick={() => deleteNotification(notification.id)}
                   className="flex-shrink-0 p-1 hover:bg-red-50 rounded transition-colors"
-                  title="Delete"
+                  title={t('delete')}
                 >
                   <X size={16} className="text-neutral-400 hover:text-red-500" />
                 </button>
@@ -90,7 +96,7 @@ export function NotificationsDropdown({ isOpen, onClose }: { isOpen: boolean; on
               onClick={onClose}
               className="text-sm text-primary-600 hover:text-primary-700 font-medium"
             >
-              View all notifications
+              {t('viewAll')}
             </Link>
           </div>
         )}

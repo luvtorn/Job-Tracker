@@ -4,6 +4,7 @@ import { motion, Variants } from "framer-motion";
 import { Mail, Lock, Check, X } from "lucide-react";
 import { useState } from "react";
 import type { UserRole } from "@/types/auth";
+import { useTranslations } from 'next-intl';
 
 interface RegisterFormProps {
   role: UserRole;
@@ -22,15 +23,15 @@ export interface RegisterFormData {
 }
 
 interface PasswordRequirement {
-  label: string;
+  label: 'atLeastEight' | 'uppercase' | 'lowercase' | 'number';
   test: (password: string) => boolean;
 }
 
 const PASSWORD_REQUIREMENTS: PasswordRequirement[] = [
-  { label: "At least 8 characters", test: (p) => p.length >= 8 },
-  { label: "One uppercase letter", test: (p) => /[A-Z]/.test(p) },
-  { label: "One lowercase letter", test: (p) => /[a-z]/.test(p) },
-  { label: "One number", test: (p) => /[0-9]/.test(p) },
+  { label: "atLeastEight", test: (p) => p.length >= 8 },
+  { label: "uppercase", test: (p) => /[A-Z]/.test(p) },
+  { label: "lowercase", test: (p) => /[a-z]/.test(p) },
+  { label: "number", test: (p) => /[0-9]/.test(p) },
 ];
 
 function PasswordRequirementItem({
@@ -40,6 +41,7 @@ function PasswordRequirementItem({
   requirement: PasswordRequirement;
   password: string;
 }) {
+  const t = useTranslations('auth');
   const isMet = requirement.test(password);
 
   return (
@@ -50,7 +52,7 @@ function PasswordRequirementItem({
         <X size={16} className="text-neutral-300" />
       )}
       <span className={isMet ? "text-green-600" : "text-neutral-600"}>
-        {requirement.label}
+        {t(requirement.label)}
       </span>
     </div>
   );
@@ -75,6 +77,7 @@ export function RegisterForm({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [formError, setFormError] = useState("");
+  const t = useTranslations('auth');
 
   const allRequirementsMet = PASSWORD_REQUIREMENTS.every((req) =>
     req.test(password),
@@ -92,17 +95,17 @@ export function RegisterForm({
     const email = formData.get("email") as string;
 
     if (!firstName.trim() || !lastName.trim()) {
-      setFormError("Please fill in all fields");
+      setFormError(t('fillFields'));
       return;
     }
 
     if (!allRequirementsMet) {
-      setFormError("Password does not meet requirements");
+      setFormError(t('passwordRequirements'));
       return;
     }
 
     if (!passwordsMatch) {
-      setFormError("Passwords do not match");
+      setFormError(t('passwordsMismatch'));
       return;
     }
 
@@ -133,25 +136,25 @@ export function RegisterForm({
         onClick={onBack}
         className="text-primary-600 hover:text-primary-700 text-sm font-medium mb-4 inline-flex items-center gap-1"
       >
-        ← Back
+        ← {t('back')}
       </motion.button>
 
       <motion.h2
         variants={itemVariants}
         className="text-2xl font-bold text-neutral-900 mb-2"
       >
-        Create your account
+        {t('createYourAccount')}
       </motion.h2>
 
       <motion.p variants={itemVariants} className="text-neutral-600 mb-6">
-        As a {role === "SEEKER" ? "Job Seeker" : "Recruiter"}
+        {t('asRole', { role: role === 'SEEKER' ? t('seeker') : t('recruiter') })}
       </motion.p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <motion.div variants={itemVariants}>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
-              First name
+              {t('firstName')}
             </label>
             <input
               type="text"
@@ -164,7 +167,7 @@ export function RegisterForm({
 
           <motion.div variants={itemVariants}>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Last name
+              {t('lastName')}
             </label>
             <input
               type="text"
@@ -178,7 +181,7 @@ export function RegisterForm({
 
         <motion.div variants={itemVariants}>
           <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Email
+            {t('email')}
           </label>
           <div className="relative">
             <Mail
@@ -197,7 +200,7 @@ export function RegisterForm({
 
         <motion.div variants={itemVariants}>
           <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Password
+            {t('password')}
           </label>
           <div className="relative">
             <Lock
@@ -234,7 +237,7 @@ export function RegisterForm({
 
         <motion.div variants={itemVariants}>
           <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Confirm password
+            {t('confirmPassword')}
           </label>
           <div className="relative">
             <Lock
@@ -261,12 +264,12 @@ export function RegisterForm({
               {passwordsMatch ? (
                 <>
                   <Check size={16} className="text-green-600" />
-                  <span className="text-green-600">Passwords match</span>
+                  <span className="text-green-600">{t('passwordsMatch')}</span>
                 </>
               ) : (
                 <>
                   <X size={16} className="text-red-600" />
-                  <span className="text-red-600">Passwords do not match</span>
+                  <span className="text-red-600">{t('passwordsMismatch')}</span>
                 </>
               )}
             </motion.div>
@@ -297,7 +300,7 @@ export function RegisterForm({
               className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
             />
           ) : (
-            <span className="text-white">Create account</span>
+            <span className="text-white">{t('register')}</span>
           )}
         </motion.button>
       </form>

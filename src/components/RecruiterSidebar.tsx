@@ -13,50 +13,54 @@ import {
   User,
   Clock,
 } from "lucide-react";
+import { useTranslations } from 'next-intl';
+
+type NavigationKey = 'dashboard' | 'vacancies' | 'candidates' | 'calendar' | 'statistics' | 'profile' | 'settings';
+type SectionKey = 'management' | 'analytics' | 'settings';
 
 interface NavItem {
-  label: string;
+  label: NavigationKey;
   href: string;
   icon: React.ReactNode;
-  section?: string;
+  section?: SectionKey;
 }
 
 const navItems: NavItem[] = [
   {
-    label: "Dashboard",
+    label: "dashboard",
     href: "/dashboard",
     icon: <LayoutDashboard size={20} />,
   },
   {
-    label: "Vacancies",
+    label: "vacancies",
     href: "/vacancies",
     icon: <Briefcase size={20} />,
-    section: "MANAGEMENT",
+    section: "management",
   },
   {
-    label: "Candidates",
+    label: "candidates",
     href: "/candidates",
     icon: <Users size={20} />,
   },
   {
-    label: "Calendar",
+    label: "calendar",
     href: "/calendar",
     icon: <Clock size={20} />,
   },
   {
-    label: "Statistics",
+    label: "statistics",
     href: "/statistics",
     icon: <BarChart3 size={20} />,
-    section: "ANALYTICS",
+    section: "analytics",
   },
   {
-    label: "Profile",
+    label: "profile",
     href: "/profile",
     icon: <User size={20} />,
-    section: "SETTINGS",
+    section: "settings",
   },
   {
-    label: "Settings",
+    label: "settings",
     href: "/settings",
     icon: <Settings size={20} />,
   },
@@ -70,6 +74,7 @@ export function RecruiterSidebar({
   onClose: () => void;
 }) {
   const pathname = usePathname();
+  const t = useTranslations('navigation');
 
   const getSections = () => {
     const sections: { [key: string]: NavItem[] } = {};
@@ -129,7 +134,7 @@ export function RecruiterSidebar({
               <div key={section}>
                 {section !== "main" && (
                   <h3 className="px-2 mb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">
-                    {section}
+                    {t(section as SectionKey)}
                   </h3>
                 )}
                 <div className="space-y-1">
@@ -157,7 +162,7 @@ export function RecruiterSidebar({
                           {item.icon}
                         </div>
                         <span className="text-sm font-medium">
-                          {item.label}
+                          {t(item.label)}
                         </span>
                       </Link>
                     );

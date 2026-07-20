@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, Loader2, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 type ConfirmationDialogProps = {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export function ConfirmationDialog({
   onConfirm,
   onClose,
 }: ConfirmationDialogProps) {
+  const t = useTranslations('common');
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -79,13 +81,13 @@ export function ConfirmationDialog({
                 <h2 id="confirmation-dialog-title" className="text-lg font-bold text-neutral-900">{title}</h2>
                 <p id="confirmation-dialog-description" className="mt-1 text-sm leading-6 text-neutral-600">{description}</p>
               </div>
-              <button type="button" onClick={close} disabled={isLoading} aria-label="Close dialog" className="rounded-lg p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50">
+              <button type="button" onClick={close} disabled={isLoading} aria-label={t('close')} className="rounded-lg p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50">
                 <X size={20} />
               </button>
             </div>
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button type="button" onClick={close} disabled={isLoading} className="rounded-lg border border-neutral-200 px-4 py-2.5 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50">
-                Cancel
+                {t('cancel')}
               </button>
               <button ref={confirmButtonRef} type="button" onClick={onConfirm} disabled={isLoading} className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variant === 'destructive' ? 'bg-red-600 hover:bg-red-700' : 'bg-primary-600 hover:bg-primary-700'}`}>
                 {isLoading && <Loader2 size={16} className="animate-spin" />}

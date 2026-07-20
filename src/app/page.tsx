@@ -6,10 +6,13 @@ import Link from 'next/link';
 import { Menu, X, Briefcase, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 export default function Home() {
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const t = useTranslations('public');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-primary-50">
@@ -26,18 +29,18 @@ export default function Home() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             <Link href="/jobs" className="text-neutral-600 hover:text-primary-600 font-medium transition-colors">
-              Browse Jobs
+              {t('browseJobs')}
             </Link>
           </nav>
 
           {/* Auth Buttons */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3"><LanguageSwitcher />
             {user ? (
               <Link
                 href="/dashboard"
                 className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
               >
-                Dashboard
+                {t('dashboard')}
               </Link>
             ) : (
               <>
@@ -45,13 +48,13 @@ export default function Home() {
                   href="/auth/login"
                   className="px-6 py-2.5 text-primary-600 border-2 border-primary-600 rounded-lg font-medium hover:bg-primary-50 transition-colors"
                 >
-                  Sign In
+                  {t('signIn')}
                 </Link>
                 <Link
                   href="/auth/register"
                   className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
                 >
-                  Sign Up
+                  {t('signUp')}
                 </Link>
               </>
             )}
@@ -83,7 +86,7 @@ export default function Home() {
               className="block text-neutral-600 hover:text-primary-600 font-medium"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Browse Jobs
+              {t('browseJobs')}
             </Link>
             {user ? (
               <Link
@@ -91,7 +94,7 @@ export default function Home() {
                 className="block px-6 py-2.5 bg-primary-600 text-white rounded-lg font-medium text-center hover:bg-primary-700 transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Dashboard
+                {t('dashboard')}
               </Link>
             ) : (
               <>
@@ -100,14 +103,14 @@ export default function Home() {
                   className="block px-6 py-2.5 text-primary-600 border-2 border-primary-600 rounded-lg font-medium text-center hover:bg-primary-50 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Sign In
+                  {t('signIn')}
                 </Link>
                 <Link
                   href="/auth/register"
                   className="block px-6 py-2.5 bg-primary-600 text-white rounded-lg font-medium text-center hover:bg-primary-700 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Sign Up
+                  {t('signUp')}
                 </Link>
               </>
             )}

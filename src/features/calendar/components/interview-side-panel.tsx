@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { X, Mail, Calendar, Clock, Edit2, Trash2 } from 'lucide-react';
 import Image from 'next/image';
+import { useLocale } from 'next-intl';
 
 interface Interview {
   id: string;
@@ -37,18 +38,18 @@ export function InterviewSidePanel({
   isLoading,
   isRecruiter,
 }: InterviewSidePanelProps) {
+  const locale = useLocale();
   if (!isOpen || !interview) return null;
 
   const interviewDateTime = new Date(`${interview.interviewDate}T${interview.interviewTime}`);
-  const formattedDate = interviewDateTime.toLocaleDateString('en-US', {
+  const formattedDate = interviewDateTime.toLocaleDateString(locale, {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
   });
-  const formattedTime = interviewDateTime.toLocaleTimeString('en-US', {
+  const formattedTime = interviewDateTime.toLocaleTimeString(locale, {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true,
   });
 
   return (

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader, Search, MapPin, DollarSign } from "lucide-react";
 import Link from "next/link";
+import { useLocale, useTranslations } from 'next-intl';
 
 interface Vacancy {
   id: string;
@@ -35,6 +36,8 @@ export function JobsList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const t = useTranslations('jobs');
+  const locale = useLocale();
 
   useEffect(() => {
     const loadVacancies = async () => {
@@ -56,14 +59,14 @@ export function JobsList() {
         setPagination(data.pagination);
       } catch (err) {
         console.error("Failed to fetch vacancies:", err);
-        setError("Failed to load job vacancies");
+        setError(t('loadFailed'));
       } finally {
         setIsLoading(false);
       }
     };
 
     void loadVacancies();
-  }, [searchQuery, locationFilter, currentPage]);
+  }, [searchQuery, locationFilter, currentPage, t]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +105,7 @@ export function JobsList() {
             />
             <input
               type="text"
-              placeholder="Search jobs..."
+              placeholder={t('search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -116,7 +119,7 @@ export function JobsList() {
             />
             <input
               type="text"
-              placeholder="Filter by location..."
+              placeholder={t('location')}
               value={locationFilter}
               onChange={(e) => setLocationFilter(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -127,7 +130,7 @@ export function JobsList() {
             type="submit"
             className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
           >
-            Search
+            {t('searchButton')}
           </button>
         </div>
       </form>
@@ -136,7 +139,7 @@ export function JobsList() {
       {vacancies.length === 0 ? (
         <div className="bg-white rounded-lg border border-neutral-200 p-8 text-center">
           <p className="text-neutral-600">
-            No job vacancies found. Try adjusting your search filters.
+            {t('empty')}
           </p>
         </div>
       ) : (
@@ -169,8 +172,8 @@ export function JobsList() {
                 {vacancy.salaryMin && (
                   <div className="flex items-center gap-1">
                     <DollarSign size={16} />
-                    {vacancy.salaryMin.toLocaleString()} -{" "}
-                    {vacancy.salaryMax?.toLocaleString() || "N/A"}{" "}
+                    {vacancy.salaryMin.toLocaleString(locale)} -{" "}
+                    {vacancy.salaryMax?.toLocaleString(locale) || t('notAvailable')}{" "}
                     {vacancy.currency}
                   </div>
                 )}
@@ -183,10 +186,7 @@ export function JobsList() {
               </div>
 
               <div className="text-xs text-neutral-500 mt-3">
-                Posted{" "}
-                {new Date(
-                  vacancy.publishedAt || vacancy.createdAt,
-                ).toLocaleDateString()}
+                {t('posted', { date: new Date(vacancy.publishedAt || vacancy.createdAt).toLocaleDateString(locale) })}
               </div>
             </Link>
           ))}
@@ -201,7 +201,7 @@ export function JobsList() {
             disabled={currentPage === 1}
             className="px-4 py-2 border border-neutral-200 rounded-lg hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Previous
+            {t('previous')}
           </button>
 
           {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(
@@ -227,7 +227,7 @@ export function JobsList() {
             disabled={currentPage === pagination.totalPages}
             className="px-4 py-2 border border-neutral-200 rounded-lg hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Next
+            {t('next')}
           </button>
         </div>
       )}

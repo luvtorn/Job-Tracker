@@ -6,6 +6,7 @@ import { RecruiterSidebar } from "@/components/RecruiterSidebar";
 import { MobileHeader } from "@/components/MobileHeader";
 import { useState } from "react";
 import { redirect } from "next/navigation";
+import { useTranslations } from 'next-intl';
 
 export default function ProtectedLayout({
   children,
@@ -13,6 +14,7 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const { user, isLoading } = useAuth();
+  const t = useTranslations('common');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (isLoading) {
@@ -20,7 +22,7 @@ export default function ProtectedLayout({
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
-          <p className="mt-4 text-neutral-600">Loading...</p>
+          <p className="mt-4 text-neutral-600">{t('loading')}</p>
         </div>
       </div>
     );
