@@ -12,6 +12,8 @@ export const createVacancySchema = z.object({
   currency: z.string().default('USD'),
 });
 
+export const updateVacancySchema = createVacancySchema;
+
 export const scheduleInterviewSchema = z.object({
   interviewDate: z.string().refine(
     (date) => new Date(date) > new Date(),
@@ -23,9 +25,17 @@ export const scheduleInterviewSchema = z.object({
 
 export const updateVacancyStatusSchema = z.object({
   status: z.enum(['PUBLISHED', 'CLOSED', 'ARCHIVED']),
-  expiresAt: z.string().optional().nullable(),
+});
+
+export const vacanciesQuerySchema = z.object({
+  scope: z.enum(['active', 'archived', 'all']).default('active'),
+  status: z.enum(['PUBLISHED', 'CLOSED', 'ARCHIVED']).optional(),
+  search: z.string().trim().max(100).optional(),
+  sortBy: z.enum(['createdAt', 'publishedAt']).default('createdAt'),
+  sortDirection: z.enum(['asc', 'desc']).default('desc'),
 });
 
 export type CreateVacancyInput = z.infer<typeof createVacancySchema>;
+export type UpdateVacancyInput = z.infer<typeof updateVacancySchema>;
 export type ScheduleInterviewInput = z.infer<typeof scheduleInterviewSchema>;
 export type UpdateVacancyStatusInput = z.infer<typeof updateVacancyStatusSchema>;

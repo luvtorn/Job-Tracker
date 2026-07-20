@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/server/middleware/auth";
 import { vacancyService } from "@/server/services/vacancy-service";
 import { updateVacancyStatusSchema } from "@/server/validators/vacancy-validator";
+import { handleApiError } from "@/server/errors/application-error";
 
 export async function PATCH(
   request: NextRequest,
@@ -24,15 +25,7 @@ export async function PATCH(
       );
     }
 
-    const body = await request.json();
-    const validated = updateVacancyStatusSchema.safeParse(body);
-
-    if (!validated.success) {
-      return NextResponse.json(
-        { success: false, message: "Invalid input" },
-        { status: 400 }
-      );
-    }
+    const validated = updateVacancyStatusSchema.parse(await request.json());
 
     const vacancy = await vacancyService.getVacancyById(id, user.id);
 
@@ -43,19 +36,7 @@ export async function PATCH(
       );
     }
 
-    let updated;
-
-    if (validated.data.status === "ARCHIVED") {
-      updated = await vacancyService.archiveVacancy(id);
-    } else if (validated.data.status === "CLOSED") {
-      updated = await vacancyService.closeVacancy(id);
-    } else if (validated.data.status === "PUBLISHED") {
-      if (vacancy.archivedAt) {
-        updated = await vacancyService.reactivateVacancy(id);
-      } else {
-        updated = vacancy;
-      }
-    }
+    const updated = await vacancyService.changeVacancyStatus(vacancy, validated.status);
 
     return NextResponse.json(
       {
@@ -66,10 +47,6 @@ export async function PATCH(
       { status: 200 }
     );
   } catch (error) {
-    console.error("Failed to update vacancy status:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return handleApiError(error, "Failed to update vacancy status");
   }
 }

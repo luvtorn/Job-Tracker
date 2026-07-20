@@ -23,21 +23,21 @@ export function UpcomingInterviews() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchInterviews();
-  }, []);
+    const loadInterviews = async () => {
+      try {
+        const response = await fetch('/api/applications?status=INTERVIEWING');
+        if (!response.ok) throw new Error('Failed to fetch interviews');
+        const data = await response.json();
+        setInterviews(data.applications.slice(0, 5));
+      } catch (error) {
+        console.error('Failed to fetch interviews:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const fetchInterviews = async () => {
-    try {
-      const response = await fetch('/api/applications?status=INTERVIEWING');
-      if (!response.ok) throw new Error('Failed to fetch interviews');
-      const data = await response.json();
-      setInterviews(data.applications.slice(0, 5));
-    } catch (error) {
-      console.error('Failed to fetch interviews:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    void loadInterviews();
+  }, []);
 
   if (isLoading) {
     return (

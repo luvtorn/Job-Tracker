@@ -1,36 +1,14 @@
 import { NextResponse } from "next/server";
-import { getUserByEmail } from "@/server/repositories/user-repository";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { verifyAuth } from "@/server/middleware/auth";
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
-
-    // Decode token (in production, use proper JWT verification)
-    const decoded = jwt.decode(token) as { email?: string } | null;
-
-    if (!decoded || !decoded.email) {
-      return NextResponse.json(
-        { success: false, message: "Invalid token" },
-        { status: 401 },
-      );
-    }
-
-    const user = await getUserByEmail(decoded.email);
+    const user = await verifyAuth();
 
     if (!user) {
       return NextResponse.json(
-        { success: false, message: "User not found" },
-        { status: 404 },
+        { success: false, message: "Unauthorized" },
+        { status: 401 },
       );
     }
 

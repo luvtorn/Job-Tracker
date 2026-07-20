@@ -1,10 +1,16 @@
-import { prisma } from "@/lib/prisma";
+import { vacancyRepository } from "@/server/repositories/vacancy-repository";
+import { VacancyStatus } from "@prisma/client";
 import { CreateVacancyInput } from "@/server/validators/vacancy-validator";
+import { conflict, notFound } from "@/server/errors/application-error";
+import {
+  assertVacancyStatusTransition,
+  getVacancyLifecycleUpdate,
+  ManagedVacancyStatus,
+} from "@/server/services/vacancy-lifecycle";
 
 export class VacancyService {
   async createVacancy(recruiterId: string, data: CreateVacancyInput) {
-    return prisma.vacancy.create({
-      data: {
+    return vacancyRepository.create(recruiterId, {
         title: data.title,
         description: data.description,
         requirements: data.requirements,
@@ -14,108 +20,65 @@ export class VacancyService {
         salaryMin: data.salaryMin,
         salaryMax: data.salaryMax,
         currency: data.currency,
-        recruiterId,
         publishedAt: new Date(),
         status: "PUBLISHED",
-      },
-      select: {
-        id: true,
-        title: true,
-        company: true,
-        location: true,
-        status: true,
-        createdAt: true,
-        publishedAt: true,
-      },
     });
   }
 
-  async getVacanciesByRecruiter(recruiterId: string) {
-    return prisma.vacancy.findMany({
-      where: { recruiterId },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        title: true,
-        company: true,
-        location: true,
-        salaryMin: true,
-        salaryMax: true,
-        currency: true,
-        status: true,
-        createdAt: true,
-        publishedAt: true,
-      },
-    });
+  async getVacanciesByRecruiter(
+    recruiterId: string,
+    filters: Parameters<typeof vacancyRepository.findByRecruiter>[1],
+  ) {
+    return vacancyRepository.findByRecruiter(recruiterId, filters);
   }
 
   async getVacancyById(vacancyId: string, recruiterId: string) {
-    return prisma.vacancy.findFirst({
-      where: {
-        id: vacancyId,
-        recruiterId,
-      },
-    });
+    return vacancyRepository.findOwnedById(vacancyId, recruiterId);
   }
 
   async updateVacancy(vacancyId: string, data: Partial<CreateVacancyInput>) {
-    return prisma.vacancy.update({
-      where: {
-        id: vacancyId,
-      },
-      data: {
-        ...data,
-      },
-    });
+    return vacancyRepository.update(vacancyId, data);
   }
 
   async deleteVacancy(vacancyId: string) {
-    return prisma.vacancy.delete({
-      where: {
-        id: vacancyId,
-      },
-    });
+    return vacancyRepository.delete(vacancyId);
   }
 
   async archiveVacancy(vacancyId: string) {
-    return prisma.vacancy.update({
-      where: { id: vacancyId },
-      data: { archivedAt: new Date() },
-    });
+    return vacancyRepository.update(vacancyId, getVacancyLifecycleUpdate("ARCHIVED"));
   }
 
   async reactivateVacancy(vacancyId: string) {
-    return prisma.vacancy.update({
-      where: { id: vacancyId },
-      data: {
-        archivedAt: null,
-        createdAt: new Date(),
-      },
-    });
+    return vacancyRepository.update(vacancyId, getVacancyLifecycleUpdate("PUBLISHED"));
   }
 
   async closeVacancy(vacancyId: string) {
-    return prisma.vacancy.update({
-      where: { id: vacancyId },
-      data: {
-        status: "CLOSED",
-        closedAt: new Date(),
-      },
-    });
+    return vacancyRepository.update(vacancyId, getVacancyLifecycleUpdate("CLOSED"));
   }
 
   async deleteExpiredVacancies() {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const deleted = await prisma.vacancy.deleteMany({
-      where: {
-        archivedAt: {
-          lt: sevenDaysAgo,
-        },
-      },
-    });
+    const deleted = await vacancyRepository.deleteArchivedBefore(sevenDaysAgo);
 
     return deleted.count;
+  }
+
+  async changeVacancyStatus(
+    vacancy: { id: string; status: VacancyStatus },
+    nextStatus: ManagedVacancyStatus,
+  ) {
+    if (vacancy.status === "DRAFT") {
+      throw conflict("Draft vacancies cannot be managed through this endpoint");
+    }
+    assertVacancyStatusTransition(vacancy.status, nextStatus);
+    return vacancyRepository.update(vacancy.id, getVacancyLifecycleUpdate(nextStatus));
+  }
+
+  async getCandidates(vacancyId: string, recruiterId: string) {
+    const vacancy = await vacancyRepository.findCandidates(vacancyId, recruiterId);
+    if (!vacancy) throw notFound("Vacancy not found");
+    return vacancy.applications;
   }
 }
 

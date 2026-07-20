@@ -6,6 +6,7 @@ import { UpcomingInterviews } from './upcoming-interviews';
 import { RecentActivity } from './recent-activity';
 import { QuickActions } from './quick-actions';
 import { QuickStats } from '../quick-stats';
+import { RemindersWorkspace } from '@/features/workspace/components/reminders-workspace';
 
 export function SeekerDashboard() {
   return (
@@ -39,6 +40,10 @@ export function SeekerDashboard() {
           <div>
             <h2 className="text-xl font-bold text-neutral-900 mb-4">Upcoming Interviews</h2>
             <UpcomingInterviews />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-neutral-900 mb-4">Due reminders</h2>
+            <RemindersWorkspace compact />
           </div>
         </div>
       </div>

@@ -8,9 +8,9 @@ export default function CalendarPage() {
 
       <main className="p-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-neutral-900">Interview Calendar</h1>
+          <h1 className="text-3xl font-bold text-neutral-900">Calendar</h1>
           <p className="text-neutral-600 mt-2">
-            Manage your interview schedule at a glance
+            Keep track of interviews and personal events
           </p>
         </div>
 

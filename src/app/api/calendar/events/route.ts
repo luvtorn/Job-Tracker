@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/server/middleware/auth";
 import { calendarEventService } from "@/server/services/calendar-event-service";
-import { createCalendarEventSchema } from "@/server/validators/calendar-validator";
+import { createCustomCalendarEventSchema } from "@/server/validators/calendar-validator";
+import { handleApiError } from "@/server/errors/application-error";
 
 export async function POST(request: NextRequest) {
   try {
     const user = await verifyAuth();
-    if (!user || user.role !== "RECRUITER") {
+    if (!user || (user.role !== "RECRUITER" && user.role !== "SEEKER")) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
         { status: 401 }
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const validated = createCalendarEventSchema.safeParse(body);
+    const validated = createCustomCalendarEventSchema.safeParse(body);
 
     if (!validated.success) {
       return NextResponse.json(
@@ -30,11 +31,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Failed to create calendar event:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return handleApiError(error, "Failed to create calendar event");
   }
 }
 
@@ -49,8 +46,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (user.role !== "RECRUITER") {
-      console.log("GET /api/calendar/events: User is not a recruiter", user.role);
+    if (user.role !== "RECRUITER" && user.role !== "SEEKER") {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
         { status: 401 }
@@ -62,7 +58,7 @@ export async function GET(request: NextRequest) {
     const year = parseInt(searchParams.get("year") || String(new Date().getFullYear()));
 
     console.log("GET /api/calendar/events: Fetching for user", user.id, "month:", month, "year:", year);
-    const events = await calendarEventService.getEventsForMonth(user.id, month, year);
+    const events = await calendarEventService.getEventsForMonth(user.id, user.role, month, year);
     console.log("GET /api/calendar/events: Got events:", events?.length || 0);
 
     return NextResponse.json(
@@ -70,14 +66,6 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Failed to fetch calendar events:", error);
-    if (error instanceof Error) {
-      console.error("Error message:", error.message);
-      console.error("Error stack:", error.stack);
-    }
-    return NextResponse.json(
-      { success: false, message: "Internal server error", error: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
-    );
+    return handleApiError(error, "Failed to fetch calendar events");
   }
 }

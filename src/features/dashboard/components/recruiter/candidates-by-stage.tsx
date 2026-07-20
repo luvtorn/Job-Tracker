@@ -23,14 +23,14 @@ interface CandidatesByStageProps {
 const stageColors: Record<string, string> = {
   APPLIED: '#3b82f6',
   INTERVIEWING: '#a855f7',
-  OFFERS: '#10b981',
+  OFFER: '#10b981',
   ACCEPTED: '#059669',
 };
 
 const stageLabels: Record<string, string> = {
   APPLIED: 'Applied',
   INTERVIEWING: 'Interviewing',
-  OFFERS: 'Offers',
+  OFFER: 'Offers',
   ACCEPTED: 'Accepted',
 };
 

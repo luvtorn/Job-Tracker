@@ -8,6 +8,7 @@ import { Loader, Plus, AlertTriangle } from 'lucide-react';
 import { ScheduleInterviewModal } from '@/features/candidates/components/schedule-interview-modal';
 import { InterviewSidePanel } from './interview-side-panel';
 import { CreateEventModal } from './create-event-modal';
+import { useAuth } from '@/features/auth/context/auth-context';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './calendar-custom.css';
 
@@ -34,6 +35,7 @@ interface Interview {
   interviewTime: string;
   interviewNotes?: string;
   status: string;
+  company?: string;
 }
 
 interface CalendarEventData {
@@ -48,6 +50,7 @@ interface CalendarEventData {
   reminder?: number;
   isCompleted: boolean;
   applicationId?: string;
+  isReminder?: boolean;
   application?: {
     id: string;
     status: string;
@@ -60,6 +63,7 @@ interface CalendarEventData {
     vacancy?: {
       id: string;
       title: string;
+      company?: string | null;
     };
   };
 }
@@ -74,6 +78,8 @@ interface CalendarEvent {
 }
 
 export function CalendarInterviews() {
+  const { user } = useAuth();
+  const isRecruiter = user?.role === 'RECRUITER';
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -96,7 +102,10 @@ export function CalendarInterviews() {
       const month = date.getMonth() + 1;
       const year = date.getFullYear();
 
-      const eventsRes = await fetch(`/api/calendar/events?month=${month}&year=${year}`);
+      const [eventsRes, remindersRes] = await Promise.all([
+        fetch(`/api/calendar/events?month=${month}&year=${year}`),
+        isRecruiter ? Promise.resolve(null) : fetch('/api/reminders'),
+      ]);
 
       if (!eventsRes.ok) {
         console.error('Events response:', eventsRes.status, eventsRes.statusText);
@@ -111,6 +120,14 @@ export function CalendarInterviews() {
 
       const eventsData = await eventsRes.json();
       const calendarEvents: CalendarEventData[] = eventsData.events || [];
+      if (remindersRes?.ok) {
+        const reminderData = await remindersRes.json();
+        for (const reminder of reminderData.reminders || []) {
+          const start = new Date(reminder.dueAt);
+          if (start.getMonth() + 1 !== month || start.getFullYear() !== year) continue;
+          calendarEvents.push({ id: reminder.id, title: reminder.title, description: reminder.application?.vacancy?.title, eventType: 'REMINDER', color: reminder.group === 'overdue' ? 'red' : reminder.completedAt ? 'gray' : 'yellow', startTime: reminder.dueAt, endTime: new Date(start.getTime() + 30 * 60 * 1000).toISOString(), isCompleted: Boolean(reminder.completedAt), isReminder: true });
+        }
+      }
 
       // Both interviews and custom events come from the same API
       // Calendar events include application data for interviews
@@ -130,6 +147,7 @@ export function CalendarInterviews() {
           interviewTime: new Date(event.startTime).toTimeString().slice(0, 5),
           interviewNotes: event.description || '',
           status: event.application?.status || 'INTERVIEWING',
+          company: event.application?.vacancy?.company || undefined,
         } : {} as Interview;
 
         return {
@@ -149,7 +167,7 @@ export function CalendarInterviews() {
     } finally {
       setIsLoading(false);
     }
-  }, [date]);
+  }, [date, isRecruiter]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Fetching is synchronized with the visible calendar month.
@@ -301,7 +319,9 @@ export function CalendarInterviews() {
     const event = props.event;
     const isInterview = event.type === 'interview';
     const title = isInterview
-      ? (event.resource as Interview).candidateName
+      ? (isRecruiter
+          ? (event.resource as Interview).candidateName
+          : (event.resource as Interview).vacancyTitle)
       : (event.resource as CalendarEventData).title;
     const interviewTime = isInterview
       ? (event.resource as Interview).interviewTime
@@ -451,6 +471,7 @@ export function CalendarInterviews() {
                     setDeletingInterviewId(selectedInterview.id);
                     setShowDeleteInterviewModal(true);
                   }}
+                  isRecruiter={isRecruiter}
                 />
               ) : selectedEvent ? (
                 <div className="bg-white rounded-lg border border-neutral-200 p-6 space-y-4">
@@ -478,7 +499,8 @@ export function CalendarInterviews() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleDeleteEvent(selectedEvent.id, selectedEvent.eventType)}
-                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                      disabled={selectedEvent.isReminder}
+                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:hidden"
                     >
                       Delete
                     </button>

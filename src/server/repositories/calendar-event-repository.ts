@@ -19,13 +19,28 @@ export const calendarEventRepository = {
     });
   },
 
-  async findByUserIdAndMonth(userId: string, month: number, year: number) {
+  async findByUserIdAndMonth(
+    userId: string,
+    role: "SEEKER" | "RECRUITER",
+    month: number,
+    year: number,
+  ) {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0, 23, 59, 59);
 
     return prisma.calendarEvent.findMany({
       where: {
-        userId,
+        ...(role === "SEEKER"
+          ? {
+              OR: [
+                { userId },
+                {
+                  eventType: "INTERVIEW" as const,
+                  application: { userId },
+                },
+              ],
+            }
+          : { userId }),
         startTime: {
           gte: startDate,
           lte: endDate,
@@ -48,6 +63,7 @@ export const calendarEventRepository = {
               select: {
                 id: true,
                 title: true,
+                company: true,
               },
             },
           },
@@ -85,6 +101,10 @@ export const calendarEventRepository = {
         },
       },
     });
+  },
+
+  async findOwnedById(eventId: string, userId: string) {
+    return prisma.calendarEvent.findFirst({ where: { id: eventId, userId } });
   },
 
   async updateById(eventId: string, userId: string, data: UpdateCalendarEventInput) {

@@ -1,0 +1,2 @@
+import { TopBar } from '@/components/TopBar'; import { ContactsWorkspace } from '@/features/workspace/components/contacts-workspace';
+export default function ContactsPage() { return <div><TopBar/><main className="p-6"><header className="mb-8"><h1 className="text-3xl font-bold text-neutral-900">Contacts</h1><p className="mt-2 text-neutral-600">Keep your professional network close to each opportunity.</p></header><ContactsWorkspace/></main></div>; }

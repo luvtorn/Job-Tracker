@@ -37,36 +37,33 @@ export function JobsList() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetchVacancies();
-  }, [searchQuery, locationFilter, currentPage]);
+    const loadVacancies = async () => {
+      try {
+        setIsLoading(true);
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: "10",
+        });
 
-  const fetchVacancies = async () => {
-    try {
-      setIsLoading(true);
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: "10",
-      });
+        if (searchQuery) params.append("search", searchQuery);
+        if (locationFilter) params.append("location", locationFilter);
 
-      if (searchQuery) params.append("search", searchQuery);
-      if (locationFilter) params.append("location", locationFilter);
+        const response = await fetch(`/api/jobs?${params}`);
+        if (!response.ok) throw new Error("Failed to fetch vacancies");
 
-      const response = await fetch(`/api/jobs?${params}`);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch vacancies");
+        const data = await response.json();
+        setVacancies(data.vacancies || []);
+        setPagination(data.pagination);
+      } catch (err) {
+        console.error("Failed to fetch vacancies:", err);
+        setError("Failed to load job vacancies");
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      const data = await response.json();
-      setVacancies(data.vacancies || []);
-      setPagination(data.pagination);
-    } catch (err) {
-      console.error("Failed to fetch vacancies:", err);
-      setError("Failed to load job vacancies");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    void loadVacancies();
+  }, [searchQuery, locationFilter, currentPage]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

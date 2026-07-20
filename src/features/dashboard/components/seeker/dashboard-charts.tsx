@@ -25,24 +25,24 @@ export function DashboardCharts() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchCharts();
-  }, []);
+    const loadCharts = async () => {
+      try {
+        const response = await fetch('/api/applications/stats');
+        if (!response.ok) throw new Error('Failed to fetch charts');
+        const result = await response.json();
+        setData({
+          statusDistribution: result.statusDistribution,
+          applicationsByDate: result.applicationsByDate,
+        });
+      } catch (error) {
+        console.error('Failed to fetch charts:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const fetchCharts = async () => {
-    try {
-      const response = await fetch('/api/applications/stats');
-      if (!response.ok) throw new Error('Failed to fetch charts');
-      const result = await response.json();
-      setData({
-        statusDistribution: result.statusDistribution,
-        applicationsByDate: result.applicationsByDate,
-      });
-    } catch (error) {
-      console.error('Failed to fetch charts:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    void loadCharts();
+  }, []);
 
   if (isLoading || !data) {
     return (

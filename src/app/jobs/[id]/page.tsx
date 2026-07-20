@@ -28,53 +28,57 @@ export default function JobDetailPage() {
   const { user } = useAuth();
   const [job, setJob] = useState<Vacancy | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [applyError, setApplyError] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    fetchJobDetail();
-    checkIfApplied();
+    const loadJobDetail = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError('');
+        const response = await fetch(`/api/jobs/${jobId}`);
+
+        if (!response.ok) throw new Error('Failed to fetch job details');
+
+        const data = await response.json();
+        setJob(data.vacancy);
+      } catch (err) {
+        console.error('Failed to fetch job:', err);
+        setLoadError('Failed to load job details');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadJobDetail();
   }, [jobId]);
 
-  const checkIfApplied = async () => {
-    if (!user) return;
-
-    try {
-      const response = await fetch('/api/applications');
-      if (!response.ok) return;
-
-      const data = await response.json();
-      const applications = data.applications || [];
-      const hasAppliedToThisJob = applications.some(
-        (app: any) => app.vacancyId === jobId
-      );
-      setHasApplied(hasAppliedToThisJob);
-    } catch (err) {
-      console.error('Failed to check if applied:', err);
+  useEffect(() => {
+    if (!user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Application state belongs to the authenticated user.
+      setHasApplied(false);
+      return;
     }
-  };
 
-  const fetchJobDetail = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`/api/jobs/${jobId}`);
+    const loadApplicationState = async () => {
+      try {
+        const response = await fetch('/api/applications');
+        if (!response.ok) return;
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch job details');
+        const data = await response.json();
+        const applications: Array<{ vacancyId: string }> = data.applications || [];
+        setHasApplied(applications.some((application) => application.vacancyId === jobId));
+      } catch (err) {
+        console.error('Failed to check if applied:', err);
       }
+    };
 
-      const data = await response.json();
-      setJob(data.vacancy);
-    } catch (err) {
-      console.error('Failed to fetch job:', err);
-      setError('Failed to load job details');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    void loadApplicationState();
+  }, [jobId, user]);
 
   const handleApply = async () => {
     if (!user) {
@@ -84,7 +88,7 @@ export default function JobDetailPage() {
 
     try {
       setIsApplying(true);
-      setError('');
+      setApplyError('');
       setSuccessMessage('');
 
       const response = await fetch('/api/applications', {
@@ -96,7 +100,7 @@ export default function JobDetailPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message || 'Failed to submit application');
+        setApplyError(data.message || 'Failed to submit application');
         return;
       }
 
@@ -104,7 +108,7 @@ export default function JobDetailPage() {
       setSuccessMessage('Application submitted successfully!');
     } catch (err) {
       console.error('Failed to apply:', err);
-      setError('An error occurred while submitting your application');
+      setApplyError('An error occurred while submitting your application');
     } finally {
       setIsApplying(false);
     }
@@ -123,7 +127,7 @@ export default function JobDetailPage() {
     );
   }
 
-  if (error || !job) {
+  if (loadError || !job) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-primary-50">
         <header className="border-b border-neutral-200 sticky top-0 bg-white/80 backdrop-blur-sm z-50">
@@ -137,7 +141,7 @@ export default function JobDetailPage() {
           </div>
         </header>
         <main className="max-w-4xl mx-auto px-6 py-12 text-center">
-          <p className="text-red-600 mb-4 text-lg">{error || 'Job not found'}</p>
+          <p className="text-red-600 mb-4 text-lg">{loadError || 'Job not found'}</p>
           <Link href="/jobs" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium">
             <ArrowLeft size={18} />
             Back to jobs
@@ -354,13 +358,13 @@ export default function JobDetailPage() {
                 className="bg-white rounded-2xl p-8 border border-neutral-200 shadow-sm sticky top-24 space-y-6"
               >
                 {/* Error Message */}
-                {error && (
+                {applyError && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
                   >
-                    {error}
+                    {applyError}
                   </motion.div>
                 )}
 
@@ -376,7 +380,14 @@ export default function JobDetailPage() {
                 )}
 
                 {/* Apply Section */}
-                {hasApplied ? (
+                {user?.role === 'RECRUITER' ? (
+                  <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-6 text-center">
+                    <Briefcase size={32} className="text-neutral-500 mx-auto mb-3" />
+                    <p className="text-neutral-700 font-semibold text-lg">
+                      Recruiter accounts cannot apply for positions.
+                    </p>
+                  </div>
+                ) : hasApplied ? (
                   <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
                     <CheckCircle2 size={32} className="text-green-600 mx-auto mb-3" />
                     <p className="text-green-700 font-semibold text-lg">Application Sent!</p>
@@ -403,7 +414,7 @@ export default function JobDetailPage() {
                 {!user && !hasApplied && (
                   <>
                     <div className="pt-6 border-t border-neutral-200 space-y-3">
-                      <p className="text-neutral-600 text-sm font-medium">Don't have an account?</p>
+                      <p className="text-neutral-600 text-sm font-medium">Don&apos;t have an account?</p>
                       <Link
                         href="/auth/register"
                         className="block w-full py-2.5 px-6 border-2 border-primary-600 text-primary-600 rounded-xl font-semibold hover:bg-primary-50 transition-colors text-center"

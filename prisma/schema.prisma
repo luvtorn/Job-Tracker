@@ -45,6 +45,12 @@ model User {
   wishlist      Wishlist[]
   notifications Notification[]
   calendarEvents CalendarEvent[]
+  documents      Document[]
+  companies      Company[]
+  contacts       Contact[]
+  applicationNotes ApplicationNote[]
+  tags           Tag[]
+  reminders      Reminder[]
 
   @@index([email])
   @@index([role])
@@ -89,6 +95,11 @@ enum CalendarEventType {
   FOLLOW_UP
   NOTE
   OTHER
+}
+
+enum DocumentType {
+  RESUME
+  COVER_LETTER
 }
 
 model Vacancy {
@@ -144,6 +155,10 @@ model Application {
   interviewNotes String?  @map("interview_notes")
 
   calendarEvent CalendarEvent?
+  documents     ApplicationDocument[]
+  notes         ApplicationNote[]
+  tags          ApplicationTag[]
+  reminders     Reminder[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -154,6 +169,123 @@ model Application {
   @@index([status])
   @@index([createdAt(sort: Desc)])
   @@map("applications")
+}
+
+model Document {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type DocumentType
+  originalFilename String @map("original_filename") @db.VarChar(255)
+  publicId String @map("public_id")
+  isCurrent Boolean @default(true) @map("is_current")
+
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications ApplicationDocument[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, type, isCurrent])
+  @@map("documents")
+}
+
+model ApplicationDocument {
+  applicationId String @db.Uuid
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  documentId String @db.Uuid
+  document Document @relation(fields: [documentId], references: [id], onDelete: Restrict)
+  type DocumentType
+
+  @@id([applicationId, type])
+  @@index([documentId])
+  @@map("application_documents")
+}
+
+model Company {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String @db.VarChar(255)
+  website String?
+  location String?
+  notes String? @db.Text
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contacts Contact[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("companies")
+}
+
+model Contact {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstName String @map("first_name")
+  lastName String @map("last_name")
+  email String?
+  phone String?
+  role String?
+  notes String? @db.Text
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String? @db.Uuid
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@index([userId])
+  @@index([companyId])
+  @@map("contacts")
+}
+
+model ApplicationNote {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content String @db.Text
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId String @db.Uuid
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@index([userId])
+  @@index([applicationId])
+  @@map("application_notes")
+}
+
+model Tag {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String @db.VarChar(50)
+  color String @default("blue") @db.VarChar(32)
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications ApplicationTag[]
+  createdAt DateTime @default(now()) @map("created_at")
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("tags")
+}
+
+model ApplicationTag {
+  applicationId String @db.Uuid
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  tagId String @db.Uuid
+  tag Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([applicationId, tagId])
+  @@index([tagId])
+  @@map("application_tags")
+}
+
+model Reminder {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title String @db.VarChar(255)
+  dueAt DateTime @map("due_at")
+  completedAt DateTime? @map("completed_at")
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId String? @db.Uuid
+  application Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@index([userId, dueAt])
+  @@index([applicationId])
+  @@map("reminders")
 }
 
 model Wishlist {

@@ -1,0 +1,2 @@
+import { TopBar } from '@/components/TopBar'; import { NotesWorkspace } from '@/features/workspace/components/notes-workspace';
+export default function NotesPage() { return <div><TopBar/><main className="p-6"><header className="mb-8"><h1 className="text-3xl font-bold text-neutral-900">Notes & Tags</h1><p className="mt-2 text-neutral-600">Capture private context for your applications.</p></header><NotesWorkspace/></main></div>; }

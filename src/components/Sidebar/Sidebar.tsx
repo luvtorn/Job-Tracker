@@ -12,6 +12,10 @@ import {
   BarChart3,
   User,
   Bell,
+  CalendarDays,
+  ContactRound,
+  NotebookPen,
+  AlarmClock,
 } from "lucide-react";
 
 interface NavItem {
@@ -43,6 +47,15 @@ const navItems: NavItem[] = [
     href: "/wishlist",
     icon: <Heart size={20} />,
   },
+  {
+    label: "Calendar",
+    href: "/calendar",
+    icon: <CalendarDays size={20} />,
+  },
+  { label: "Companies", href: "/companies", icon: <Building2 size={20} />, section: "WORKSPACE" },
+  { label: "Contacts", href: "/contacts", icon: <ContactRound size={20} /> },
+  { label: "Notes", href: "/notes", icon: <NotebookPen size={20} /> },
+  { label: "Reminders", href: "/reminders", icon: <AlarmClock size={20} /> },
   {
     label: "Notifications",
     href: "/notifications",

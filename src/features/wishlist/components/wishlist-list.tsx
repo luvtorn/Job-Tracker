@@ -24,21 +24,21 @@ export function WishlistList() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchWishlist();
-  }, []);
+    const loadWishlist = async () => {
+      try {
+        const response = await fetch('/api/wishlist');
+        if (!response.ok) throw new Error('Failed to fetch wishlist');
+        const result = await response.json();
+        setItems(result.data || []);
+      } catch (error) {
+        console.error('Failed to fetch wishlist:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const fetchWishlist = async () => {
-    try {
-      const response = await fetch('/api/wishlist');
-      if (!response.ok) throw new Error('Failed to fetch wishlist');
-      const result = await response.json();
-      setItems(result.data || []);
-    } catch (error) {
-      console.error('Failed to fetch wishlist:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    void loadWishlist();
+  }, []);
 
   const handleRemove = async (id: string) => {
     try {

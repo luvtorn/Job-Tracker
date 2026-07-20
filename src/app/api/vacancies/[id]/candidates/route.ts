@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { verifyAuth } from "@/server/middleware/auth";
+import { vacancyService } from "@/server/services/vacancy-service";
+import { handleApiError } from "@/server/errors/application-error";
 
 export async function GET(
   _request: NextRequest,
@@ -17,40 +18,7 @@ export async function GET(
 
     const { id: vacancyId } = await params;
 
-    const vacancy = await prisma.vacancy.findUnique({
-      where: { id: vacancyId },
-    });
-
-    if (!vacancy) {
-      return NextResponse.json(
-        { success: false, message: "Vacancy not found" },
-        { status: 404 }
-      );
-    }
-
-    if (vacancy.recruiterId !== user.id) {
-      return NextResponse.json(
-        { success: false, message: "Forbidden" },
-        { status: 403 }
-      );
-    }
-
-    const applications = await prisma.application.findMany({
-      where: { vacancyId },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            avatarUrl: true,
-            createdAt: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const applications = await vacancyService.getCandidates(vacancyId, user.id);
 
     return NextResponse.json(
       {
@@ -68,10 +36,6 @@ export async function GET(
       { status: 200 }
     );
   } catch (error) {
-    console.error("Failed to fetch candidates:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return handleApiError(error, "Failed to fetch candidates");
   }
 }

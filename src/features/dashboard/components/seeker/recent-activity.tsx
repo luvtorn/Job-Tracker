@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, TrendingUp, Briefcase } from 'lucide-react';
+import { Clock, TrendingUp, Briefcase, type LucideIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Notification {
@@ -14,7 +14,7 @@ interface Notification {
   createdAt: string;
 }
 
-const statusIcons: Record<string, any> = {
+const statusIcons: Record<string, LucideIcon> = {
   NEW_APPLICATION: Briefcase,
   APPLICATION_STATUS_CHANGED: TrendingUp,
 };
@@ -29,21 +29,21 @@ export function RecentActivity() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchActivities();
-  }, []);
+    const loadActivities = async () => {
+      try {
+        const response = await fetch('/api/notifications?limit=10');
+        if (!response.ok) throw new Error('Failed to fetch activities');
+        const data = await response.json();
+        setActivities(data.notifications);
+      } catch (error) {
+        console.error('Failed to fetch activities:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const fetchActivities = async () => {
-    try {
-      const response = await fetch('/api/notifications?limit=10');
-      if (!response.ok) throw new Error('Failed to fetch activities');
-      const data = await response.json();
-      setActivities(data.notifications);
-    } catch (error) {
-      console.error('Failed to fetch activities:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    void loadActivities();
+  }, []);
 
   if (isLoading) {
     return (

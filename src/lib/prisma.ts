@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
+import { env } from "@/server/config/env";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -8,7 +9,7 @@ const globalForPrisma = globalThis as unknown as {
 const createPrismaClient = () => {
   try {
     const neon = new PrismaNeon({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: env.databaseUrl,
     });
 
     return new PrismaClient({

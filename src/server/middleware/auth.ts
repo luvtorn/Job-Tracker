@@ -1,10 +1,6 @@
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
-import { getUserByEmail } from "@/server/repositories/user-repository";
-
-interface JWTPayload {
-  email?: string;
-}
+import { getUserById } from "@/server/repositories/user-repository";
+import { verifyAccessToken } from "@/server/services/access-token-service";
 
 export async function verifyAuth() {
   try {
@@ -15,15 +11,15 @@ export async function verifyAuth() {
       return null;
     }
 
-    const decoded = jwt.decode(token) as JWTPayload | null;
+    const decoded = verifyAccessToken(token);
 
-    if (!decoded || !decoded.email) {
+    if (!decoded.userId) {
       return null;
     }
 
-    const user = await getUserByEmail(decoded.email);
+    const user = await getUserById(decoded.userId);
 
-    if (!user) {
+    if (!user || user.deletedAt) {
       return null;
     }
 

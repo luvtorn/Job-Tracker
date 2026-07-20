@@ -15,6 +15,7 @@ interface Interview {
   interviewTime: string;
   interviewNotes?: string;
   status: string;
+  company?: string;
 }
 
 interface InterviewSidePanelProps {
@@ -24,6 +25,7 @@ interface InterviewSidePanelProps {
   onEdit: () => void;
   onDelete: () => void;
   isLoading?: boolean;
+  isRecruiter: boolean;
 }
 
 export function InterviewSidePanel({
@@ -33,6 +35,7 @@ export function InterviewSidePanel({
   onEdit,
   onDelete,
   isLoading,
+  isRecruiter,
 }: InterviewSidePanelProps) {
   if (!isOpen || !interview) return null;
 
@@ -70,6 +73,7 @@ export function InterviewSidePanel({
       {/* Content */}
       <div className="p-6 space-y-6">
         {/* Candidate Info */}
+        {isRecruiter && (
         <div className="space-y-4">
           <div className="flex items-center gap-4">
             {interview.candidateAvatar ? (
@@ -99,9 +103,10 @@ export function InterviewSidePanel({
             Send email
           </a>
         </div>
+        )}
 
         {/* Divider */}
-        <div className="h-px bg-neutral-200" />
+        {isRecruiter && <div className="h-px bg-neutral-200" />}
 
         {/* Vacancy Info */}
         <div className="space-y-3">
@@ -114,6 +119,11 @@ export function InterviewSidePanel({
           >
             {interview.vacancyTitle}
           </a>
+          {!isRecruiter && interview.company && (
+            <p className="text-sm text-neutral-600">
+              <span className="font-medium">Company:</span> {interview.company}
+            </p>
+          )}
         </div>
 
         {/* Interview Schedule */}
@@ -151,22 +161,26 @@ export function InterviewSidePanel({
         {/* Actions */}
         <div className="h-px bg-neutral-200" />
         <div className="space-y-3">
-          <button
-            onClick={onEdit}
-            disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Edit2 size={16} />
-            Edit Interview
-          </button>
-          <button
-            onClick={onDelete}
-            disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-red-200 text-red-700 rounded-lg hover:bg-red-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Trash2 size={16} />
-            Remove Interview
-          </button>
+          {isRecruiter && (
+            <>
+              <button
+                onClick={onEdit}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Edit2 size={16} />
+                Edit Interview
+              </button>
+              <button
+                onClick={onDelete}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-red-200 text-red-700 rounded-lg hover:bg-red-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Trash2 size={16} />
+                Remove Interview
+              </button>
+            </>
+          )}
           <button
             onClick={onClose}
             className="w-full px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors font-medium"

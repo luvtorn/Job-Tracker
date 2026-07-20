@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Loader, ChevronDown, Mail, Calendar, Clock } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { ScheduleInterviewModal } from './schedule-interview-modal';
 
 interface User {
@@ -61,58 +62,51 @@ export function CandidatesList() {
   const [showInterviewsPanel, setShowInterviewsPanel] = useState(false);
 
   useEffect(() => {
-    fetchVacancies();
+    const loadVacancies = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/vacancies');
+        if (!response.ok) throw new Error('Failed to fetch vacancies');
+
+        const data = await response.json();
+        const availableVacancies: Vacancy[] = data.vacancies || [];
+        setVacancies(availableVacancies);
+        if (availableVacancies.length > 0) setSelectedVacancyId(availableVacancies[0].id);
+      } catch (err) {
+        console.error('Failed to fetch vacancies:', err);
+        setError('Failed to load vacancies');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadVacancies();
   }, []);
 
   useEffect(() => {
-    if (selectedVacancyId) {
-      fetchCandidates();
-    } else {
+    if (!selectedVacancyId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Clearing data when no vacancy is selected.
       setCandidates([]);
+      return;
     }
+
+    const loadCandidates = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/vacancies/${selectedVacancyId}/candidates`);
+        if (!response.ok) throw new Error('Failed to fetch candidates');
+        const data = await response.json();
+        setCandidates(data.applications || []);
+      } catch (err) {
+        console.error('Failed to fetch candidates:', err);
+        setError('Failed to load candidates');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadCandidates();
   }, [selectedVacancyId]);
-
-  const fetchVacancies = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/vacancies');
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch vacancies');
-      }
-
-      const data = await response.json();
-      const vacs = data.vacancies || [];
-      setVacancies(vacs);
-      if (vacs.length > 0) {
-        setSelectedVacancyId(vacs[0].id);
-      }
-    } catch (err) {
-      console.error('Failed to fetch vacancies:', err);
-      setError('Failed to load vacancies');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchCandidates = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`/api/vacancies/${selectedVacancyId}/candidates`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch candidates');
-      }
-
-      const data = await response.json();
-      setCandidates(data.applications || []);
-    } catch (err) {
-      console.error('Failed to fetch candidates:', err);
-      setError('Failed to load candidates');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleStatusChange = async (candidateId: string, newStatus: string) => {
     if (newStatus === 'INTERVIEWING') {
@@ -411,6 +405,7 @@ export function CandidatesList() {
                         )}
                       </div>
                     )}
+                    <Link href={`/candidates/${candidate.id}`} className="mt-3 inline-flex rounded-lg bg-primary-50 px-3 py-2 text-sm font-medium text-primary-700 hover:bg-primary-100">View profile</Link>
                   </div>
                 </div>
 

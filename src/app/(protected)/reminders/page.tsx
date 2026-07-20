@@ -1,0 +1,2 @@
+import { TopBar } from '@/components/TopBar'; import { RemindersWorkspace } from '@/features/workspace/components/reminders-workspace';
+export default function RemindersPage() { return <div><TopBar/><main className="p-6"><header className="mb-8"><h1 className="text-3xl font-bold text-neutral-900">Reminders</h1><p className="mt-2 text-neutral-600">Stay ahead of follow-ups, deadlines and interviews.</p></header><RemindersWorkspace/></main></div>; }

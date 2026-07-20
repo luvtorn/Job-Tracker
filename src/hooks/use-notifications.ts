@@ -78,6 +78,7 @@ export function useNotifications() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Initial fetch is synchronized with the SSE subscription lifecycle.
     fetchNotifications();
 
     const eventSource = new EventSource('/api/notifications/stream');

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Briefcase, Archive, RotateCcw, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { useToast } from '@/components/ui/toast';
 
 interface VacancyWithCandidates {
   id: string;
@@ -27,6 +29,8 @@ interface VacancyOverviewProps {
 export function VacancyOverview({ vacancies: initialVacancies }: VacancyOverviewProps) {
   const [vacancies, setVacancies] = useState<VacancyWithCandidates[]>(initialVacancies);
   const [actionLoading, setActionLoading] = useState(false);
+  const [vacancyToDelete, setVacancyToDelete] = useState<VacancyWithCandidates | null>(null);
+  const { showToast } = useToast();
 
   const handleArchive = async (vacancyId: string) => {
     setActionLoading(true);
@@ -43,6 +47,7 @@ export function VacancyOverview({ vacancies: initialVacancies }: VacancyOverview
       );
     } catch (error) {
       console.error('Failed to archive vacancy:', error);
+      showToast('Failed to archive vacancy.', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -63,24 +68,27 @@ export function VacancyOverview({ vacancies: initialVacancies }: VacancyOverview
       );
     } catch (error) {
       console.error('Failed to reactivate vacancy:', error);
+      showToast('Failed to reactivate vacancy.', 'error');
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleDelete = async (vacancyId: string) => {
-    if (!confirm('Are you sure you want to delete this vacancy?')) return;
-
+  const handleDelete = async () => {
+    if (!vacancyToDelete) return;
     setActionLoading(true);
     try {
-      const response = await fetch(`/api/vacancies/${vacancyId}`, {
+      const response = await fetch(`/api/vacancies/${vacancyToDelete.id}`, {
         method: 'DELETE',
       });
 
       if (!response.ok) throw new Error('Failed to delete vacancy');
-      setVacancies((prev) => prev.filter((v) => v.id !== vacancyId));
+      setVacancies((prev) => prev.filter((vacancy) => vacancy.id !== vacancyToDelete.id));
+      setVacancyToDelete(null);
+      showToast('Vacancy deleted successfully.', 'success');
     } catch (error) {
       console.error('Failed to delete vacancy:', error);
+      showToast('Failed to delete vacancy.', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -164,7 +172,7 @@ export function VacancyOverview({ vacancies: initialVacancies }: VacancyOverview
               )}
 
               <button
-                onClick={() => handleDelete(vacancy.id)}
+                onClick={() => setVacancyToDelete(vacancy)}
                 disabled={actionLoading}
                 className="px-3 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium disabled:opacity-50"
               >
@@ -174,6 +182,18 @@ export function VacancyOverview({ vacancies: initialVacancies }: VacancyOverview
           </div>
         </motion.div>
       ))}
+      {vacancyToDelete && (
+        <ConfirmationDialog
+          isOpen
+          title="Delete vacancy?"
+          description={`This permanently removes “${vacancyToDelete.title}” and its applications. This action cannot be undone.`}
+          confirmLabel="Delete"
+          variant="destructive"
+          isLoading={actionLoading}
+          onClose={() => setVacancyToDelete(null)}
+          onConfirm={() => void handleDelete()}
+        />
+      )}
     </motion.div>
   );
 }

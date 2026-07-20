@@ -90,7 +90,7 @@ export function CreateEventModal({
     { value: 'gray', label: 'Gray', bg: 'bg-gray-500' },
   ];
 
-  const eventTypes = [
+  const eventTypes: Array<{ value: typeof eventType; label: string; icon: string }> = [
     { value: 'MEETING', label: 'Meeting', icon: '📅' },
     { value: 'DEADLINE', label: 'Deadline', icon: '⏰' },
     { value: 'FOLLOW_UP', label: 'Follow-up', icon: '↩️' },
@@ -154,7 +154,7 @@ export function CreateEventModal({
                 <button
                   key={type.value}
                   type="button"
-                  onClick={() => setEventType(type.value as any)}
+                  onClick={() => setEventType(type.value)}
                   disabled={isLoading}
                   className={`p-2 rounded-lg border-2 transition-all disabled:opacity-50 text-center ${
                     eventType === type.value

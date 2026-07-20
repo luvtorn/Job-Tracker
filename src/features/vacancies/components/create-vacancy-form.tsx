@@ -1,25 +1,64 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Loader } from 'lucide-react';
 
-export function CreateVacancyForm() {
+type VacancyFormData = {
+  title: string;
+  company: string;
+  location: string;
+  position: string;
+  description: string;
+  requirements: string;
+  salaryMin: string;
+  salaryMax: string;
+  currency: string;
+};
+
+const emptyFormData: VacancyFormData = {
+  title: '', company: '', location: '', position: '', description: '',
+  requirements: '', salaryMin: '', salaryMax: '', currency: 'USD',
+};
+
+export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(Boolean(vacancyId));
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
-    title: '',
-    company: '',
-    location: '',
-    position: '',
-    description: '',
-    requirements: '',
-    salaryMin: '',
-    salaryMax: '',
-    currency: 'USD',
-  });
+  const [formData, setFormData] = useState<VacancyFormData>(emptyFormData);
+
+  useEffect(() => {
+    if (!vacancyId) return;
+
+    const loadVacancy = async () => {
+      try {
+        const response = await fetch(`/api/vacancies/${vacancyId}`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Failed to fetch vacancy');
+        const vacancy = data.vacancy;
+        setFormData({
+          title: vacancy.title,
+          company: vacancy.company ?? '',
+          location: vacancy.location ?? '',
+          position: vacancy.position ?? '',
+          description: vacancy.description,
+          requirements: vacancy.requirements ?? '',
+          salaryMin: vacancy.salaryMin?.toString() ?? '',
+          salaryMax: vacancy.salaryMax?.toString() ?? '',
+          currency: vacancy.currency,
+        });
+      } catch (loadError) {
+        console.error('Failed to load vacancy:', loadError);
+        setError('Failed to load vacancy');
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    void loadVacancy();
+  }, [vacancyId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -41,15 +80,15 @@ export function CreateVacancyForm() {
         salaryMax: formData.salaryMax ? parseInt(formData.salaryMax) : undefined,
       };
 
-      const response = await fetch('/api/vacancies', {
-        method: 'POST',
+      const response = await fetch(vacancyId ? `/api/vacancies/${vacancyId}` : '/api/vacancies', {
+        method: vacancyId ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const contentType = response.headers.get('content-type');
-        let errorMessage = 'Failed to create vacancy';
+        let errorMessage = vacancyId ? 'Failed to update vacancy' : 'Failed to create vacancy';
 
         if (contentType?.includes('application/json')) {
           try {
@@ -69,12 +108,16 @@ export function CreateVacancyForm() {
 
       router.push('/vacancies');
     } catch (err) {
-      console.error('Failed to create vacancy:', err);
+      console.error('Failed to save vacancy:', err);
       setError('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isInitialLoading) {
+    return <div className="flex justify-center py-12"><Loader className="animate-spin text-primary-600" size={24} /></div>;
+  }
 
   return (
     <motion.div
@@ -244,10 +287,10 @@ export function CreateVacancyForm() {
             {isLoading ? (
               <>
                 <Loader size={18} className="animate-spin" />
-                Creating...
+                {vacancyId ? 'Saving...' : 'Creating...'}
               </>
             ) : (
-              'Create Vacancy'
+              vacancyId ? 'Save Changes' : 'Create Vacancy'
             )}
           </button>
           <button

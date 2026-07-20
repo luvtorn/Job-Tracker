@@ -18,21 +18,21 @@ export function QuickStats() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    const loadStats = async () => {
+      try {
+        const response = await fetch('/api/applications/stats');
+        if (!response.ok) throw new Error('Failed to fetch stats');
+        const data = await response.json();
+        setStats(data.stats);
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const fetchStats = async () => {
-    try {
-      const response = await fetch('/api/applications/stats');
-      if (!response.ok) throw new Error('Failed to fetch stats');
-      const data = await response.json();
-      setStats(data.stats);
-    } catch (error) {
-      console.error('Failed to fetch stats:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    void loadStats();
+  }, []);
 
   if (isLoading || !stats) {
     return (

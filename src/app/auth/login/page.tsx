@@ -1,13 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { LoginForm, type LoginFormData } from '@/features/auth/components/login-form';
 import { AuthLogo } from '@/features/auth/components/auth-logo';
+import { useAuth } from '@/features/auth/context/auth-context';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { user, isLoading: isSessionLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!isSessionLoading && user) router.replace('/dashboard');
+  }, [isSessionLoading, router, user]);
 
   const handleSubmit = async (data: LoginFormData) => {
     setError('');
@@ -32,7 +40,7 @@ export default function LoginPage() {
       }
 
       window.location.href = '/dashboard';
-    } catch (err) {
+    } catch {
       setError('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);

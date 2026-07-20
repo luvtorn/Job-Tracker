@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/server/middleware/auth";
 import { calendarEventService } from "@/server/services/calendar-event-service";
-import { updateCalendarEventSchema } from "@/server/validators/calendar-validator";
+import { updateCustomCalendarEventSchema } from "@/server/validators/calendar-validator";
+import { handleApiError } from "@/server/errors/application-error";
 
 export async function PATCH(
   request: NextRequest,
@@ -9,7 +10,7 @@ export async function PATCH(
 ) {
   try {
     const user = await verifyAuth();
-    if (!user || user.role !== "RECRUITER") {
+    if (!user || (user.role !== "RECRUITER" && user.role !== "SEEKER")) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
         { status: 401 }
@@ -18,7 +19,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const validated = updateCalendarEventSchema.safeParse(body);
+    const validated = updateCustomCalendarEventSchema.safeParse(body);
 
     if (!validated.success) {
       return NextResponse.json(
@@ -33,20 +34,8 @@ export async function PATCH(
       { success: true, event },
       { status: 200 }
     );
-  } catch (error: any) {
-    console.error("Failed to update calendar event:", error);
-
-    if (error.message?.includes("not found") || error.message?.includes("unauthorized")) {
-      return NextResponse.json(
-        { success: false, message: error.message },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error, "Failed to update calendar event");
   }
 }
 
@@ -56,7 +45,7 @@ export async function DELETE(
 ) {
   try {
     const user = await verifyAuth();
-    if (!user || user.role !== "RECRUITER") {
+    if (!user || (user.role !== "RECRUITER" && user.role !== "SEEKER")) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
         { status: 401 }
@@ -70,26 +59,7 @@ export async function DELETE(
       { success: true, message: "Event deleted" },
       { status: 200 }
     );
-  } catch (error: any) {
-    console.error("Failed to delete calendar event:", error);
-
-    if (error.message?.includes("not found") || error.message?.includes("unauthorized")) {
-      return NextResponse.json(
-        { success: false, message: error.message },
-        { status: 404 }
-      );
-    }
-
-    if (error.message?.includes("Cannot delete interview")) {
-      return NextResponse.json(
-        { success: false, message: error.message },
-        { status: 403 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error, "Failed to delete calendar event");
   }
 }

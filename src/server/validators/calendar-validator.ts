@@ -17,6 +17,17 @@ export const createCalendarEventSchema = baseSchema.refine((data) => data.endTim
   path: ["endTime"],
 });
 
+export const createCustomCalendarEventSchema = baseSchema
+  .omit({ applicationId: true, eventType: true })
+  .extend({
+    eventType: z.enum(["MEETING", "DEADLINE", "FOLLOW_UP", "NOTE", "OTHER"]),
+  })
+  .strict()
+  .refine((data) => data.endTime > data.startTime, {
+    message: "End time must be after start time",
+    path: ["endTime"],
+  });
+
 export const updateCalendarEventSchema = baseSchema.partial().refine((data) => {
   if (data.startTime && data.endTime) {
     return data.endTime > data.startTime;
@@ -26,6 +37,16 @@ export const updateCalendarEventSchema = baseSchema.partial().refine((data) => {
   message: "End time must be after start time",
   path: ["endTime"],
 });
+
+export const updateCustomCalendarEventSchema = baseSchema
+  .omit({ applicationId: true, eventType: true })
+  .partial()
+  .extend({ eventType: z.enum(["MEETING", "DEADLINE", "FOLLOW_UP", "NOTE", "OTHER"]).optional() })
+  .strict()
+  .refine((data) => !data.startTime || !data.endTime || data.endTime > data.startTime, {
+    message: "End time must be after start time",
+    path: ["endTime"],
+  });
 
 export type CreateCalendarEventInput = z.infer<typeof createCalendarEventSchema>;
 export type UpdateCalendarEventInput = z.infer<typeof updateCalendarEventSchema>;

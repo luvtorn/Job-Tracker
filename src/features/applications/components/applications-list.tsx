@@ -24,6 +24,7 @@ interface Application {
   interviewTime?: string;
   interviewNotes?: string;
   vacancy: Vacancy;
+  tags?: Array<{ tag: { id: string; name: string; color: string } }>;
 }
 
 const statusColors: Record<string, { badge: string; text: string; icon: string }> = {
@@ -33,6 +34,15 @@ const statusColors: Record<string, { badge: string; text: string; icon: string }
   ACCEPTED: { badge: 'bg-emerald-100', text: 'text-emerald-700', icon: '✅' },
   REJECTED: { badge: 'bg-red-100', text: 'text-red-700', icon: '❌' },
   WITHDRAWN: { badge: 'bg-neutral-100', text: 'text-neutral-700', icon: '⏸️' },
+};
+
+const tagColors: Record<string, string> = {
+  blue: 'bg-blue-100 text-blue-700',
+  green: 'bg-green-100 text-green-700',
+  amber: 'bg-amber-100 text-amber-700',
+  red: 'bg-red-100 text-red-700',
+  purple: 'bg-purple-100 text-purple-700',
+  neutral: 'bg-neutral-100 text-neutral-700',
 };
 
 const tabs = [
@@ -49,27 +59,23 @@ export function ApplicationsList() {
   const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
-    fetchApplications();
-  }, []);
-
-  const fetchApplications = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/applications');
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch applications');
+    const loadApplications = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/applications');
+        if (!response.ok) throw new Error('Failed to fetch applications');
+        const data = await response.json();
+        setApplications(data.applications || []);
+      } catch (err) {
+        console.error('Failed to fetch applications:', err);
+        setError('Failed to load applications');
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      const data = await response.json();
-      setApplications(data.applications || []);
-    } catch (err) {
-      console.error('Failed to fetch applications:', err);
-      setError('Failed to load applications');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    void loadApplications();
+  }, []);
 
   const filteredApplications =
     activeTab === 'all'
@@ -193,6 +199,7 @@ export function ApplicationsList() {
                         {application.vacancy.position}
                       </div>
                     )}
+                    {application.tags && application.tags.length > 0 && <div className="flex flex-wrap gap-2">{application.tags.map(({ tag }) => <span key={tag.id} className={`rounded-full px-2.5 py-1 text-xs font-medium ${tagColors[tag.color] || tagColors.neutral}`}>{tag.name}</span>)}</div>}
 
                     {application.status === 'INTERVIEWING' && application.interviewDate && (
                       <div className="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-200">

@@ -16,26 +16,26 @@ export function DashboardMetrics() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchMetrics();
-  }, []);
+    const loadMetrics = async () => {
+      try {
+        const response = await fetch('/api/applications/stats');
+        if (!response.ok) throw new Error('Failed to fetch metrics');
+        const data = await response.json();
+        setMetrics({
+          successRate: data.metrics.successRate,
+          responseRate: data.metrics.responseRate,
+          averagePerDay: data.metrics.averagePerDay,
+          total: data.stats.total,
+        });
+      } catch (error) {
+        console.error('Failed to fetch metrics:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const fetchMetrics = async () => {
-    try {
-      const response = await fetch('/api/applications/stats');
-      if (!response.ok) throw new Error('Failed to fetch metrics');
-      const data = await response.json();
-      setMetrics({
-        successRate: data.metrics.successRate,
-        responseRate: data.metrics.responseRate,
-        averagePerDay: data.metrics.averagePerDay,
-        total: data.stats.total,
-      });
-    } catch (error) {
-      console.error('Failed to fetch metrics:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    void loadMetrics();
+  }, []);
 
   if (isLoading || !metrics) {
     return (

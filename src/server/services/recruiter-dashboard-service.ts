@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { recruiterDashboardRepository } from "@/server/repositories/recruiter-dashboard-repository";
 
 interface RecruiterMetrics {
   totalVacancies: number;
@@ -43,10 +43,7 @@ interface RecentApplication {
 export class RecruiterDashboardService {
   async getRecruiterMetrics(recruiterId: string): Promise<RecruiterMetrics> {
     // Get total and published vacancies
-    const vacancies = await prisma.vacancy.findMany({
-      where: { recruiterId },
-      select: { id: true, status: true },
-    });
+    const vacancies = await recruiterDashboardRepository.findVacancySummaries(recruiterId);
 
     const totalVacancies = vacancies.length;
     const publishedVacancies = vacancies.filter((v) => v.status === "PUBLISHED").length;
@@ -54,14 +51,7 @@ export class RecruiterDashboardService {
     // Get all applications for recruiter's vacancies
     const vacancyIds = vacancies.map((v) => v.id);
 
-    const applications = await prisma.application.findMany({
-      where: {
-        vacancyId: {
-          in: vacancyIds,
-        },
-      },
-      select: { status: true },
-    });
+    const applications = await recruiterDashboardRepository.findApplicationStatuses(vacancyIds);
 
     const totalCandidates = applications.length;
     const pendingReview = applications.filter((a) => a.status === "APPLIED").length;
@@ -77,15 +67,7 @@ export class RecruiterDashboardService {
   }
 
   async getRecruiterVacanciesWithCandidates(recruiterId: string): Promise<VacancyWithCandidates[]> {
-    const vacancies = await prisma.vacancy.findMany({
-      where: { recruiterId, status: "PUBLISHED" },
-      include: {
-        applications: {
-          select: { status: true },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const vacancies = await recruiterDashboardRepository.findPublishedVacanciesWithApplications(recruiterId);
 
     return vacancies.map((vacancy) => {
       const statuses = vacancy.applications.reduce(
@@ -113,40 +95,11 @@ export class RecruiterDashboardService {
   }
 
   async getRecentApplications(recruiterId: string, limit: number = 10): Promise<RecentApplication[]> {
-    const vacancies = await prisma.vacancy.findMany({
-      where: { recruiterId },
-      select: { id: true },
-    });
+    const vacancies = await recruiterDashboardRepository.findVacancySummaries(recruiterId);
 
     const vacancyIds = vacancies.map((v) => v.id);
 
-    const applications = await prisma.application.findMany({
-      where: {
-        vacancyId: {
-          in: vacancyIds,
-        },
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            avatarUrl: true,
-          },
-        },
-        vacancy: {
-          select: {
-            id: true,
-            title: true,
-            company: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-      take: limit,
-    });
+    const applications = await recruiterDashboardRepository.findRecentApplications(vacancyIds, limit);
 
     return applications;
   }
@@ -154,21 +107,11 @@ export class RecruiterDashboardService {
   async getCandidatesByStage(
     recruiterId: string
   ): Promise<{ stage: string; count: number }[]> {
-    const vacancies = await prisma.vacancy.findMany({
-      where: { recruiterId },
-      select: { id: true },
-    });
+    const vacancies = await recruiterDashboardRepository.findVacancySummaries(recruiterId);
 
     const vacancyIds = vacancies.map((v) => v.id);
 
-    const applications = await prisma.application.findMany({
-      where: {
-        vacancyId: {
-          in: vacancyIds,
-        },
-      },
-      select: { status: true },
-    });
+    const applications = await recruiterDashboardRepository.findApplicationStatuses(vacancyIds);
 
     const stages = applications.reduce(
       (acc, app) => {
@@ -181,7 +124,7 @@ export class RecruiterDashboardService {
       [
         { stage: "APPLIED", count: 0 },
         { stage: "INTERVIEWING", count: 0 },
-        { stage: "OFFERS", count: 0 },
+        { stage: "OFFER", count: 0 },
         { stage: "ACCEPTED", count: 0 },
       ]
     );

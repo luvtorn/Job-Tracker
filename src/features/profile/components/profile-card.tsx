@@ -5,6 +5,7 @@ import { Camera, Mail, User, Loader } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/features/auth/context/auth-context";
 import Image from "next/image";
+import { CareerDocuments } from "./career-documents";
 
 type UserRole = "SEEKER" | "RECRUITER" | "ADMIN";
 
@@ -28,6 +29,7 @@ export function ProfileCard() {
 
   useEffect(() => {
     if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Synchronizing editable form state with the authenticated user.
       setFormData({
         firstName: user.firstName || "",
         lastName: user.lastName || "",
@@ -55,7 +57,10 @@ export function ProfileCard() {
       const response = await fetch("/api/auth/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+        }),
       });
 
       if (response.ok) {
@@ -246,21 +251,6 @@ export function ProfileCard() {
               </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Account Type
-              </label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                <option value="SEEKER">Job Seeker</option>
-                <option value="RECRUITER">Recruiter</option>
-              </select>
-            </div>
-
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
@@ -305,6 +295,8 @@ export function ProfileCard() {
           </div>
         )}
       </div>
+
+      {user.role === "SEEKER" && <CareerDocuments />}
 
       {/* Security Section */}
       <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
