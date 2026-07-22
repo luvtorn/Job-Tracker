@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, Target, Clock, CheckCircle2 } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface Metrics {
   successRate: number;
@@ -12,6 +13,8 @@ interface Metrics {
 }
 
 export function DashboardMetrics() {
+  const t = useTranslations('dashboard');
+  const locale = useLocale();
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -49,32 +52,32 @@ export function DashboardMetrics() {
 
   const metricCards = [
     {
-      label: 'Success Rate',
-      value: `${metrics.successRate}%`,
+      label: t('successRate'),
+      value: new Intl.NumberFormat(locale, { style: 'percent' }).format(metrics.successRate / 100),
       icon: Target,
       color: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-      description: 'Offers & Accepted',
+      description: t('offersAccepted'),
     },
     {
-      label: 'Response Rate',
-      value: `${metrics.responseRate}%`,
+      label: t('responseRate'),
+      value: new Intl.NumberFormat(locale, { style: 'percent' }).format(metrics.responseRate / 100),
       icon: TrendingUp,
       color: 'bg-blue-50 text-blue-600 border-blue-200',
-      description: 'Recruiter responses',
+      description: t('recruiterResponses'),
     },
     {
-      label: 'Avg/Day',
+      label: t('averagePerDay'),
       value: metrics.averagePerDay,
       icon: Clock,
       color: 'bg-purple-50 text-purple-600 border-purple-200',
-      description: 'Applications per day',
+      description: t('applicationsPerDay'),
     },
     {
-      label: 'Total',
+      label: t('total'),
       value: metrics.total,
       icon: CheckCircle2,
       color: 'bg-yellow-50 text-yellow-600 border-yellow-200',
-      description: 'All applications',
+      description: t('allApplications'),
     },
   ];
 

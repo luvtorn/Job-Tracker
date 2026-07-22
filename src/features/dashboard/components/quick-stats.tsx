@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Clock, Briefcase, CheckCircle2, XCircle, Zap } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface Stats {
   total: number;
@@ -14,6 +15,8 @@ interface Stats {
 }
 
 export function QuickStats() {
+  const dashboardT = useTranslations('dashboard');
+  const statusT = useTranslations('statuses');
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -46,42 +49,48 @@ export function QuickStats() {
 
   const statCards = [
     {
-      label: 'Total',
+      label: dashboardT('total'),
+      statKey: 'total' as const,
       value: stats.total,
       icon: FileText,
       color: 'bg-blue-50 text-blue-600',
       borderColor: 'border-blue-200',
     },
     {
-      label: 'Applied',
+      label: statusT('applied'),
+      statKey: 'applied' as const,
       value: stats.applied,
       icon: Zap,
       color: 'bg-yellow-50 text-yellow-600',
       borderColor: 'border-yellow-200',
     },
     {
-      label: 'Interviewing',
+      label: statusT('interviewing'),
+      statKey: 'interviewing' as const,
       value: stats.interviewing,
       icon: Clock,
       color: 'bg-purple-50 text-purple-600',
       borderColor: 'border-purple-200',
     },
     {
-      label: 'Offers',
+      label: statusT('offer'),
+      statKey: 'offers' as const,
       value: stats.offers,
       icon: Briefcase,
       color: 'bg-green-50 text-green-600',
       borderColor: 'border-green-200',
     },
     {
-      label: 'Accepted',
+      label: statusT('accepted'),
+      statKey: 'accepted' as const,
       value: stats.accepted,
       icon: CheckCircle2,
       color: 'bg-emerald-50 text-emerald-600',
       borderColor: 'border-emerald-200',
     },
     {
-      label: 'Rejected',
+      label: statusT('rejected'),
+      statKey: 'rejected' as const,
       value: stats.rejected,
       icon: XCircle,
       color: 'bg-red-50 text-red-600',
@@ -104,7 +113,7 @@ export function QuickStats() {
             <div className="flex items-center justify-between mb-2">
               <Icon size={20} />
             </div>
-            <div className="text-2xl font-bold mb-1">{stats[card.label.toLowerCase() as keyof Stats]}</div>
+            <div className="text-2xl font-bold mb-1">{stats[card.statKey]}</div>
             <p className="text-xs font-medium opacity-80">{card.label}</p>
           </motion.div>
         );

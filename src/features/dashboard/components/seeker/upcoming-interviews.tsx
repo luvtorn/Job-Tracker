@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 interface Application {
   id: string;
@@ -19,6 +20,7 @@ interface Application {
 }
 
 export function UpcomingInterviews() {
+  const t = useTranslations('dashboard');
   const [interviews, setInterviews] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -53,8 +55,8 @@ export function UpcomingInterviews() {
     return (
       <div className="bg-white rounded-xl border border-neutral-200 p-8 text-center">
         <Calendar size={32} className="mx-auto text-neutral-400 mb-3" />
-        <p className="text-neutral-600">No upcoming interviews scheduled</p>
-        <p className="text-sm text-neutral-500 mt-1">Keep applying to get interview invites!</p>
+        <p className="text-neutral-600">{t('noInterviews')}</p>
+        <p className="text-sm text-neutral-500 mt-1">{t('keepApplying')}</p>
       </div>
     );
   }
@@ -88,7 +90,7 @@ export function UpcomingInterviews() {
                 <div className="flex items-center gap-1">
                   <Clock size={14} />
                   <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
-                    Interview
+                    {t('interview')}
                   </span>
                 </div>
               </div>
@@ -97,7 +99,7 @@ export function UpcomingInterviews() {
               href={`/applications`}
               className="ml-4 px-3 py-2 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors text-sm font-medium whitespace-nowrap"
             >
-              View
+              {t('view')}
             </Link>
           </div>
         </motion.div>

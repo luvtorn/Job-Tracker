@@ -13,11 +13,11 @@ export const seekerStatisticsService = {
       rejected: count("REJECTED"),
     };
     const statusDistribution = [
-      { name: "Applied", value: stats.applied, fill: "#fbbf24" },
-      { name: "Interviewing", value: stats.interviewing, fill: "#a78bfa" },
-      { name: "Offers", value: stats.offers, fill: "#34d399" },
-      { name: "Accepted", value: stats.accepted, fill: "#10b981" },
-      { name: "Rejected", value: stats.rejected, fill: "#ef4444" },
+      { status: "APPLIED", name: "Applied", value: stats.applied, fill: "#fbbf24" },
+      { status: "INTERVIEWING", name: "Interviewing", value: stats.interviewing, fill: "#a78bfa" },
+      { status: "OFFER", name: "Offers", value: stats.offers, fill: "#34d399" },
+      { status: "ACCEPTED", name: "Accepted", value: stats.accepted, fill: "#10b981" },
+      { status: "REJECTED", name: "Rejected", value: stats.rejected, fill: "#ef4444" },
     ].filter((item) => item.value > 0);
     const countsByDate = new Map<string, number>();
     for (const application of applications) {

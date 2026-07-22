@@ -51,7 +51,11 @@ interface SelectedCandidate {
   vacancyTitle: string;
 }
 
-export function CandidatesList() {
+type CandidatesListProps = {
+  initialVacancyId?: string;
+};
+
+export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
   const t = useTranslations('candidates');
   const statusT = useTranslations('statuses');
   const locale = useLocale();
@@ -82,7 +86,8 @@ export function CandidatesList() {
         const data = await response.json();
         const availableVacancies: Vacancy[] = data.vacancies || [];
         setVacancies(availableVacancies);
-        if (availableVacancies.length > 0) setSelectedVacancyId(availableVacancies[0].id);
+        const requestedVacancy = availableVacancies.find((vacancy) => vacancy.id === initialVacancyId);
+        if (availableVacancies.length > 0) setSelectedVacancyId(requestedVacancy?.id ?? availableVacancies[0].id);
       } catch (err) {
         console.error('Failed to fetch vacancies:', err);
         setError('Failed to load vacancies');
@@ -92,7 +97,7 @@ export function CandidatesList() {
     };
 
     void loadVacancies();
-  }, []);
+  }, [initialVacancyId]);
 
   useEffect(() => {
     if (!selectedVacancyId) {

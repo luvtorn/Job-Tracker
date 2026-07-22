@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Clock, TrendingUp, Briefcase, type LucideIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { enUS, pl, ru } from 'date-fns/locale';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface Notification {
   id: string;
@@ -25,6 +27,9 @@ const statusColors: Record<string, string> = {
 };
 
 export function RecentActivity() {
+  const t = useTranslations('dashboard');
+  const locale = useLocale();
+  const dateLocale = { en: enUS, pl, ru }[locale as 'en' | 'pl' | 'ru'];
   const [activities, setActivities] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -59,7 +64,7 @@ export function RecentActivity() {
     return (
       <div className="bg-white rounded-xl border border-neutral-200 p-8 text-center">
         <Clock size={32} className="mx-auto text-neutral-400 mb-3" />
-        <p className="text-neutral-600">No recent activity</p>
+        <p className="text-neutral-600">{t('noActivity')}</p>
       </div>
     );
   }
@@ -91,7 +96,7 @@ export function RecentActivity() {
                 <h4 className="font-semibold text-sm">{activity.title}</h4>
                 <p className="text-sm opacity-80 mt-0.5 line-clamp-2">{activity.message}</p>
                 <p className="text-xs opacity-60 mt-2">
-                  {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true, locale: dateLocale })}
                 </p>
               </div>
               {!activity.isRead && (

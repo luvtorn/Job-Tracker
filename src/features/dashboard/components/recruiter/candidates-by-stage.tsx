@@ -10,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { useTranslations } from 'next-intl';
 
 interface CandidateStage {
   stage: string;
@@ -27,25 +28,22 @@ const stageColors: Record<string, string> = {
   ACCEPTED: '#059669',
 };
 
-const stageLabels: Record<string, string> = {
-  APPLIED: 'Applied',
-  INTERVIEWING: 'Interviewing',
-  OFFER: 'Offers',
-  ACCEPTED: 'Accepted',
-};
-
 export function CandidatesByStage({ candidates }: CandidatesByStageProps) {
+  const t = useTranslations('dashboard');
+  const statusT = useTranslations('statuses');
+  const stageLabel = (stage: string) => statusT(stage.toLowerCase() as 'applied' | 'interviewing' | 'offer' | 'accepted');
+
   if (candidates.length === 0) {
     return (
       <div className="bg-white rounded-xl border border-neutral-200 p-8 text-center">
-        <p className="text-neutral-600">No candidate data available</p>
+        <p className="text-neutral-600">{t('noCandidates')}</p>
       </div>
     );
   }
 
   const stagesData = candidates.map((stage) => ({
     ...stage,
-    label: stageLabels[stage.stage] || stage.stage,
+    label: stageLabel(stage.stage),
     fill: stageColors[stage.stage] || '#6b7280',
   }));
 
@@ -57,7 +55,7 @@ export function CandidatesByStage({ candidates }: CandidatesByStageProps) {
       transition={{ duration: 0.4 }}
     >
       <h3 className="text-lg font-semibold text-neutral-900 mb-4">
-        Candidate Pipeline
+        {t('candidatePipeline')}
       </h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart
@@ -105,7 +103,7 @@ export function CandidatesByStage({ candidates }: CandidatesByStageProps) {
             >
               {stage.count}
             </div>
-            <p className="text-xs text-neutral-600">{stageLabels[stage.stage]}</p>
+            <p className="text-xs text-neutral-600">{stage.label}</p>
           </div>
         ))}
       </div>

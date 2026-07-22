@@ -3,28 +3,30 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Plus, Heart, Briefcase } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export function QuickActions() {
+  const t = useTranslations('dashboard');
   const actions = [
     {
-      label: 'Browse Jobs',
-      description: 'Find new opportunities',
+      label: t('browseJobs'),
+      description: t('findOpportunities'),
       icon: Briefcase,
       href: '/jobs',
       color: 'from-blue-50 to-blue-100',
       iconColor: 'text-blue-600',
     },
     {
-      label: 'View Wishlist',
-      description: 'Your saved jobs',
+      label: t('viewWishlist'),
+      description: t('savedJobs'),
       icon: Heart,
       href: '/wishlist',
       color: 'from-red-50 to-red-100',
       iconColor: 'text-red-600',
     },
     {
-      label: 'My Applications',
-      description: 'Track your progress',
+      label: t('myApplications'),
+      description: t('trackProgress'),
       icon: Plus,
       href: '/applications',
       color: 'from-purple-50 to-purple-100',

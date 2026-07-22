@@ -1,10 +1,15 @@
-'use client';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { TopBar } from "@/components/TopBar";
 import { CandidatesList } from "@/features/candidates/components/candidates-list";
 
-export default function CandidatesPage() {
-  const t = useTranslations('pages');
+type CandidatesPageProps = {
+  searchParams: Promise<{ vacancyId?: string | string[] }>;
+};
+
+export default async function CandidatesPage({ searchParams }: CandidatesPageProps) {
+  const t = await getTranslations('pages');
+  const { vacancyId } = await searchParams;
+  const initialVacancyId = typeof vacancyId === 'string' ? vacancyId : undefined;
   return (
     <div className="h-full">
       <TopBar />
@@ -14,7 +19,7 @@ export default function CandidatesPage() {
           <p className="text-neutral-600 mt-2">{t('candidatesDescription')}</p>
         </div>
 
-        <CandidatesList />
+        <CandidatesList initialVacancyId={initialVacancyId} />
       </main>
     </div>
   );

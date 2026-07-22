@@ -14,13 +14,17 @@ import {
   BarChart,
   Bar,
 } from 'recharts';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface ChartsData {
-  statusDistribution: Array<{ name: string; value: number; fill: string }>;
+  statusDistribution: Array<{ status: string; name: string; value: number; fill: string }>;
   applicationsByDate: Array<{ date: string; count: number }>;
 }
 
 export function DashboardCharts() {
+  const t = useTranslations('dashboard');
+  const statusT = useTranslations('statuses');
+  const locale = useLocale();
   const [data, setData] = useState<ChartsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -62,6 +66,14 @@ export function DashboardCharts() {
       transition: { duration: 0.4 },
     },
   };
+  const localizedDistribution = data.statusDistribution.map((item) => ({
+    ...item,
+    name: statusT(item.status.toLowerCase() as 'applied' | 'interviewing' | 'offer' | 'accepted' | 'rejected'),
+  }));
+  const formatDate = (value: string) => new Intl.DateTimeFormat(locale, {
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(`${value}T00:00:00`));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -73,13 +85,13 @@ export function DashboardCharts() {
         variants={itemVariants}
       >
         <h3 className="text-lg font-semibold text-neutral-900 mb-4">
-          Application Status
+          {t('applicationStatus')}
         </h3>
         {data.statusDistribution.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={data.statusDistribution}
+                data={localizedDistribution}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -88,16 +100,16 @@ export function DashboardCharts() {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {data.statusDistribution.map((entry, index) => (
+                {localizedDistribution.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip formatter={(value) => [value, t('applicationsCount')]} />
             </PieChart>
           </ResponsiveContainer>
         ) : (
           <div className="h-72 flex items-center justify-center text-neutral-500">
-            No applications yet
+            {t('noApplicationsYet')}
           </div>
         )}
       </motion.div>
@@ -111,7 +123,7 @@ export function DashboardCharts() {
         transition={{ delay: 0.1 }}
       >
         <h3 className="text-lg font-semibold text-neutral-900 mb-4">
-          Applications Timeline (Last 14 Days)
+          {t('applicationsTimeline')}
         </h3>
         {data.applicationsByDate.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
@@ -122,6 +134,7 @@ export function DashboardCharts() {
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis
                 dataKey="date"
+                tickFormatter={formatDate}
                 stroke="#9ca3af"
                 style={{ fontSize: '12px' }}
                 angle={-45}
@@ -130,6 +143,8 @@ export function DashboardCharts() {
               />
               <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} />
               <Tooltip
+                labelFormatter={(value) => formatDate(String(value))}
+                formatter={(value) => [value, t('applicationsCount')]}
                 contentStyle={{
                   backgroundColor: '#ffffff',
                   border: '1px solid #e5e7eb',
@@ -141,7 +156,7 @@ export function DashboardCharts() {
           </ResponsiveContainer>
         ) : (
           <div className="h-72 flex items-center justify-center text-neutral-500">
-            No applications yet
+            {t('noApplicationsYet')}
           </div>
         )}
       </motion.div>

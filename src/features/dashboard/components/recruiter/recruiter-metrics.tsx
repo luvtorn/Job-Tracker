@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Briefcase, Users, Clock, CheckCircle2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface RecruiterMetricsData {
   totalVacancies: number;
@@ -16,34 +17,35 @@ interface RecruiterMetricsProps {
 }
 
 export function RecruiterMetrics({ metrics }: RecruiterMetricsProps) {
+  const t = useTranslations('dashboard');
   const metricCards = [
     {
-      label: 'Published Vacancies',
+      label: t('publishedVacancies'),
       value: metrics.publishedVacancies,
       icon: Briefcase,
       color: 'bg-blue-50 text-blue-600 border-blue-200',
-      description: 'Active job postings',
+      description: t('activeJobPostings'),
     },
     {
-      label: 'Total Candidates',
+      label: t('totalCandidates'),
       value: metrics.totalCandidates,
       icon: Users,
       color: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-      description: 'All applications',
+      description: t('allApplications'),
     },
     {
-      label: 'Pending Review',
+      label: t('pendingReview'),
       value: metrics.pendingReview,
       icon: Clock,
       color: 'bg-yellow-50 text-yellow-600 border-yellow-200',
-      description: 'Awaiting your action',
+      description: t('awaitingAction'),
     },
     {
-      label: 'Interview Stage',
+      label: t('interviewStage'),
       value: metrics.interviewStage,
       icon: CheckCircle2,
       color: 'bg-purple-50 text-purple-600 border-purple-200',
-      description: 'In progress',
+      description: t('inProgress'),
     },
   ];
 
