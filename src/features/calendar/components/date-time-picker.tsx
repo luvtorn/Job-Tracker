@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface DateTimePickerProps {
   startDate?: Date;
@@ -23,6 +23,8 @@ export function DateTimePicker({
   const [showEndCalendar, setShowEndCalendar] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const locale = useLocale();
+  const t = useTranslations('calendarUi');
+  const weekDays = Array.from({ length: 7 }, (_, day) => new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(2024, 0, 7 + day)));
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -52,26 +54,30 @@ export function DateTimePicker({
         <div className="mb-4">
           <div className="flex items-center justify-between mb-4">
             <button
+              type="button"
               onClick={() =>
                 setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))
               }
               className="p-1 hover:bg-neutral-100 rounded"
+              aria-label={t('previous')}
             >
               <ChevronLeft size={18} />
             </button>
             <span className="font-semibold text-neutral-900">{monthName}</span>
             <button
+              type="button"
               onClick={() =>
                 setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))
               }
               className="p-1 hover:bg-neutral-100 rounded"
+              aria-label={t('next')}
             >
               <ChevronRight size={18} />
             </button>
           </div>
 
           <div className="grid grid-cols-7 gap-1 text-center">
-            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+            {weekDays.map((day) => (
               <div key={day} className="text-xs font-medium text-neutral-600 py-1">
                 {day}
               </div>
@@ -79,6 +85,7 @@ export function DateTimePicker({
 
             {days.map((day, idx) => (
               <button
+                type="button"
                 key={idx}
                 onClick={() => {
                   if (day) {
@@ -109,7 +116,7 @@ export function DateTimePicker({
         </div>
 
         <div className="border-t pt-3 space-y-2">
-          <div className="text-xs font-medium text-neutral-700 mb-2">Время</div>
+          <div className="text-xs font-medium text-neutral-700 mb-2">{t('time')}</div>
           <div className="flex gap-2">
             <input
               type="number"
@@ -148,10 +155,11 @@ export function DateTimePicker({
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-neutral-900 mb-2">
-          {isOptional ? 'Start Date & Time (Optional)' : 'Start Date & Time *'}
+          {t('startDateTime')}{isOptional ? ` (${t('optional')})` : ' *'}
         </label>
         <div className="relative">
           <button
+            type="button"
             onClick={() => setShowStartCalendar(!showStartCalendar)}
             className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-left bg-white hover:bg-neutral-50 transition-colors"
           >
@@ -164,8 +172,8 @@ export function DateTimePicker({
                   minute: '2-digit',
                 })
               : isOptional
-                ? 'Not set'
-                : 'Select date and time'}
+                ? t('notSet')
+                : t('selectDateTime')}
           </button>
           {showStartCalendar && (
             <div className="absolute top-full left-0 mt-2 z-40">
@@ -177,10 +185,11 @@ export function DateTimePicker({
 
       <div>
         <label className="block text-sm font-medium text-neutral-900 mb-2">
-          {isOptional ? 'End Date & Time (Optional)' : 'End Date & Time *'}
+          {t('endDateTime')}{isOptional ? ` (${t('optional')})` : ' *'}
         </label>
         <div className="relative">
           <button
+            type="button"
             onClick={() => setShowEndCalendar(!showEndCalendar)}
             className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-left bg-white hover:bg-neutral-50 transition-colors"
           >
@@ -193,8 +202,8 @@ export function DateTimePicker({
                   minute: '2-digit',
                 })
               : isOptional
-                ? 'Not set'
-                : 'Select date and time'}
+                ? t('notSet')
+                : t('selectDateTime')}
           </button>
           {showEndCalendar && (
             <div className="absolute top-full left-0 mt-2 z-40">

@@ -18,7 +18,13 @@ export async function POST(request: NextRequest) {
         type: "NEW_APPLICATION",
         userId: vacancy.recruiterId,
         title: "New Application",
-        message: `You received a new application for "${vacancy.title}" position`,
+        message: `${user.firstName} ${user.lastName} applied for "${vacancy.title}" at ${vacancy.company}`,
+        metadata: {
+          kind: 'NEW_APPLICATION',
+          candidateName: `${user.firstName} ${user.lastName}`.trim() || user.email,
+          vacancyTitle: vacancy.title,
+          company: vacancy.company,
+        },
         applicationId: application.id,
         vacancyId: vacancy.id,
       });

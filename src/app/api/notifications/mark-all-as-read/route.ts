@@ -1,31 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { verifyAuth } from '@/server/middleware/auth';
 import { notificationService } from '@/server/services/notification-service';
+import { sseSubscriptionService } from '@/server/services/sse-subscription-service';
+import { handleApiError } from '@/server/errors/application-error';
 
-export async function PATCH(_request: NextRequest) {
+export async function PATCH() {
   try {
     const user = await verifyAuth();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
+    if (!user) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     await notificationService.markAllAsRead(user.id);
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'All notifications marked as read',
-      },
-      { status: 200 }
-    );
+    sseSubscriptionService.sendUnreadCount(user.id, 0);
+    return NextResponse.json({ success: true, unreadCount: 0 });
   } catch (error) {
-    console.error('Failed to mark all notifications as read:', error);
-    return NextResponse.json(
-      { success: false, message: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleApiError(error, 'Failed to mark all notifications as read');
   }
 }

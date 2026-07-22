@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useLocale, useTranslations } from 'next-intl';
 import { Mail, Calendar } from 'lucide-react';
 import { InterviewModal } from '@/features/applications/components/interview-modal';
 
@@ -30,12 +32,17 @@ interface RecentApplicationsProps {
 const statusColors: Record<string, string> = {
   APPLIED: 'bg-blue-50 text-blue-700 border-blue-200',
   INTERVIEWING: 'bg-purple-50 text-purple-700 border-purple-200',
-  OFFERS: 'bg-green-50 text-green-700 border-green-200',
+  OFFER: 'bg-green-50 text-green-700 border-green-200',
   ACCEPTED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   REJECTED: 'bg-red-50 text-red-700 border-red-200',
 };
 
 export function RecentApplications({ applications: initialApplications }: RecentApplicationsProps) {
+  const dashboardT = useTranslations('dashboard');
+  const candidateT = useTranslations('candidates');
+  const statusT = useTranslations('statuses');
+  const interviewT = useTranslations('interview');
+  const locale = useLocale();
   const [applications, setApplications] = useState<RecentApplication[]>(initialApplications);
   const [selectedApp, setSelectedApp] = useState<RecentApplication | null>(null);
 
@@ -54,7 +61,7 @@ export function RecentApplications({ applications: initialApplications }: Recent
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to schedule interview');
+      throw new Error(error.message || interviewT('failed'));
     }
 
     setApplications((prev) =>
@@ -69,7 +76,7 @@ export function RecentApplications({ applications: initialApplications }: Recent
     return (
       <div className="bg-white rounded-xl border border-neutral-200 p-8 text-center">
         <Mail size={32} className="mx-auto text-neutral-400 mb-3" />
-        <p className="text-neutral-600">No applications received yet</p>
+        <p className="text-neutral-600">{dashboardT('noApplications')}</p>
       </div>
     );
   }
@@ -98,9 +105,11 @@ export function RecentApplications({ applications: initialApplications }: Recent
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     {app.user.avatarUrl ? (
-                      <img
+                      <Image
                         src={app.user.avatarUrl}
                         alt={candidateName}
+                        width={32}
+                        height={32}
                         className="w-8 h-8 rounded-full object-cover"
                       />
                     ) : (
@@ -114,7 +123,7 @@ export function RecentApplications({ applications: initialApplications }: Recent
                     </div>
                   </div>
                   <p className="text-xs text-neutral-500 mt-2">
-                    Applied {new Date(app.createdAt).toLocaleDateString()}
+                    {candidateT('appliedOn', { date: new Date(app.createdAt).toLocaleDateString(locale) })}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -122,13 +131,13 @@ export function RecentApplications({ applications: initialApplications }: Recent
                     <button
                       onClick={() => setSelectedApp(app)}
                       className="p-2 hover:bg-primary-50 rounded-lg transition-colors"
-                      title="Schedule interview"
+                      title={interviewT('schedule')}
                     >
                       <Calendar size={16} className="text-primary-600" />
                     </button>
                   )}
                   <div className={`px-3 py-1 rounded-lg border text-sm font-medium whitespace-nowrap ${colorClass}`}>
-                    {app.status}
+                    {statusT(app.status.toLowerCase() as 'applied' | 'interviewing' | 'offer' | 'accepted' | 'rejected' | 'withdrawn')}
                   </div>
                 </div>
               </div>

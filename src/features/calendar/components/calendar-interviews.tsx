@@ -11,7 +11,7 @@ import { CreateEventModal } from './create-event-modal';
 import { useAuth } from '@/features/auth/context/auth-context';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './calendar-custom.css';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import type { AppLocale } from '@/i18n/config';
 
 const locales = {
@@ -83,6 +83,9 @@ interface CalendarEvent {
 
 export function CalendarInterviews() {
   const locale = useLocale() as AppLocale;
+  const t = useTranslations('calendarUi');
+  const interviewT = useTranslations('interview');
+  const common = useTranslations('common');
   const { user } = useAuth();
   const isRecruiter = user?.role === 'RECRUITER';
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -116,11 +119,11 @@ export function CalendarInterviews() {
         console.error('Events response:', eventsRes.status, eventsRes.statusText);
 
         if (eventsRes.status === 401) {
-          setError('Not authorized to view calendar');
+          setError(t('unauthorized'));
           return;
         }
 
-        throw new Error('Failed to fetch calendar data');
+        throw new Error(t('loadFailed'));
       }
 
       const eventsData = await eventsRes.json();
@@ -168,11 +171,11 @@ export function CalendarInterviews() {
       setEvents(allEvents);
     } catch (err) {
       console.error('Failed to fetch calendar data:', err);
-      setError('Failed to load calendar data');
+      setError(t('loadFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, [date, isRecruiter]);
+  }, [date, isRecruiter, t]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Fetching is synchronized with the visible calendar month.
@@ -220,7 +223,7 @@ export function CalendarInterviews() {
       );
 
       if (!interviewRes.ok) {
-        throw new Error('Failed to update interview');
+        throw new Error(t('updateInterviewFailed'));
       }
 
       setShowEditModal(false);
@@ -229,7 +232,7 @@ export function CalendarInterviews() {
       await fetchData();
     } catch (err) {
       console.error('Failed to update interview:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update interview');
+      setError(err instanceof Error ? err.message : t('updateInterviewFailed'));
     }
   };
 
@@ -250,7 +253,7 @@ export function CalendarInterviews() {
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || 'Failed to create event');
+        throw new Error(error.message || t('createFailed'));
       }
 
       setShowCreateEventModal(false);
@@ -258,7 +261,7 @@ export function CalendarInterviews() {
       await fetchData();
     } catch (err) {
       console.error('Failed to create event:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create event');
+      setError(err instanceof Error ? err.message : t('createFailed'));
     }
   };
 
@@ -276,14 +279,14 @@ export function CalendarInterviews() {
       });
 
       if (!res.ok) {
-        throw new Error('Failed to delete event');
+        throw new Error(t('deleteFailed'));
       }
 
       setSelectedEvent(null);
       await fetchData();
     } catch (err) {
       console.error('Failed to delete event:', err);
-      setError(err instanceof Error ? err.message : 'Failed to delete event');
+      setError(err instanceof Error ? err.message : t('deleteFailed'));
     }
   };
 
@@ -299,7 +302,7 @@ export function CalendarInterviews() {
       });
 
       if (!res.ok) {
-        throw new Error('Failed to change status');
+        throw new Error(t('statusFailed'));
       }
 
       setShowDeleteInterviewModal(false);
@@ -308,7 +311,7 @@ export function CalendarInterviews() {
       await fetchData();
     } catch (err) {
       console.error('Failed to change status:', err);
-      setError(err instanceof Error ? err.message : 'Failed to change status');
+      setError(err instanceof Error ? err.message : t('statusFailed'));
     }
   };
 
@@ -409,18 +412,17 @@ export function CalendarInterviews() {
               <div className="p-2 bg-yellow-100 rounded-full">
                 <AlertTriangle className="text-yellow-600" size={24} />
               </div>
-              <h3 className="text-lg font-semibold text-neutral-900">Remove Interview?</h3>
+              <h3 className="text-lg font-semibold text-neutral-900">{interviewT('removeTitle')}</h3>
             </div>
             <p className="text-neutral-600 mb-6">
-              This will change <strong>{selectedInterview.candidateName}</strong>&apos;s status from INTERVIEWING back to APPLIED.
-              The calendar event will be removed.
+              {interviewT('removeDescription', { name: selectedInterview.candidateName })}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={handleConfirmDeleteInterview}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
               >
-                Yes, Change Status
+                {interviewT('confirmRemove')}
               </button>
               <button
                 onClick={() => {
@@ -429,7 +431,7 @@ export function CalendarInterviews() {
                 }}
                 className="flex-1 px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 font-medium transition-colors"
               >
-                Cancel
+                {common('cancel')}
               </button>
             </div>
           </div>
@@ -447,6 +449,7 @@ export function CalendarInterviews() {
               <Calendar
                 localizer={localizer}
                 culture={locale}
+                messages={{ today: t('today'), previous: t('previous'), next: t('next'), month: t('month'), week: t('week'), day: t('day'), agenda: t('agenda'), date: t('date'), time: t('time'), event: t('event'), noEventsInRange: t('noEvents') }}
                 events={events}
                 startAccessor="start"
                 endAccessor="end"
@@ -485,20 +488,20 @@ export function CalendarInterviews() {
                     <h3 className="font-semibold text-neutral-900 mb-2">{selectedEvent.title}</h3>
                     <div className="space-y-2 text-sm text-neutral-600">
                       <div>
-                        <span className="font-medium">Type:</span> {selectedEvent.eventType}
+                        <span className="font-medium">{t('type')}:</span> {selectedEvent.eventType === 'MEETING' ? t('meeting') : selectedEvent.eventType === 'DEADLINE' ? t('deadline') : selectedEvent.eventType === 'FOLLOW_UP' ? t('followUp') : t('note')}
                       </div>
                       {selectedEvent.description && (
                         <div>
-                          <span className="font-medium">Description:</span> {selectedEvent.description}
+                          <span className="font-medium">{t('description')}:</span> {selectedEvent.description}
                         </div>
                       )}
                       <div>
-                        <span className="font-medium">Start:</span>{' '}
-                        {new Date(selectedEvent.startTime).toLocaleString()}
+                        <span className="font-medium">{t('start')}:</span>{' '}
+                        {new Date(selectedEvent.startTime).toLocaleString(locale)}
                       </div>
                       <div>
-                        <span className="font-medium">End:</span>{' '}
-                        {new Date(selectedEvent.endTime).toLocaleString()}
+                        <span className="font-medium">{t('end')}:</span>{' '}
+                        {new Date(selectedEvent.endTime).toLocaleString(locale)}
                       </div>
                     </div>
                   </div>
@@ -508,13 +511,13 @@ export function CalendarInterviews() {
                       disabled={selectedEvent.isReminder}
                       className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:hidden"
                     >
-                      Delete
+                      {common('delete')}
                     </button>
                     <button
                       onClick={() => setSelectedEvent(null)}
                       className="flex-1 px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 font-medium transition-colors"
                     >
-                      Close
+                      {common('close')}
                     </button>
                   </div>
                 </div>
@@ -522,7 +525,7 @@ export function CalendarInterviews() {
                 <div className="bg-white rounded-lg border border-neutral-200 p-6 text-center">
                   <Plus className="mx-auto mb-2 text-neutral-400" size={24} />
                   <p className="text-sm text-neutral-600">
-                    Click on an event to view details or select a time slot to create a new event
+                    {t('emptyHint')}
                   </p>
                 </div>
               )}

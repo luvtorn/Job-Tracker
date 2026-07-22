@@ -1,45 +1,37 @@
+import { notFound } from '@/server/errors/application-error';
 import { notificationRepository } from '@/server/repositories/notification-repository';
+import { toNotificationDto } from '@/server/services/notification-formatter';
+import type { NotificationMetadata, NotificationType } from '@/types/notification';
 
-type NotificationType = 'APPLICATION_STATUS_CHANGED' | 'NEW_APPLICATION' | 'INTERVIEW_SCHEDULED';
-
-interface CreateNotificationInput {
+type CreateNotificationInput = {
   type: NotificationType;
   userId: string;
   title: string;
   message: string;
+  metadata?: NotificationMetadata;
   applicationId?: string;
   vacancyId?: string;
-}
+};
 
 export const notificationService = {
   async createNotification(input: CreateNotificationInput) {
-    console.log('Creating notification:', input);
-    const result = await notificationRepository.create(input);
-    console.log('Notification created:', result);
-    return result;
+    return toNotificationDto(await notificationRepository.create(input));
   },
-
-  async getUserNotifications(userId: string, limit: number = 50, offset: number = 0) {
-    return notificationRepository.findByUserId(userId, limit, offset);
+  async getUserNotifications(userId: string, limit = 50, offset = 0) {
+    return (await notificationRepository.findByUserId(userId, limit, offset)).map(toNotificationDto);
   },
-
-  async getUnreadCount(userId: string) {
+  getUnreadCount(userId: string) {
     return notificationRepository.findUnreadCount(userId);
   },
-
-  async markAsRead(notificationId: string) {
-    return notificationRepository.updateRead(notificationId);
+  async markAsRead(userId: string, notificationId: string) {
+    const result = await notificationRepository.updateReadForUser(notificationId, userId);
+    if (result.count === 0) throw notFound('Notification not found');
   },
-
-  async markAllAsRead(userId: string) {
+  markAllAsRead(userId: string) {
     return notificationRepository.updateAllRead(userId);
   },
-
-  async deleteNotification(notificationId: string) {
-    return notificationRepository.delete(notificationId);
-  },
-
-  async getNotification(notificationId: string) {
-    return notificationRepository.findById(notificationId);
+  async deleteNotification(userId: string, notificationId: string) {
+    const result = await notificationRepository.deleteForUser(notificationId, userId);
+    if (result.count === 0) throw notFound('Notification not found');
   },
 };

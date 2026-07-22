@@ -27,7 +27,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         type: "APPLICATION_STATUS_CHANGED",
         userId: existing.userId,
         title: `Application Status: ${status}`,
-        message: statusMessages[status] || `Your application status has been updated to ${status}`,
+        message: `${statusMessages[status] || `Your application status has been updated to ${status}`} for "${existing.vacancy.title}" at ${existing.vacancy.company}`,
+        metadata: {
+          kind: 'APPLICATION_STATUS_CHANGED',
+          status,
+          vacancyTitle: existing.vacancy.title,
+          company: existing.vacancy.company,
+        },
         applicationId: existing.id,
         vacancyId: existing.vacancyId,
       });

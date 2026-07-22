@@ -10,7 +10,6 @@ export async function GET(_request: NextRequest) {
       return new Response('Unauthorized', { status: 401 });
     }
 
-    console.log(`[SSE] User ${user.id} connecting to stream`);
 
     const response = new ReadableStream({
       async start(controller) {
@@ -23,7 +22,6 @@ export async function GET(_request: NextRequest) {
           const unsubscribe = sseSubscriptionService.subscribe(user.id, controller);
 
           const cleanup = () => {
-            console.log(`[SSE] User ${user.id} disconnected`);
             unsubscribe();
             try {
               controller.close();
@@ -56,7 +54,7 @@ export async function GET(_request: NextRequest) {
   }
 }
 
-export async function OPTIONS(_request: NextRequest) {
+export async function OPTIONS() {
   return new Response(null, {
     headers: {
       'Access-Control-Allow-Origin': '*',

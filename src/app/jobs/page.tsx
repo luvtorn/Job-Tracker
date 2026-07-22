@@ -13,6 +13,7 @@ export default function JobsPage() {
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const t = useTranslations('public');
+  const jobT = useTranslations('jobDetail');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-primary-50">
@@ -76,6 +77,8 @@ export default function JobsPage() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? t('closeMenu') : t('menu')}
+            aria-expanded={mobileMenuOpen}
             className="md:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors"
           >
             {mobileMenuOpen ? (
@@ -149,14 +152,13 @@ export default function JobsPage() {
           className="mb-12"
         >
           <h1 className="text-5xl font-bold text-neutral-900 mb-4">
-            Browse{" "}
+            {jobT('browsePrefix')}{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-700">
-              Job Opportunities
+              {jobT('browseHighlight')}
             </span>
           </h1>
           <p className="text-xl text-neutral-600 max-w-2xl">
-            Search and apply to positions from top companies around the world.
-            Track your applications and manage your job search in one place.
+            {jobT('browseDescription')}
           </p>
         </motion.div>
 

@@ -1,4 +1,4 @@
-import { Notification } from '@prisma/client';
+import type { NotificationDto } from '@/types/notification';
 
 interface SSEClient {
   response: ReadableStreamDefaultController<string>;
@@ -16,8 +16,6 @@ class SSESubscriptionService {
     const client: SSEClient = { response: controller, userId };
     this.clients.get(userId)!.add(client);
 
-    console.log(`[SSE] User ${userId} subscribed. Active: ${this.clients.get(userId)!.size}`);
-
     return () => this.unsubscribe(userId, client);
   }
 
@@ -25,18 +23,15 @@ class SSESubscriptionService {
     const userClients = this.clients.get(userId);
     if (userClients) {
       userClients.delete(client);
-      console.log(`[SSE] User ${userId} unsubscribed. Active: ${userClients.size}`);
-
       if (userClients.size === 0) {
         this.clients.delete(userId);
       }
     }
   }
 
-  notifyUser(userId: string, notification: Notification, unreadCount: number): void {
+  notifyUser(userId: string, notification: NotificationDto, unreadCount: number): void {
     const userClients = this.clients.get(userId);
     if (!userClients || userClients.size === 0) {
-      console.log(`[SSE] No active clients for user ${userId}`);
       return;
     }
 
@@ -47,7 +42,6 @@ class SSESubscriptionService {
       try {
         client.response.enqueue(unreadCountEvent);
         client.response.enqueue(notificationEvent);
-        console.log(`[SSE] Sent notification to ${userId}`);
       } catch (error) {
         console.error(`[SSE] Error sending to client: ${error}`);
         this.unsubscribe(userId, client);

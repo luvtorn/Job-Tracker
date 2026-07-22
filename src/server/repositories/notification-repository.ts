@@ -1,74 +1,49 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import type { NotificationMetadata, NotificationType } from '@/types/notification';
 
-type NotificationType = 'APPLICATION_STATUS_CHANGED' | 'NEW_APPLICATION' | 'INTERVIEW_SCHEDULED';
-
-interface CreateNotificationInput {
+type CreateNotificationInput = {
   type: NotificationType;
   userId: string;
   title: string;
   message: string;
+  metadata?: NotificationMetadata;
   applicationId?: string;
   vacancyId?: string;
-}
+};
 
 export const notificationRepository = {
-  async create(data: CreateNotificationInput) {
+  create(data: CreateNotificationInput) {
     return prisma.notification.create({
       data: {
         type: data.type,
         userId: data.userId,
         title: data.title,
         message: data.message,
+        metadata: data.metadata as Prisma.InputJsonValue | undefined,
         applicationId: data.applicationId,
         vacancyId: data.vacancyId,
       },
     });
   },
 
-  async findByUserId(userId: string, limit: number = 50, offset: number = 0) {
-    return prisma.notification.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-      skip: offset,
-    });
+  findByUserId(userId: string, limit = 50, offset = 0) {
+    return prisma.notification.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: limit, skip: offset });
   },
 
-  async findUnreadCount(userId: string) {
-    return prisma.notification.count({
-      where: {
-        userId,
-        isRead: false,
-      },
-    });
+  findUnreadCount(userId: string) {
+    return prisma.notification.count({ where: { userId, isRead: false } });
   },
 
-  async updateRead(id: string) {
-    return prisma.notification.update({
-      where: { id },
-      data: { isRead: true },
-    });
+  updateReadForUser(id: string, userId: string) {
+    return prisma.notification.updateMany({ where: { id, userId, isRead: false }, data: { isRead: true } });
   },
 
-  async updateAllRead(userId: string) {
-    return prisma.notification.updateMany({
-      where: {
-        userId,
-        isRead: false,
-      },
-      data: { isRead: true },
-    });
+  updateAllRead(userId: string) {
+    return prisma.notification.updateMany({ where: { userId, isRead: false }, data: { isRead: true } });
   },
 
-  async delete(id: string) {
-    return prisma.notification.delete({
-      where: { id },
-    });
-  },
-
-  async findById(id: string) {
-    return prisma.notification.findUnique({
-      where: { id },
-    });
+  deleteForUser(id: string, userId: string) {
+    return prisma.notification.deleteMany({ where: { id, userId } });
   },
 };

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Calendar, Clock } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface InterviewModalProps {
   isOpen: boolean;
@@ -19,6 +20,8 @@ export function InterviewModal({
   onClose,
   onSubmit,
 }: InterviewModalProps) {
+  const t = useTranslations('interview');
+  const common = useTranslations('common');
   const [interviewDate, setInterviewDate] = useState('');
   const [interviewTime, setInterviewTime] = useState('');
   const [interviewNotes, setInterviewNotes] = useState('');
@@ -38,7 +41,7 @@ export function InterviewModal({
       });
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to schedule interview');
+      setError(err instanceof Error ? err.message : t('failed'));
     } finally {
       setIsLoading(false);
     }
@@ -57,9 +60,10 @@ export function InterviewModal({
         className="bg-white rounded-xl max-w-md w-full mx-4 shadow-xl"
       >
         <div className="flex items-center justify-between p-6 border-b border-neutral-200">
-          <h2 className="text-lg font-bold text-neutral-900">Schedule Interview</h2>
+          <h2 className="text-lg font-bold text-neutral-900">{t('schedule')}</h2>
           <button
             onClick={onClose}
+            aria-label={common('close')}
             className="p-1 hover:bg-neutral-100 rounded-lg transition-colors"
           >
             <X size={20} />
@@ -86,7 +90,7 @@ export function InterviewModal({
             <label className="block text-sm font-medium text-neutral-900 mb-2">
               <div className="flex items-center gap-2">
                 <Calendar size={16} />
-                Interview Date
+                {t('date')}
               </div>
             </label>
             <input
@@ -103,7 +107,7 @@ export function InterviewModal({
             <label className="block text-sm font-medium text-neutral-900 mb-2">
               <div className="flex items-center gap-2">
                 <Clock size={16} />
-                Interview Time
+                {t('time')}
               </div>
             </label>
             <input
@@ -117,12 +121,12 @@ export function InterviewModal({
 
           <div>
             <label className="block text-sm font-medium text-neutral-900 mb-2">
-              Notes (Optional)
+              {t('notes')}
             </label>
             <textarea
               value={interviewNotes}
               onChange={(e) => setInterviewNotes(e.target.value)}
-              placeholder="Add any notes or instructions for the candidate..."
+              placeholder={t('notesPlaceholder')}
               rows={3}
               className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
             />
@@ -135,14 +139,14 @@ export function InterviewModal({
               disabled={isLoading}
               className="flex-1 px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 font-medium disabled:opacity-50"
             >
-              Cancel
+              {common('cancel')}
             </button>
             <button
               type="submit"
               disabled={isLoading}
               className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
             >
-              {isLoading ? 'Scheduling...' : 'Schedule'}
+              {isLoading ? t('scheduling') : t('schedule')}
             </button>
           </div>
         </form>

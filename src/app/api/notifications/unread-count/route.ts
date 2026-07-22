@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { verifyAuth } from '@/server/middleware/auth';
 import { notificationService } from '@/server/services/notification-service';
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const user = await verifyAuth();
     if (!user) {

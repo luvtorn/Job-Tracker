@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, AlertCircle, Loader, Type, Palette } from 'lucide-react';
 import { DateTimePicker } from './date-time-picker';
+import { useTranslations } from 'next-intl';
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -27,6 +28,8 @@ export function CreateEventModal({
   prefilledStart,
   prefilledEnd,
 }: CreateEventModalProps) {
+  const t = useTranslations('calendarUi');
+  const common = useTranslations('common');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [eventType, setEventType] = useState<'MEETING' | 'DEADLINE' | 'FOLLOW_UP' | 'NOTE'>('MEETING');
@@ -40,16 +43,15 @@ export function CreateEventModal({
     e.preventDefault();
 
     if (!title.trim()) {
-      setError('Event title is required');
+      setError(t('titleRequired'));
       return;
     }
 
-    // Умная валидация: если время не заполнено, используем prefilledStart/End
     const finalStartTime = startTime || prefilledStart || new Date();
     const finalEndTime = endTime || prefilledEnd || new Date(finalStartTime.getTime() + 60 * 60 * 1000);
 
     if (finalEndTime <= finalStartTime) {
-      setError('End time must be after start time');
+      setError(t('endAfterStart'));
       return;
     }
 
@@ -73,7 +75,7 @@ export function CreateEventModal({
       setStartTime(undefined);
       setEndTime(undefined);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create event');
+      setError(err instanceof Error ? err.message : t('createFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -82,19 +84,19 @@ export function CreateEventModal({
   if (!isOpen) return null;
 
   const colors = [
-    { value: 'blue', label: 'Blue', bg: 'bg-blue-500' },
-    { value: 'green', label: 'Green', bg: 'bg-green-500' },
-    { value: 'yellow', label: 'Yellow', bg: 'bg-yellow-500' },
-    { value: 'red', label: 'Red', bg: 'bg-red-500' },
-    { value: 'purple', label: 'Purple', bg: 'bg-purple-500' },
-    { value: 'gray', label: 'Gray', bg: 'bg-gray-500' },
+    { value: 'blue', label: t('blue'), bg: 'bg-blue-500' },
+    { value: 'green', label: t('green'), bg: 'bg-green-500' },
+    { value: 'yellow', label: t('yellow'), bg: 'bg-yellow-500' },
+    { value: 'red', label: t('red'), bg: 'bg-red-500' },
+    { value: 'purple', label: t('purple'), bg: 'bg-purple-500' },
+    { value: 'gray', label: t('gray'), bg: 'bg-gray-500' },
   ];
 
   const eventTypes: Array<{ value: typeof eventType; label: string; icon: string }> = [
-    { value: 'MEETING', label: 'Meeting', icon: '📅' },
-    { value: 'DEADLINE', label: 'Deadline', icon: '⏰' },
-    { value: 'FOLLOW_UP', label: 'Follow-up', icon: '↩️' },
-    { value: 'NOTE', label: 'Note', icon: '📝' },
+    { value: 'MEETING', label: t('meeting'), icon: '📅' },
+    { value: 'DEADLINE', label: t('deadline'), icon: '⏰' },
+    { value: 'FOLLOW_UP', label: t('followUp'), icon: '↩️' },
+    { value: 'NOTE', label: t('note'), icon: '📝' },
   ];
 
   return (
@@ -106,10 +108,11 @@ export function CreateEventModal({
         className="bg-white rounded-xl max-w-md w-full mx-4 shadow-xl my-8"
       >
         <div className="flex items-center justify-between p-6 border-b border-neutral-200 sticky top-0 bg-white">
-          <h2 className="text-lg font-bold text-neutral-900">Create Event</h2>
+          <h2 className="text-lg font-bold text-neutral-900">{t('createEvent')}</h2>
           <button
             onClick={onClose}
             disabled={isLoading}
+            aria-label={common('close')}
             className="p-1 hover:bg-neutral-100 rounded-lg transition-colors disabled:opacity-50"
           >
             <X size={20} />
@@ -132,14 +135,14 @@ export function CreateEventModal({
             <label className="block text-sm font-medium text-neutral-900 mb-2">
               <div className="flex items-center gap-2">
                 <Type size={16} />
-                Event Title *
+                {t('title')} *
               </div>
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter event title"
+              placeholder={t('titlePlaceholder')}
               disabled={isLoading}
               className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-neutral-100 disabled:cursor-not-allowed"
             />
@@ -147,7 +150,7 @@ export function CreateEventModal({
 
           <div>
             <label className="block text-sm font-medium text-neutral-900 mb-2">
-              Event Type
+              {t('eventType')}
             </label>
             <div className="grid grid-cols-4 gap-2">
               {eventTypes.map((type) => (
@@ -171,12 +174,12 @@ export function CreateEventModal({
 
           <div>
             <label className="block text-sm font-medium text-neutral-900 mb-2">
-              Description (Optional)
+              {t('description')}
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add event details..."
+              placeholder={t('descriptionPlaceholder')}
               rows={2}
               disabled={isLoading}
               className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:bg-neutral-100 disabled:cursor-not-allowed"
@@ -195,7 +198,7 @@ export function CreateEventModal({
             <label className="block text-sm font-medium text-neutral-900 mb-2">
               <div className="flex items-center gap-2">
                 <Palette size={16} />
-                Color
+                {t('color')}
               </div>
             </label>
             <div className="grid grid-cols-6 gap-2">
@@ -223,7 +226,7 @@ export function CreateEventModal({
               disabled={isLoading}
               className="flex-1 px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Cancel
+              {common('cancel')}
             </button>
             <button
               type="submit"
@@ -233,10 +236,10 @@ export function CreateEventModal({
               {isLoading ? (
                 <>
                   <Loader size={16} className="animate-spin" />
-                  Creating...
+                  {t('creating')}
                 </>
               ) : (
-                'Create Event'
+                t('createEvent')
               )}
             </button>
           </div>

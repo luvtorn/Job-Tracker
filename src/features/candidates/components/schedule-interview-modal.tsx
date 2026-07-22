@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Calendar, Clock, AlertCircle, Loader } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ScheduleInterviewModalProps {
   isOpen: boolean;
@@ -29,6 +30,8 @@ export function ScheduleInterviewModal({
   onClose,
   onSubmit,
 }: ScheduleInterviewModalProps) {
+  const t = useTranslations('interview');
+  const common = useTranslations('common');
   const [interviewDate, setInterviewDate] = useState(initialData?.interviewDate ?? '');
   const [interviewTime, setInterviewTime] = useState(initialData?.interviewTime ?? '');
   const [interviewNotes, setInterviewNotes] = useState(initialData?.interviewNotes ?? '');
@@ -39,7 +42,7 @@ export function ScheduleInterviewModal({
     e.preventDefault();
 
     if (!interviewDate || !interviewTime) {
-      setError('Please fill in all required fields');
+      setError(t('required'));
       return;
     }
 
@@ -53,7 +56,7 @@ export function ScheduleInterviewModal({
         interviewNotes: interviewNotes || undefined,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to schedule interview');
+      setError(err instanceof Error ? err.message : t('failed'));
     } finally {
       setIsLoading(false);
     }
@@ -72,10 +75,11 @@ export function ScheduleInterviewModal({
         className="bg-white rounded-xl max-w-md w-full mx-4 shadow-xl"
       >
         <div className="flex items-center justify-between p-6 border-b border-neutral-200">
-          <h2 className="text-lg font-bold text-neutral-900">Schedule Interview</h2>
+          <h2 className="text-lg font-bold text-neutral-900">{initialData ? t('reschedule') : t('schedule')}</h2>
           <button
             onClick={onClose}
             disabled={isLoading}
+            aria-label={common('close')}
             className="p-1 hover:bg-neutral-100 rounded-lg transition-colors disabled:opacity-50"
           >
             <X size={20} />
@@ -103,7 +107,7 @@ export function ScheduleInterviewModal({
             <label className="block text-sm font-medium text-neutral-900 mb-2">
               <div className="flex items-center gap-2">
                 <Calendar size={16} />
-                Interview Date *
+                {t('date')} *
               </div>
             </label>
             <input
@@ -121,7 +125,7 @@ export function ScheduleInterviewModal({
             <label className="block text-sm font-medium text-neutral-900 mb-2">
               <div className="flex items-center gap-2">
                 <Clock size={16} />
-                Interview Time *
+                {t('time')} *
               </div>
             </label>
             <input
@@ -136,12 +140,12 @@ export function ScheduleInterviewModal({
 
           <div>
             <label className="block text-sm font-medium text-neutral-900 mb-2">
-              Notes (Optional)
+              {t('notes')}
             </label>
             <textarea
               value={interviewNotes}
               onChange={(e) => setInterviewNotes(e.target.value)}
-              placeholder="Add any notes or instructions for the candidate..."
+              placeholder={t('notesPlaceholder')}
               rows={3}
               disabled={isLoading}
               className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:bg-neutral-100 disabled:cursor-not-allowed"
@@ -155,7 +159,7 @@ export function ScheduleInterviewModal({
               disabled={isLoading}
               className="flex-1 px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Cancel
+              {common('cancel')}
             </button>
             <button
               type="submit"
@@ -165,10 +169,10 @@ export function ScheduleInterviewModal({
               {isLoading ? (
                 <>
                   <Loader size={16} className="animate-spin" />
-                  Scheduling...
+                  {t('scheduling')}
                 </>
               ) : (
-                'Schedule Interview'
+                initialData ? t('reschedule') : t('schedule')
               )}
             </button>
           </div>

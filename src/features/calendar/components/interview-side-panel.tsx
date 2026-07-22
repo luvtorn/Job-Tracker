@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { X, Mail, Calendar, Clock, Edit2, Trash2 } from 'lucide-react';
 import Image from 'next/image';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface Interview {
   id: string;
@@ -39,6 +39,8 @@ export function InterviewSidePanel({
   isRecruiter,
 }: InterviewSidePanelProps) {
   const locale = useLocale();
+  const t = useTranslations('interview');
+  const common = useTranslations('common');
   if (!isOpen || !interview) return null;
 
   const interviewDateTime = new Date(`${interview.interviewDate}T${interview.interviewTime}`);
@@ -62,9 +64,10 @@ export function InterviewSidePanel({
     >
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-neutral-200 bg-white sticky top-0 z-10 lg:static">
-        <h2 className="text-lg font-semibold text-neutral-900">Interview Details</h2>
+        <h2 className="text-lg font-semibold text-neutral-900">{t('details')}</h2>
         <button
           onClick={onClose}
+          aria-label={common('close')}
           className="p-1 hover:bg-neutral-100 rounded-lg transition-colors lg:hidden"
         >
           <X size={20} />
@@ -101,7 +104,7 @@ export function InterviewSidePanel({
             className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors"
           >
             <Mail size={14} />
-            Send email
+            {t('sendEmail')}
           </a>
         </div>
         )}
@@ -112,7 +115,7 @@ export function InterviewSidePanel({
         {/* Vacancy Info */}
         <div className="space-y-3">
           <p className="text-xs font-semibold text-neutral-700 uppercase tracking-wide">
-            Position
+            {t('position')}
           </p>
           <a
             href={`/jobs/${interview.vacancyId}`}
@@ -122,7 +125,7 @@ export function InterviewSidePanel({
           </a>
           {!isRecruiter && interview.company && (
             <p className="text-sm text-neutral-600">
-              <span className="font-medium">Company:</span> {interview.company}
+              <span className="font-medium">{t('company')}:</span> {interview.company}
             </p>
           )}
         </div>
@@ -130,7 +133,7 @@ export function InterviewSidePanel({
         {/* Interview Schedule */}
         <div className="space-y-3">
           <p className="text-xs font-semibold text-neutral-700 uppercase tracking-wide">
-            Interview Schedule
+            {t('scheduleLabel')}
           </p>
           <div className="space-y-2">
             <div className="flex items-center gap-3 text-sm">
@@ -150,7 +153,7 @@ export function InterviewSidePanel({
             <div className="h-px bg-neutral-200" />
             <div className="space-y-3">
               <p className="text-xs font-semibold text-neutral-700 uppercase tracking-wide">
-                Notes
+                {t('notesLabel')}
               </p>
               <p className="text-sm text-neutral-700 p-3 bg-neutral-50 rounded-lg border border-neutral-200 italic">
                 {interview.interviewNotes}
@@ -170,7 +173,7 @@ export function InterviewSidePanel({
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Edit2 size={16} />
-                Edit Interview
+                {t('edit')}
               </button>
               <button
                 onClick={onDelete}
@@ -178,7 +181,7 @@ export function InterviewSidePanel({
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-red-200 text-red-700 rounded-lg hover:bg-red-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Trash2 size={16} />
-                Remove Interview
+                {t('remove')}
               </button>
             </>
           )}
@@ -186,7 +189,7 @@ export function InterviewSidePanel({
             onClick={onClose}
             className="w-full px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors font-medium"
           >
-            Close
+            {common('close')}
           </button>
         </div>
       </div>

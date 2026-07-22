@@ -63,6 +63,8 @@ export default function Home() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? t('closeMenu') : t('menu')}
+            aria-expanded={mobileMenuOpen}
             className="md:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors"
           >
             {mobileMenuOpen ? (
@@ -128,17 +130,16 @@ export default function Home() {
         >
           <div className="inline-block mb-6">
             <span className="px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-semibold">
-              ✨ Welcome to JobTracker
+              ✨ {t('welcome')}
             </span>
           </div>
 
           <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 mb-6 leading-tight">
-            Find Your Next <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-700">Opportunity</span>
+            {t('heroPrefix')}{' '}<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-700">{t('heroHighlight')}</span>
           </h1>
 
           <p className="text-xl text-neutral-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Discover amazing job opportunities and track your applications all in one place.
-            Join thousands of job seekers finding their dream positions.
+            {t('heroDescription')}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -146,7 +147,7 @@ export default function Home() {
               href="/jobs"
               className="group inline-flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-semibold hover:shadow-xl transition-all transform hover:scale-105"
             >
-              Browse Jobs
+              {t('browseJobs')}
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
 
@@ -155,7 +156,7 @@ export default function Home() {
                 href="/auth/register"
                 className="inline-flex items-center justify-center px-8 py-3 border-2 border-primary-600 text-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
               >
-                Get Started
+                {t('getStarted')}
               </Link>
             )}
           </div>
@@ -170,15 +171,15 @@ export default function Home() {
         >
           <div className="bg-white rounded-2xl p-8 border border-neutral-200 text-center shadow-sm hover:shadow-md transition-shadow">
             <div className="text-4xl font-bold text-primary-600 mb-2">1000+</div>
-            <p className="text-neutral-600 font-medium">Job Opportunities</p>
+            <p className="text-neutral-600 font-medium">{t('opportunities')}</p>
           </div>
           <div className="bg-white rounded-2xl p-8 border border-neutral-200 text-center shadow-sm hover:shadow-md transition-shadow">
             <div className="text-4xl font-bold text-primary-600 mb-2">500+</div>
-            <p className="text-neutral-600 font-medium">Active Users</p>
+            <p className="text-neutral-600 font-medium">{t('activeUsers')}</p>
           </div>
           <div className="bg-white rounded-2xl p-8 border border-neutral-200 text-center shadow-sm hover:shadow-md transition-shadow">
             <div className="text-4xl font-bold text-primary-600 mb-2">50+</div>
-            <p className="text-neutral-600 font-medium">Companies</p>
+            <p className="text-neutral-600 font-medium">{t('companies')}</p>
           </div>
         </motion.div>
 
@@ -189,9 +190,9 @@ export default function Home() {
           transition={{ duration: 0.6, delay: 0.4 }}
         >
           <div className="mb-12">
-            <h2 className="text-4xl font-bold text-neutral-900 mb-3">Latest Opportunities</h2>
+            <h2 className="text-4xl font-bold text-neutral-900 mb-3">{t('latest')}</h2>
             <p className="text-lg text-neutral-600">
-              Browse the newest job postings from top companies
+              {t('latestDescription')}
             </p>
           </div>
 

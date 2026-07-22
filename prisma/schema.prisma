@@ -311,6 +311,7 @@ model Notification {
   type String
   title String
   message String
+  metadata Json?
   isRead Boolean @default(false) @map("is_read")
 
   userId String @db.Uuid

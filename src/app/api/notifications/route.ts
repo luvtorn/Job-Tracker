@@ -2,54 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/server/middleware/auth';
 import { notificationService } from '@/server/services/notification-service';
 import { notificationsQuerySchema } from '@/server/validators/notification-validator';
+import { handleApiError } from '@/server/errors/application-error';
 
 export async function GET(request: NextRequest) {
   try {
     const user = await verifyAuth();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
-    const offset = parseInt(searchParams.get('offset') || '0', 10);
-
-    const validation = notificationsQuerySchema.safeParse({
-      limit,
-      offset,
-    });
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid query parameters' },
-        { status: 400 }
-      );
-    }
-
-    const notifications = await notificationService.getUserNotifications(
-      user.id,
-      validation.data.limit,
-      validation.data.offset
-    );
-
-    const total = await notificationService.getUnreadCount(user.id);
-
-    return NextResponse.json(
-      {
-        success: true,
-        notifications,
-        total,
-      },
-      { status: 200 }
-    );
+    if (!user) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    const query = notificationsQuerySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
+    const [notifications, unreadCount] = await Promise.all([
+      notificationService.getUserNotifications(user.id, query.limit, query.offset),
+      notificationService.getUnreadCount(user.id),
+    ]);
+    return NextResponse.json({ success: true, notifications, unreadCount });
   } catch (error) {
-    console.error('Failed to fetch notifications:', error);
-    return NextResponse.json(
-      { success: false, message: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleApiError(error, 'Failed to fetch notifications');
   }
 }

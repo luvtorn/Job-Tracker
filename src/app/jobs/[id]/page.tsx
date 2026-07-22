@@ -6,6 +6,8 @@ import { useAuth } from '@/features/auth/context/auth-context';
 import Link from 'next/link';
 import { Menu, X, MapPin, DollarSign, Briefcase, Calendar, ArrowLeft, CheckCircle2, LogIn } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useLocale, useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 interface Vacancy {
   id: string;
@@ -26,6 +28,9 @@ export default function JobDetailPage() {
   const params = useParams();
   const jobId = params.id as string;
   const { user } = useAuth();
+  const t = useTranslations('jobDetail');
+  const publicT = useTranslations('public');
+  const locale = useLocale();
   const [job, setJob] = useState<Vacancy | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -42,20 +47,20 @@ export default function JobDetailPage() {
         setLoadError('');
         const response = await fetch(`/api/jobs/${jobId}`);
 
-        if (!response.ok) throw new Error('Failed to fetch job details');
+        if (!response.ok) throw new Error(t('loadFailed'));
 
         const data = await response.json();
         setJob(data.vacancy);
       } catch (err) {
         console.error('Failed to fetch job:', err);
-        setLoadError('Failed to load job details');
+        setLoadError(t('loadFailed'));
       } finally {
         setIsLoading(false);
       }
     };
 
     void loadJobDetail();
-  }, [jobId]);
+  }, [jobId, t]);
 
   useEffect(() => {
     if (!user) {
@@ -100,15 +105,15 @@ export default function JobDetailPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setApplyError(data.message || 'Failed to submit application');
+        setApplyError(data.message || t('submitFailed'));
         return;
       }
 
       setHasApplied(true);
-      setSuccessMessage('Application submitted successfully!');
+      setSuccessMessage(t('submitted'));
     } catch (err) {
       console.error('Failed to apply:', err);
-      setApplyError('An error occurred while submitting your application');
+      setApplyError(t('submitError'));
     } finally {
       setIsApplying(false);
     }
@@ -141,10 +146,10 @@ export default function JobDetailPage() {
           </div>
         </header>
         <main className="max-w-4xl mx-auto px-6 py-12 text-center">
-          <p className="text-red-600 mb-4 text-lg">{loadError || 'Job not found'}</p>
+          <p className="text-red-600 mb-4 text-lg">{loadError || t('notFound')}</p>
           <Link href="/jobs" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium">
             <ArrowLeft size={18} />
-            Back to jobs
+            {t('back')}
           </Link>
         </main>
       </div>
@@ -165,12 +170,13 @@ export default function JobDetailPage() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageSwitcher />
             {user ? (
               <Link
                 href="/dashboard"
                 className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
               >
-                Dashboard
+                {publicT('dashboard')}
               </Link>
             ) : (
               <>
@@ -178,13 +184,13 @@ export default function JobDetailPage() {
                   href="/auth/login"
                   className="px-6 py-2.5 text-primary-600 border-2 border-primary-600 rounded-lg font-medium hover:bg-primary-50 transition-colors"
                 >
-                  Sign In
+                  {publicT('signIn')}
                 </Link>
                 <Link
                   href="/auth/register"
                   className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
                 >
-                  Sign Up
+                  {publicT('signUp')}
                 </Link>
               </>
             )}
@@ -193,6 +199,8 @@ export default function JobDetailPage() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? publicT('closeMenu') : publicT('menu')}
+            aria-expanded={mobileMenuOpen}
             className="md:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors"
           >
             {mobileMenuOpen ? (
@@ -217,7 +225,7 @@ export default function JobDetailPage() {
                 className="block px-6 py-2.5 bg-primary-600 text-white rounded-lg font-medium text-center hover:bg-primary-700 transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Dashboard
+                {publicT('dashboard')}
               </Link>
             ) : (
               <>
@@ -226,14 +234,14 @@ export default function JobDetailPage() {
                   className="block px-6 py-2.5 text-primary-600 border-2 border-primary-600 rounded-lg font-medium text-center hover:bg-primary-50 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Sign In
+                  {publicT('signIn')}
                 </Link>
                 <Link
                   href="/auth/register"
                   className="block px-6 py-2.5 bg-primary-600 text-white rounded-lg font-medium text-center hover:bg-primary-700 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Sign Up
+                  {publicT('signUp')}
                 </Link>
               </>
             )}
@@ -247,7 +255,7 @@ export default function JobDetailPage() {
           {/* Back Link */}
           <Link href="/jobs" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium mb-8 group">
             <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-            Back to jobs
+            {t('back')}
           </Link>
 
           {/* Header Section */}
@@ -265,7 +273,7 @@ export default function JobDetailPage() {
                 <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
                   <div className="flex items-center gap-2 text-primary-600 mb-2">
                     <MapPin size={18} />
-                    <span className="text-sm font-medium">Location</span>
+                    <span className="text-sm font-medium">{t('location')}</span>
                   </div>
                   <p className="text-neutral-900 font-semibold">{job.location}</p>
                 </div>
@@ -274,10 +282,10 @@ export default function JobDetailPage() {
                   <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
                     <div className="flex items-center gap-2 text-primary-600 mb-2">
                       <DollarSign size={18} />
-                      <span className="text-sm font-medium">Salary</span>
+                      <span className="text-sm font-medium">{t('salary')}</span>
                     </div>
                     <p className="text-neutral-900 font-semibold text-sm">
-                      {job.salaryMin.toLocaleString()} - {job.salaryMax?.toLocaleString()} {job.currency}
+                      {job.salaryMin.toLocaleString(locale)} - {job.salaryMax?.toLocaleString(locale)} {job.currency}
                     </p>
                   </div>
                 )}
@@ -286,7 +294,7 @@ export default function JobDetailPage() {
                   <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
                     <div className="flex items-center gap-2 text-primary-600 mb-2">
                       <Briefcase size={18} />
-                      <span className="text-sm font-medium">Type</span>
+                      <span className="text-sm font-medium">{t('type')}</span>
                     </div>
                     <p className="text-neutral-900 font-semibold">{job.position}</p>
                   </div>
@@ -295,10 +303,10 @@ export default function JobDetailPage() {
                 <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
                   <div className="flex items-center gap-2 text-primary-600 mb-2">
                     <Calendar size={18} />
-                    <span className="text-sm font-medium">Posted</span>
+                    <span className="text-sm font-medium">{t('posted')}</span>
                   </div>
                   <p className="text-neutral-900 font-semibold text-sm">
-                    {new Date(job.publishedAt || job.createdAt).toLocaleDateString()}
+                    {new Date(job.publishedAt || job.createdAt).toLocaleDateString(locale)}
                   </p>
                 </div>
               </div>
@@ -317,7 +325,7 @@ export default function JobDetailPage() {
                   transition={{ delay: 0.2 }}
                   className="bg-white rounded-2xl p-8 border border-neutral-200 shadow-sm"
                 >
-                  <h2 className="text-2xl font-bold text-neutral-900 mb-6">About the Role</h2>
+                  <h2 className="text-2xl font-bold text-neutral-900 mb-6">{t('about')}</h2>
                   <div className="space-y-4 text-neutral-700 leading-relaxed">
                     {job.description.split('\n').map((line, idx) => (
                       <p key={idx} className="text-lg">
@@ -336,7 +344,7 @@ export default function JobDetailPage() {
                   transition={{ delay: 0.3 }}
                   className="bg-white rounded-2xl p-8 border border-neutral-200 shadow-sm"
                 >
-                  <h2 className="text-2xl font-bold text-neutral-900 mb-6">Requirements</h2>
+                  <h2 className="text-2xl font-bold text-neutral-900 mb-6">{t('requirements')}</h2>
                   <div className="space-y-3">
                     {job.requirements.split('\n').map((line, idx) => (
                       <div key={idx} className="flex gap-3">
@@ -384,14 +392,14 @@ export default function JobDetailPage() {
                   <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-6 text-center">
                     <Briefcase size={32} className="text-neutral-500 mx-auto mb-3" />
                     <p className="text-neutral-700 font-semibold text-lg">
-                      Recruiter accounts cannot apply for positions.
+                      {t('recruiterBlocked')}
                     </p>
                   </div>
                 ) : hasApplied ? (
                   <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
                     <CheckCircle2 size={32} className="text-green-600 mx-auto mb-3" />
-                    <p className="text-green-700 font-semibold text-lg">Application Sent!</p>
-                    <p className="text-green-600 text-sm mt-2">The company will review your application.</p>
+                    <p className="text-green-700 font-semibold text-lg">{t('sent')}</p>
+                    <p className="text-green-600 text-sm mt-2">{t('review')}</p>
                   </div>
                 ) : user ? (
                   <button
@@ -399,7 +407,7 @@ export default function JobDetailPage() {
                     disabled={isApplying}
                     className="w-full py-3.5 px-6 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 text-lg"
                   >
-                    {isApplying ? 'Applying...' : 'Apply Now'}
+                    {isApplying ? t('applying') : t('apply')}
                   </button>
                 ) : (
                   <Link
@@ -407,19 +415,19 @@ export default function JobDetailPage() {
                     className="flex items-center justify-center gap-2 w-full py-3.5 px-6 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:shadow-lg transition-all text-lg"
                   >
                     <LogIn size={20} />
-                    Sign In to Apply
+                    {t('signInApply')}
                   </Link>
                 )}
 
                 {!user && !hasApplied && (
                   <>
                     <div className="pt-6 border-t border-neutral-200 space-y-3">
-                      <p className="text-neutral-600 text-sm font-medium">Don&apos;t have an account?</p>
+                      <p className="text-neutral-600 text-sm font-medium">{t('noAccount')}</p>
                       <Link
                         href="/auth/register"
                         className="block w-full py-2.5 px-6 border-2 border-primary-600 text-primary-600 rounded-xl font-semibold hover:bg-primary-50 transition-colors text-center"
                       >
-                        Create Account
+                        {t('createAccount')}
                       </Link>
                     </div>
                   </>
@@ -427,14 +435,14 @@ export default function JobDetailPage() {
 
                 {/* Company Info */}
                 <div className="pt-6 border-t border-neutral-200 space-y-4">
-                  <h3 className="font-semibold text-neutral-900">Company Details</h3>
+                  <h3 className="font-semibold text-neutral-900">{t('companyDetails')}</h3>
                   <div className="space-y-3 text-sm">
                     <div>
-                      <p className="text-neutral-500 text-xs font-medium mb-1">COMPANY</p>
+                      <p className="text-neutral-500 text-xs font-medium mb-1">{t('company').toUpperCase()}</p>
                       <p className="text-neutral-900 font-medium">{job.company}</p>
                     </div>
                     <div>
-                      <p className="text-neutral-500 text-xs font-medium mb-1">LOCATION</p>
+                      <p className="text-neutral-500 text-xs font-medium mb-1">{t('location').toUpperCase()}</p>
                       <p className="text-neutral-900 font-medium">{job.location}</p>
                     </div>
                   </div>

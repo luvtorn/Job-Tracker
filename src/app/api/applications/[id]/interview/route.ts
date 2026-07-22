@@ -16,14 +16,22 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const date = new Date(`${data.interviewDate}T00:00:00`).toLocaleDateString();
     const title = wasScheduled ? "Interview Rescheduled" : "Interview Scheduled";
     const message = wasScheduled
-      ? `Your interview has been rescheduled to ${date} at ${data.interviewTime}`
-      : `Interview scheduled for ${date} at ${data.interviewTime}`;
+      ? `Your interview for "${application.vacancy.title}" at ${application.vacancy.company} has been rescheduled to ${date} at ${data.interviewTime}`
+      : `Interview for "${application.vacancy.title}" at ${application.vacancy.company} scheduled for ${date} at ${data.interviewTime}`;
     try {
       const notification = await notificationService.createNotification({
         type: "INTERVIEW_SCHEDULED",
         userId: application.userId,
         title,
         message,
+        metadata: {
+          kind: 'INTERVIEW_SCHEDULED',
+          vacancyTitle: application.vacancy.title,
+          company: application.vacancy.company,
+          interviewDate: data.interviewDate,
+          interviewTime: data.interviewTime,
+          rescheduled: wasScheduled,
+        },
         applicationId: application.id,
         vacancyId: application.vacancyId,
       });

@@ -8,9 +8,9 @@ export default function CandidatesPage() {
   return (
     <div className="h-full">
       <TopBar />
-      <main className="p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-neutral-900">{t('candidatesTitle')}</h1>
+      <main className="min-w-0 p-4 sm:p-6">
+        <div className="mb-5 sm:mb-8">
+          <h1 className="text-2xl font-bold text-neutral-900 sm:text-3xl">{t('candidatesTitle')}</h1>
           <p className="text-neutral-600 mt-2">{t('candidatesDescription')}</p>
         </div>
 

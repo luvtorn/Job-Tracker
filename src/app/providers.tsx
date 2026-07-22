@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/features/auth/context/auth-context';
 import { ToastProvider } from '@/components/ui/toast';
+import { NotificationsProvider } from '@/hooks/use-notifications';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,7 +19,9 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          <NotificationsProvider>{children}</NotificationsProvider>
+        </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
