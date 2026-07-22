@@ -8,7 +8,8 @@
     "start": "next start",
     "postinstall": "prisma generate",
     "lint": "eslint",
-    "test": "tsx --test src/**/*.test.ts"
+    "test": "tsx --test src/**/*.test.ts",
+    "test:browser-smoke": "node scripts/browser-smoke.mjs"
   },
   "dependencies": {
     "@prisma/adapter-neon": "^7.8.0",
