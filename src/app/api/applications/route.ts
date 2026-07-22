@@ -1,53 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/server/middleware/auth";
-import { applicationService } from "@/server/services/application-service";
-import { notificationService } from "@/server/services/notification-service";
-import { sseSubscriptionService } from "@/server/services/sse-subscription-service";
-import { applicationQuerySchema, createApplicationSchema } from "@/server/validators/application-validator";
-import { handleApiError } from "@/server/errors/application-error";
+import { NextRequest, NextResponse } from 'next/server';
+import { handleApiError } from '@/server/errors/application-error';
+import { requireSeeker } from '@/server/middleware/seeker-auth';
+import { applicationService } from '@/server/services/application-service';
+import { applicationWorkflowService } from '@/server/services/application-workflow-service';
+import { applicationQuerySchema, createApplicationSchema } from '@/server/validators/application-validator';
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await verifyAuth();
-    if (!user) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const user = await requireSeeker();
     const { vacancyId } = createApplicationSchema.parse(await request.json());
-    const { application, vacancy } = await applicationService.create(user, vacancyId);
-
-    try {
-      const notification = await notificationService.createNotification({
-        type: "NEW_APPLICATION",
-        userId: vacancy.recruiterId,
-        title: "New Application",
-        message: `${user.firstName} ${user.lastName} applied for "${vacancy.title}" at ${vacancy.company}`,
-        metadata: {
-          kind: 'NEW_APPLICATION',
-          candidateName: `${user.firstName} ${user.lastName}`.trim() || user.email,
-          vacancyTitle: vacancy.title,
-          company: vacancy.company,
-        },
-        applicationId: application.id,
-        vacancyId: vacancy.id,
-      });
-      const unreadCount = await notificationService.getUnreadCount(vacancy.recruiterId);
-      sseSubscriptionService.notifyUser(vacancy.recruiterId, notification, unreadCount);
-    } catch (error) {
-      console.error("Failed to create application notification", error);
-    }
-
-    return NextResponse.json({ success: true, message: "Application submitted successfully", application }, { status: 201 });
+    const application = await applicationWorkflowService.create(user, vacancyId);
+    return NextResponse.json({ success: true, application }, { status: 201 });
   } catch (error) {
-    return handleApiError(error, "Failed to create application");
+    return handleApiError(error, 'Failed to create application');
   }
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await verifyAuth();
-    if (!user) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const user = await requireSeeker();
     const { status } = applicationQuerySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
     const applications = await applicationService.list(user.id, status);
-    return NextResponse.json({ success: true, applications }, { status: 200 });
+    return NextResponse.json({ success: true, applications });
   } catch (error) {
-    return handleApiError(error, "Failed to fetch applications");
+    return handleApiError(error, 'Failed to fetch applications');
   }
 }

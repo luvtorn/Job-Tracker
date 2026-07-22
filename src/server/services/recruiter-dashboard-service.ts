@@ -41,6 +41,16 @@ interface RecentApplication {
 }
 
 export class RecruiterDashboardService {
+  async getDashboard(recruiterId: string) {
+    const [metrics, vacancies, recentApplications, candidatesByStage] = await Promise.all([
+      this.getRecruiterMetrics(recruiterId),
+      this.getRecruiterVacanciesWithCandidates(recruiterId),
+      this.getRecentApplications(recruiterId, 10),
+      this.getCandidatesByStage(recruiterId),
+    ]);
+    return { metrics, vacancies, recentApplications, candidatesByStage };
+  }
+
   async getRecruiterMetrics(recruiterId: string): Promise<RecruiterMetrics> {
     // Get total and published vacancies
     const vacancies = await recruiterDashboardRepository.findVacancySummaries(recruiterId);

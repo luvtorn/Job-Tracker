@@ -1,33 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/server/middleware/auth";
-import { wishlistService } from "@/server/services/wishlist-service";
+import { NextRequest, NextResponse } from 'next/server';
+import { handleApiError } from '@/server/errors/application-error';
+import { requireSeeker } from '@/server/middleware/seeker-auth';
+import { wishlistService } from '@/server/services/wishlist-service';
+import { wishlistIdSchema } from '@/server/validators/wishlist-validator';
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+type Context = { params: Promise<{ id: string }> };
+
+export async function DELETE(_request: NextRequest, { params }: Context) {
   try {
-    const user = await verifyAuth();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const { id } = await params;
-
+    const user = await requireSeeker();
+    const id = wishlistIdSchema.parse((await params).id);
     await wishlistService.delete(id, user.id);
-
-    return NextResponse.json({
-      success: true,
-      message: "Removed from wishlist",
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to delete from wishlist:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return handleApiError(error, 'Failed to delete wishlist item');
   }
 }

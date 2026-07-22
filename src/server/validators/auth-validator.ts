@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
-});
+}).strict();
 
 export const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(100),
@@ -16,7 +16,7 @@ export const registerSchema = z.object({
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number'),
   role: z.enum(['SEEKER', 'RECRUITER']),
-});
+}).strict();
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;

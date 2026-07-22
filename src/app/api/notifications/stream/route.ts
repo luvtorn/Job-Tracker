@@ -25,15 +25,13 @@ export async function GET(_request: NextRequest) {
             unsubscribe();
             try {
               controller.close();
-            } catch (error) {
-              console.error('[SSE] Error closing controller:', error);
-            }
+            } catch {}
           };
 
           _request.signal.addEventListener('abort', cleanup);
-        } catch (error) {
-          console.error('[SSE] Error in stream start:', error);
-          controller.error(error);
+        } catch {
+          console.error('Notification stream initialization failed');
+          controller.error(new Error('Notification stream unavailable'));
         }
       },
     });
@@ -43,23 +41,10 @@ export async function GET(_request: NextRequest) {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
       },
     });
-  } catch (error) {
-    console.error('[SSE] Stream error:', error);
+  } catch {
+    console.error('Notification stream failed');
     return new Response('Internal server error', { status: 500 });
   }
-}
-
-export async function OPTIONS() {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
 }

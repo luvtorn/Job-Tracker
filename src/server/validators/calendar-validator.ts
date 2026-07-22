@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+export const calendarEventIdSchema = z.string().uuid();
+export const calendarMonthQuerySchema = z.object({
+  month: z.coerce.number().int().min(1).max(12).optional(),
+  year: z.coerce.number().int().min(2000).max(2100).optional(),
+}).strict();
+
 const baseSchema = z.object({
   title: z.string().min(1, "Title is required").max(255),
   description: z.string().max(1000).optional().nullable(),

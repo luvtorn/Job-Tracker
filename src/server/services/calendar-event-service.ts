@@ -14,12 +14,7 @@ export const calendarEventService = {
     month: number,
     year: number,
   ) {
-    try {
-      return await calendarEventRepository.findByUserIdAndMonth(userId, role, month, year);
-    } catch (error) {
-      console.error("Error fetching calendar events:", error);
-      throw error;
-    }
+    return calendarEventRepository.findByUserIdAndMonth(userId, role, month, year);
   },
 
   async updateEvent(eventId: string, userId: string, data: UpdateCalendarEventInput) {

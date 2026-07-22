@@ -1,49 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/server/middleware/auth";
-import { updateApplicationStatusSchema } from "@/server/validators/application-validator";
-import { applicationService } from "@/server/services/application-service";
-import { notificationService } from "@/server/services/notification-service";
-import { sseSubscriptionService } from "@/server/services/sse-subscription-service";
-import { handleApiError } from "@/server/errors/application-error";
+import { NextRequest, NextResponse } from 'next/server';
+import { handleApiError } from '@/server/errors/application-error';
+import { requireRecruiter } from '@/server/middleware/role-auth';
+import { applicationWorkflowService } from '@/server/services/application-workflow-service';
+import { applicationIdSchema, updateApplicationStatusSchema } from '@/server/validators/application-validator';
 
-const statusMessages: Record<string, string> = {
-  INTERVIEWING: "Your application has been moved to the interviewing stage",
-  REJECTED: "Your application has been rejected",
-  OFFER: "You've received an offer!",
-  ACCEPTED: "Your application has been accepted",
-  WITHDRAWN: "Your application has been withdrawn",
-};
+type Context = { params: Promise<{ id: string }> };
 
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: NextRequest, { params }: Context) {
   try {
-    const user = await verifyAuth();
-    if (!user) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-    if (user.role !== "RECRUITER") return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+    const user = await requireRecruiter();
+    const applicationId = applicationIdSchema.parse((await params).id);
     const { status } = updateApplicationStatusSchema.parse(await request.json());
-    const { application, existing } = await applicationService.updateStatus(user.id, (await params).id, status);
-
-    try {
-      const notification = await notificationService.createNotification({
-        type: "APPLICATION_STATUS_CHANGED",
-        userId: existing.userId,
-        title: `Application Status: ${status}`,
-        message: `${statusMessages[status] || `Your application status has been updated to ${status}`} for "${existing.vacancy.title}" at ${existing.vacancy.company}`,
-        metadata: {
-          kind: 'APPLICATION_STATUS_CHANGED',
-          status,
-          vacancyTitle: existing.vacancy.title,
-          company: existing.vacancy.company,
-        },
-        applicationId: existing.id,
-        vacancyId: existing.vacancyId,
-      });
-      const unreadCount = await notificationService.getUnreadCount(existing.userId);
-      sseSubscriptionService.notifyUser(existing.userId, notification, unreadCount);
-    } catch (error) {
-      console.error("Failed to create status notification", error);
-    }
-    return NextResponse.json({ success: true, message: "Application status updated", application }, { status: 200 });
+    const application = await applicationWorkflowService.updateStatus(user.id, applicationId, status);
+    return NextResponse.json({ success: true, application });
   } catch (error) {
-    return handleApiError(error, "Failed to update application status");
+    return handleApiError(error, 'Failed to update application status');
   }
 }

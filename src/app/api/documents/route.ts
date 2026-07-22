@@ -3,6 +3,7 @@ import { verifyAuth } from '@/server/middleware/auth';
 import { forbidden, badRequest, handleApiError } from '@/server/errors/application-error';
 import { documentService } from '@/server/services/document-service';
 import { documentTypeSchema } from '@/server/validators/document-validator';
+import { enforceUploadRateLimit } from '@/server/security/request-security';
 
 export async function GET() {
   try {
@@ -17,6 +18,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    enforceUploadRateLimit(request);
     const user = await verifyAuth();
     if (!user) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     if (user.role !== 'SEEKER') throw forbidden('Only seekers can manage documents');

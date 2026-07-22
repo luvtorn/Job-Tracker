@@ -1,5 +1,4 @@
 import { vacancyRepository } from "@/server/repositories/vacancy-repository";
-import { VacancyStatus } from "@prisma/client";
 import { CreateVacancyInput } from "@/server/validators/vacancy-validator";
 import { conflict, notFound } from "@/server/errors/application-error";
 import {
@@ -33,14 +32,18 @@ export class VacancyService {
   }
 
   async getVacancyById(vacancyId: string, recruiterId: string) {
-    return vacancyRepository.findOwnedById(vacancyId, recruiterId);
+    const vacancy = await vacancyRepository.findOwnedById(vacancyId, recruiterId);
+    if (!vacancy) throw notFound('Vacancy not found');
+    return vacancy;
   }
 
-  async updateVacancy(vacancyId: string, data: Partial<CreateVacancyInput>) {
+  async updateVacancy(recruiterId: string, vacancyId: string, data: Partial<CreateVacancyInput>) {
+    await this.getVacancyById(vacancyId, recruiterId);
     return vacancyRepository.update(vacancyId, data);
   }
 
-  async deleteVacancy(vacancyId: string) {
+  async deleteVacancy(recruiterId: string, vacancyId: string) {
+    await this.getVacancyById(vacancyId, recruiterId);
     return vacancyRepository.delete(vacancyId);
   }
 
@@ -65,9 +68,11 @@ export class VacancyService {
   }
 
   async changeVacancyStatus(
-    vacancy: { id: string; status: VacancyStatus },
+    recruiterId: string,
+    vacancyId: string,
     nextStatus: ManagedVacancyStatus,
   ) {
+    const vacancy = await this.getVacancyById(vacancyId, recruiterId);
     if (vacancy.status === "DRAFT") {
       throw conflict("Draft vacancies cannot be managed through this endpoint");
     }

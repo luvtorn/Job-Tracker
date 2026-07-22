@@ -6,6 +6,7 @@ export class ApplicationError extends Error {
     message: string,
     public readonly status: number,
     public readonly errors?: unknown,
+    public readonly headers?: HeadersInit,
   ) {
     super(message);
     this.name = "ApplicationError";
@@ -21,12 +22,19 @@ export const forbidden = (message = "Forbidden") =>
 export const notFound = (message = "Not found") =>
   new ApplicationError(message, 404);
 export const conflict = (message: string) => new ApplicationError(message, 409);
+export const tooManyRequests = (retryAfterSeconds: number) =>
+  new ApplicationError('Too many requests', 429, undefined, { 'Retry-After': String(retryAfterSeconds) });
+
+const logUnexpectedError = (context: string, error: unknown) => {
+  const name = error instanceof Error ? error.name : 'UnknownError';
+  console.error(`${context} [${name}]`);
+};
 
 export function handleApiError(error: unknown, context: string) {
   if (error instanceof ApplicationError) {
     return NextResponse.json(
       { success: false, message: error.message, ...(error.errors ? { errors: error.errors } : {}) },
-      { status: error.status },
+      { status: error.status, headers: error.headers },
     );
   }
   if (error instanceof ZodError) {
@@ -35,7 +43,7 @@ export function handleApiError(error: unknown, context: string) {
       { status: 400 },
     );
   }
-  console.error(context, error);
+  logUnexpectedError(context, error);
   return NextResponse.json(
     { success: false, message: "Internal server error" },
     { status: 500 },

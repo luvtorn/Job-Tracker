@@ -1,22 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/server/middleware/auth";
 import { vacancyService } from "@/server/services/vacancy-service";
 import { handleApiError } from "@/server/errors/application-error";
+import { resourceIdSchema } from '@/server/validators/jobs-validator';
+import { requireRecruiter } from '@/server/middleware/role-auth';
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await verifyAuth();
-    if (!user || user.role !== "RECRUITER") {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const user = await requireRecruiter();
 
-    const { id: vacancyId } = await params;
+    const vacancyId = resourceIdSchema.parse((await params).id);
 
     const applications = await vacancyService.getCandidates(vacancyId, user.id);
 

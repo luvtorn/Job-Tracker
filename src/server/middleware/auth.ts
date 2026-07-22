@@ -24,8 +24,7 @@ export async function verifyAuth() {
     }
 
     return user;
-  } catch (error) {
-    console.error("Auth verification failed:", error);
+  } catch {
     return null;
   }
 }

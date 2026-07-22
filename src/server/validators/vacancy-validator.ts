@@ -10,7 +10,7 @@ export const createVacancySchema = z.object({
   salaryMin: z.number().int().positive('Salary must be positive').optional(),
   salaryMax: z.number().int().positive('Salary must be positive').optional(),
   currency: z.string().default('USD'),
-});
+}).strict();
 
 export const updateVacancySchema = createVacancySchema;
 
@@ -26,7 +26,7 @@ export const scheduleInterviewSchema = z.object({
 
 export const updateVacancyStatusSchema = z.object({
   status: z.enum(['PUBLISHED', 'CLOSED', 'ARCHIVED']),
-});
+}).strict();
 
 export const vacanciesQuerySchema = z.object({
   scope: z.enum(['active', 'archived', 'all']).default('active'),
@@ -34,7 +34,7 @@ export const vacanciesQuerySchema = z.object({
   search: z.string().trim().max(100).optional(),
   sortBy: z.enum(['createdAt', 'publishedAt']).default('createdAt'),
   sortDirection: z.enum(['asc', 'desc']).default('desc'),
-});
+}).strict();
 
 export type CreateVacancyInput = z.infer<typeof createVacancySchema>;
 export type UpdateVacancyInput = z.infer<typeof updateVacancySchema>;

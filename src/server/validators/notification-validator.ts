@@ -4,7 +4,7 @@ export const notificationIdSchema = z.string().uuid();
 
 export const updateNotificationSchema = z.object({
   isRead: z.literal(true),
-});
+}).strict();
 
 export const notificationMetadataSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('NEW_APPLICATION'), candidateName: z.string(), vacancyTitle: z.string(), company: z.string().nullable() }),
@@ -16,6 +16,6 @@ export const notificationsQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(50),
   offset: z.coerce.number().int().nonnegative().default(0),
   isRead: z.enum(['true', 'false']).optional(),
-});
+}).strict();
 
 export type NotificationsQueryInput = z.infer<typeof notificationsQuerySchema>;

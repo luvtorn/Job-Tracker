@@ -42,8 +42,8 @@ class SSESubscriptionService {
       try {
         client.response.enqueue(unreadCountEvent);
         client.response.enqueue(notificationEvent);
-      } catch (error) {
-        console.error(`[SSE] Error sending to client: ${error}`);
+      } catch {
+        console.error('Notification stream delivery failed');
         this.unsubscribe(userId, client);
       }
     });
@@ -60,8 +60,8 @@ class SSESubscriptionService {
     userClients.forEach((client) => {
       try {
         client.response.enqueue(event);
-      } catch (error) {
-        console.error(`[SSE] Error sending unread count: ${error}`);
+      } catch {
+        console.error('Unread-count stream delivery failed');
         this.unsubscribe(userId, client);
       }
     });

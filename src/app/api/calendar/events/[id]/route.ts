@@ -1,34 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/server/middleware/auth";
 import { calendarEventService } from "@/server/services/calendar-event-service";
-import { updateCustomCalendarEventSchema } from "@/server/validators/calendar-validator";
+import { calendarEventIdSchema, updateCustomCalendarEventSchema } from "@/server/validators/calendar-validator";
 import { handleApiError } from "@/server/errors/application-error";
+import { requireCalendarUser } from '@/server/middleware/role-auth';
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await verifyAuth();
-    if (!user || (user.role !== "RECRUITER" && user.role !== "SEEKER")) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const { id } = await params;
-    const body = await request.json();
-    const validated = updateCustomCalendarEventSchema.safeParse(body);
-
-    if (!validated.success) {
-      return NextResponse.json(
-        { success: false, message: "Invalid input", errors: validated.error.flatten() },
-        { status: 400 }
-      );
-    }
-
-    const event = await calendarEventService.updateEvent(id, user.id, validated.data);
+    const user = await requireCalendarUser();
+    const id = calendarEventIdSchema.parse((await params).id);
+    const input = updateCustomCalendarEventSchema.parse(await request.json());
+    const event = await calendarEventService.updateEvent(id, user.id, input);
 
     return NextResponse.json(
       { success: true, event },
@@ -44,15 +28,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await verifyAuth();
-    if (!user || (user.role !== "RECRUITER" && user.role !== "SEEKER")) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const { id } = await params;
+    const user = await requireCalendarUser();
+    const id = calendarEventIdSchema.parse((await params).id);
     await calendarEventService.deleteEvent(id, user.id);
 
     return NextResponse.json(

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAccessToken } from "@/server/services/access-token-service";
+import { isTrustedMutationRequest, resolveRequestOrigin } from "@/server/security/request-security";
 
 const isValidAccessToken = (token?: string) => {
   if (!token) return false;
@@ -13,6 +14,23 @@ const isValidAccessToken = (token?: string) => {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  if (pathname.startsWith('/api/')) {
+    const isTrusted = pathname === '/api/admin/cleanup-vacancies' || isTrustedMutationRequest({
+      method: request.method,
+      origin: request.headers.get('origin'),
+      secFetchSite: request.headers.get('sec-fetch-site'),
+      requestOrigin: resolveRequestOrigin(
+        request.nextUrl.origin,
+        request.headers.get('host'),
+        request.headers.get('x-forwarded-host'),
+        request.headers.get('x-forwarded-proto'),
+      ),
+    });
+    return isTrusted
+      ? NextResponse.next()
+      : NextResponse.json({ success: false, message: 'Invalid request origin' }, { status: 403 });
+  }
+
   const hasValidToken = isValidAccessToken(request.cookies.get("accessToken")?.value);
   const hasRefreshToken = Boolean(request.cookies.get("refreshToken")?.value);
 
@@ -29,5 +47,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next|public|favicon|api).*)"],
+  matcher: ["/api/:path*", "/((?!_next|public|favicon|api).*)"],
 };

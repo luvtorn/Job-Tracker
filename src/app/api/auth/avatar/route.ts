@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/server/middleware/auth";
 import { badRequest, handleApiError } from "@/server/errors/application-error";
 import { profileService } from "@/server/services/profile-service";
+import { enforceUploadRateLimit } from '@/server/security/request-security';
 
 export async function POST(request: NextRequest) {
   try {
+    enforceUploadRateLimit(request);
     const currentUser = await verifyAuth();
     if (!currentUser) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     const file = (await request.formData()).get("file");

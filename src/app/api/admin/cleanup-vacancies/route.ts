@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { vacancyService } from "@/server/services/vacancy-service";
 import { timingSafeEqual } from "crypto";
 import { env } from "@/server/config/env";
+import { handleApiError } from '@/server/errors/application-error';
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,10 +39,6 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Failed to cleanup vacancies:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return handleApiError(error, 'Failed to cleanup vacancies');
   }
 }
