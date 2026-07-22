@@ -98,9 +98,10 @@ export function CalendarInterviews() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingInterviewId, setEditingInterviewId] = useState<string | null>(null);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
+  const [showEditEventModal, setShowEditEventModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
   const [showDeleteInterviewModal, setShowDeleteInterviewModal] = useState(false);
-  const [deletingInterviewId, setDeletingInterviewId] = useState<string | null>(null);
+  const [isDeletingInterview, setIsDeletingInterview] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -207,6 +208,7 @@ export function CalendarInterviews() {
   const handleScheduleInterview = async (data: {
     interviewDate: string;
     interviewTime: string;
+    scheduledAt: string;
     interviewNotes?: string;
   }) => {
     const interviewId = editingInterviewId || selectedInterview?.id;
@@ -265,10 +267,29 @@ export function CalendarInterviews() {
     }
   };
 
+  const handleUpdateEvent = async (data: {
+    title: string;
+    description?: string;
+    eventType: 'MEETING' | 'DEADLINE' | 'FOLLOW_UP' | 'NOTE';
+    color: string;
+    startTime: Date;
+    endTime: Date;
+  }) => {
+    if (!selectedEvent || selectedEvent.isReminder) return;
+    const res = await fetch(`/api/calendar/events/${selectedEvent.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(t('updateFailed'));
+    setShowEditEventModal(false);
+    setSelectedEvent(null);
+    await fetchData();
+  };
+
   const handleDeleteEvent = async (eventId: string, eventType?: string) => {
     // If it's an interview event, show confirmation modal
     if (eventType === 'INTERVIEW') {
-      setDeletingInterviewId(eventId);
       setShowDeleteInterviewModal(true);
       return;
     }
@@ -290,28 +311,29 @@ export function CalendarInterviews() {
     }
   };
 
-  const handleConfirmDeleteInterview = async () => {
-    if (!deletingInterviewId || !selectedInterview) return;
+  const handleConfirmDeleteInterview = async (nextStatus: 'APPLIED' | 'INTERVIEWING') => {
+    if (!selectedInterview) return;
 
     try {
-      // Change status to APPLIED
-      const res = await fetch(`/api/applications/${selectedInterview.id}/status`, {
-        method: 'PATCH',
+      setIsDeletingInterview(true);
+      const res = await fetch(`/api/applications/${selectedInterview.id}/interview`, {
+        method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'APPLIED' }),
+        body: JSON.stringify({ nextStatus }),
       });
 
       if (!res.ok) {
-        throw new Error(t('statusFailed'));
+        throw new Error(t('deleteInterviewFailed'));
       }
 
       setShowDeleteInterviewModal(false);
-      setDeletingInterviewId(null);
       setSelectedInterview(null);
       await fetchData();
     } catch (err) {
-      console.error('Failed to change status:', err);
-      setError(err instanceof Error ? err.message : t('statusFailed'));
+      console.error('Failed to cancel interview:', err);
+      setError(err instanceof Error ? err.message : t('deleteInterviewFailed'));
+    } finally {
+      setIsDeletingInterview(false);
     }
   };
 
@@ -377,16 +399,35 @@ export function CalendarInterviews() {
 
   return (
     <>
-      <CreateEventModal
-        isOpen={showCreateEventModal}
-        onClose={() => {
-          setShowCreateEventModal(false);
-          setSelectedSlot(null);
-        }}
-        onSubmit={handleCreateEvent}
-        prefilledStart={selectedSlot?.start}
-        prefilledEnd={selectedSlot?.end}
-      />
+      {showCreateEventModal && (
+        <CreateEventModal
+          isOpen
+          onClose={() => {
+            setShowCreateEventModal(false);
+            setSelectedSlot(null);
+          }}
+          onSubmit={handleCreateEvent}
+          prefilledStart={selectedSlot?.start}
+          prefilledEnd={selectedSlot?.end}
+        />
+      )}
+
+      {showEditEventModal && selectedEvent && !selectedEvent.isReminder && (
+        <CreateEventModal
+          key={selectedEvent.id}
+          isOpen
+          onClose={() => setShowEditEventModal(false)}
+          onSubmit={handleUpdateEvent}
+          initialData={{
+            title: selectedEvent.title,
+            description: selectedEvent.description,
+            eventType: selectedEvent.eventType === 'MEETING' || selectedEvent.eventType === 'DEADLINE' || selectedEvent.eventType === 'FOLLOW_UP' ? selectedEvent.eventType : 'NOTE',
+            color: selectedEvent.color,
+            startTime: new Date(selectedEvent.startTime),
+            endTime: new Date(selectedEvent.endTime),
+          }}
+        />
+      )}
 
       {selectedInterview && (
         <ScheduleInterviewModal
@@ -414,22 +455,28 @@ export function CalendarInterviews() {
               </div>
               <h3 className="text-lg font-semibold text-neutral-900">{interviewT('removeTitle')}</h3>
             </div>
-            <p className="text-neutral-600 mb-6">
-              {interviewT('removeDescription', { name: selectedInterview.candidateName })}
-            </p>
-            <div className="flex gap-3">
+            <p className="text-neutral-600 mb-6">{interviewT('removeDescription', { name: selectedInterview.candidateName })}</p>
+            <div className="space-y-3">
               <button
-                onClick={handleConfirmDeleteInterview}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                onClick={() => void handleConfirmDeleteInterview('APPLIED')}
+                disabled={isDeletingInterview}
+                className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-50"
               >
-                {interviewT('confirmRemove')}
+                {interviewT('removeAndReset')}
+              </button>
+              <button
+                onClick={() => void handleConfirmDeleteInterview('INTERVIEWING')}
+                disabled={isDeletingInterview}
+                className="w-full px-4 py-2 border border-red-200 text-red-700 rounded-lg hover:bg-red-50 font-medium transition-colors disabled:opacity-50"
+              >
+                {interviewT('removeAndKeepStatus')}
               </button>
               <button
                 onClick={() => {
                   setShowDeleteInterviewModal(false);
-                  setDeletingInterviewId(null);
                 }}
-                className="flex-1 px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 font-medium transition-colors"
+                disabled={isDeletingInterview}
+                className="w-full px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 font-medium transition-colors disabled:opacity-50"
               >
                 {common('cancel')}
               </button>
@@ -477,7 +524,6 @@ export function CalendarInterviews() {
                   onClose={() => setSelectedInterview(null)}
                   onEdit={handleEditInterview}
                   onDelete={() => {
-                    setDeletingInterviewId(selectedInterview.id);
                     setShowDeleteInterviewModal(true);
                   }}
                   isRecruiter={isRecruiter}
@@ -506,6 +552,14 @@ export function CalendarInterviews() {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    {!selectedEvent.isReminder && (
+                      <button
+                        onClick={() => setShowEditEventModal(true)}
+                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                      >
+                        {common('edit')}
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDeleteEvent(selectedEvent.id, selectedEvent.eventType)}
                       disabled={selectedEvent.isReminder}

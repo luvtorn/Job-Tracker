@@ -16,6 +16,12 @@ export const updateApplicationStatusSchema = z.object({
   ]),
 });
 
+export const cancelInterviewSchema = z.object({
+  nextStatus: z.enum(["APPLIED", "INTERVIEWING"]),
+}).strict();
+
 export type UpdateApplicationStatusInput = z.infer<
   typeof updateApplicationStatusSchema
 >;
+
+export type CancelInterviewInput = z.infer<typeof cancelInterviewSchema>;

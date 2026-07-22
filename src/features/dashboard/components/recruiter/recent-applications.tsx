@@ -49,6 +49,7 @@ export function RecentApplications({ applications: initialApplications }: Recent
   const handleScheduleInterview = async (data: {
     interviewDate: string;
     interviewTime: string;
+    scheduledAt: string;
     interviewNotes?: string;
   }) => {
     if (!selectedApp) return;

@@ -10,7 +10,7 @@ interface InterviewModalProps {
   candidateName: string;
   vacancyTitle: string;
   onClose: () => void;
-  onSubmit: (data: { interviewDate: string; interviewTime: string; interviewNotes?: string }) => Promise<void>;
+  onSubmit: (data: { interviewDate: string; interviewTime: string; scheduledAt: string; interviewNotes?: string }) => Promise<void>;
 }
 
 export function InterviewModal({
@@ -34,9 +34,15 @@ export function InterviewModal({
     setIsLoading(true);
 
     try {
+      const scheduledAt = new Date(`${interviewDate}T${interviewTime}:00`);
+      if (Number.isNaN(scheduledAt.getTime()) || scheduledAt <= new Date()) {
+        setError(t('futureRequired'));
+        return;
+      }
       await onSubmit({
         interviewDate,
         interviewTime,
+        scheduledAt: scheduledAt.toISOString(),
         interviewNotes: interviewNotes || undefined,
       });
       onClose();

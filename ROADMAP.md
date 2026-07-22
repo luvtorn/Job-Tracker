@@ -13,7 +13,7 @@ This roadmap tracks the production-readiness plan. A stage is complete only afte
 ## Stages
 
 - [x] Stage 0 — Baseline dashboard/reminders localization and vacancy-aware candidates navigation
-- [ ] Stage 1 — Single-source calendar interviews and complete event editing
+- [x] Stage 1 — Single-source calendar interviews and complete event editing
 - [ ] Stage 2 — Full localization and UX audit
 - [ ] Stage 3 — Architecture, security, integration tests, and critical E2E coverage
 - [ ] Stage 4 — Opt-in WebGPU/WebLLM browser runtime

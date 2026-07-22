@@ -171,6 +171,7 @@ export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
   const handleScheduleInterview = async (data: {
     interviewDate: string;
     interviewTime: string;
+    scheduledAt: string;
     interviewNotes?: string;
   }) => {
     const candidateId = selectedCandidateForInterview?.candidateId;

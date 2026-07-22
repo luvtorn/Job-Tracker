@@ -1,5 +1,6 @@
 import { ApplicationStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { buildInterviewCleanup, buildInterviewPersistence, type InterviewPersistenceInput } from "@/server/repositories/interview-persistence";
 
 export const applicationRepository = {
   findPublishedVacancy(id: string) {
@@ -52,51 +53,29 @@ export const applicationRepository = {
       include: { user: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } } },
     });
   },
-  async scheduleInterview(input: {
-    applicationId: string;
-    interviewDate: Date;
-    interviewTime: string;
-    interviewNotes?: string;
-    eventStart: Date;
-    eventEnd: Date;
-    eventTitle: string;
-    recruiterId: string;
-    setInterviewing: boolean;
-  }) {
+  updateStatusAndClearInterview(id: string, status: ApplicationStatus) {
     return prisma.$transaction(async (transaction) => {
-      const application = await transaction.application.update({
-        where: { id: input.applicationId },
-        data: {
-          interviewDate: input.interviewDate,
-          interviewTime: input.interviewTime,
-          interviewNotes: input.interviewNotes || null,
-          ...(input.setInterviewing ? { status: "INTERVIEWING" as const } : {}),
-        },
-        include: { vacancy: true, user: true },
-      });
-      await transaction.calendarEvent.upsert({
-        where: { applicationId: input.applicationId },
-        create: {
-          userId: input.recruiterId,
-          applicationId: input.applicationId,
-          title: input.eventTitle,
-          description: input.interviewNotes || null,
-          eventType: "INTERVIEW",
-          color: "blue",
-          startTime: input.eventStart,
-          endTime: input.eventEnd,
-        },
-        update: {
-          description: input.interviewNotes || null,
-          startTime: input.eventStart,
-          endTime: input.eventEnd,
-        },
-      });
+      const persistence = buildInterviewCleanup(id, status);
+      const application = await transaction.application.update(persistence.application);
+      await transaction.calendarEvent.deleteMany(persistence.calendarEvent);
       return application;
     });
   },
-  deleteInterviewEvent(applicationId: string) {
-    return prisma.calendarEvent.deleteMany({ where: { applicationId } });
+  async scheduleInterview(input: InterviewPersistenceInput) {
+    return prisma.$transaction(async (transaction) => {
+      const persistence = buildInterviewPersistence(input);
+      const application = await transaction.application.update(persistence.application);
+      await transaction.calendarEvent.upsert(persistence.calendarEvent);
+      return application;
+    });
+  },
+  cancelInterview(applicationId: string, nextStatus: "APPLIED" | "INTERVIEWING") {
+    return prisma.$transaction(async (transaction) => {
+      const persistence = buildInterviewCleanup(applicationId, nextStatus);
+      const application = await transaction.application.update(persistence.application);
+      await transaction.calendarEvent.deleteMany(persistence.calendarEvent);
+      return application;
+    });
   },
   findRecruiterInterviews(recruiterId: string, startDate: Date, endDate: Date) {
     return prisma.application.findMany({

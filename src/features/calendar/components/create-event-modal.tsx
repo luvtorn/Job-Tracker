@@ -19,6 +19,14 @@ interface CreateEventModalProps {
   }) => Promise<void>;
   prefilledStart?: Date;
   prefilledEnd?: Date;
+  initialData?: {
+    title: string;
+    description?: string;
+    eventType: 'MEETING' | 'DEADLINE' | 'FOLLOW_UP' | 'NOTE';
+    color: string;
+    startTime: Date;
+    endTime: Date;
+  };
 }
 
 export function CreateEventModal({
@@ -27,15 +35,17 @@ export function CreateEventModal({
   onSubmit,
   prefilledStart,
   prefilledEnd,
+  initialData,
 }: CreateEventModalProps) {
   const t = useTranslations('calendarUi');
   const common = useTranslations('common');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [eventType, setEventType] = useState<'MEETING' | 'DEADLINE' | 'FOLLOW_UP' | 'NOTE'>('MEETING');
-  const [color, setColor] = useState('blue');
-  const [startTime, setStartTime] = useState<Date | undefined>(prefilledStart);
-  const [endTime, setEndTime] = useState<Date | undefined>(prefilledEnd);
+  const isEditing = Boolean(initialData);
+  const [title, setTitle] = useState(initialData?.title ?? '');
+  const [description, setDescription] = useState(initialData?.description ?? '');
+  const [eventType, setEventType] = useState<'MEETING' | 'DEADLINE' | 'FOLLOW_UP' | 'NOTE'>(initialData?.eventType ?? 'MEETING');
+  const [color, setColor] = useState(initialData?.color ?? 'blue');
+  const [startTime, setStartTime] = useState<Date | undefined>(initialData?.startTime ?? prefilledStart);
+  const [endTime, setEndTime] = useState<Date | undefined>(initialData?.endTime ?? prefilledEnd);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -68,14 +78,8 @@ export function CreateEventModal({
         endTime: finalEndTime,
       });
 
-      setTitle('');
-      setDescription('');
-      setEventType('MEETING');
-      setColor('blue');
-      setStartTime(undefined);
-      setEndTime(undefined);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('createFailed'));
+      setError(err instanceof Error ? err.message : t(isEditing ? 'updateFailed' : 'createFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -108,7 +112,7 @@ export function CreateEventModal({
         className="bg-white rounded-xl max-w-md w-full mx-4 shadow-xl my-8"
       >
         <div className="flex items-center justify-between p-6 border-b border-neutral-200 sticky top-0 bg-white">
-          <h2 className="text-lg font-bold text-neutral-900">{t('createEvent')}</h2>
+          <h2 className="text-lg font-bold text-neutral-900">{t(isEditing ? 'editEvent' : 'createEvent')}</h2>
           <button
             onClick={onClose}
             disabled={isLoading}
@@ -236,10 +240,10 @@ export function CreateEventModal({
               {isLoading ? (
                 <>
                   <Loader size={16} className="animate-spin" />
-                  {t('creating')}
+                  {t(isEditing ? 'saving' : 'creating')}
                 </>
               ) : (
-                t('createEvent')
+                t(isEditing ? 'saveChanges' : 'createEvent')
               )}
             </button>
           </div>

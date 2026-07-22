@@ -28,16 +28,14 @@ export const applicationService = {
     if (!application) throw notFound('Candidate profile not found');
     return application;
   },
-  async scheduleInterview(recruiterId: string, applicationId: string, data: { interviewDate: string; interviewTime: string; interviewNotes?: string }) {
+  async scheduleInterview(recruiterId: string, applicationId: string, data: { interviewDate: string; interviewTime: string; scheduledAt: string; interviewNotes?: string }) {
     const existing = await applicationRepository.findWithRelations(applicationId);
     if (!existing) throw notFound("Application not found");
     if (existing.vacancy.recruiterId !== recruiterId) throw forbidden();
 
     const wasScheduled = Boolean(existing.interviewDate && existing.interviewTime);
-    const [year, month, day] = data.interviewDate.split("-").map(Number);
-    const [hours, minutes] = data.interviewTime.split(":").map(Number);
-    const interviewDate = new Date(year, month - 1, day);
-    const eventStart = new Date(year, month - 1, day, hours, minutes);
+    const interviewDate = new Date(`${data.interviewDate}T00:00:00.000Z`);
+    const eventStart = new Date(data.scheduledAt);
     const eventEnd = new Date(eventStart.getTime() + 60 * 60 * 1000);
     const candidateName = `${existing.user.firstName ?? ""} ${existing.user.lastName ?? ""}`.trim() || existing.user.email;
     const application = await applicationRepository.scheduleInterview({
@@ -57,11 +55,20 @@ export const applicationService = {
     const existing = await applicationRepository.findWithRelations(applicationId);
     if (!existing) throw notFound("Application not found");
     if (existing.vacancy.recruiterId !== recruiterId) throw forbidden();
-    const application = await applicationRepository.updateStatus(applicationId, status);
-    if (existing.status === "INTERVIEWING" && status !== "INTERVIEWING") {
-      await applicationRepository.deleteInterviewEvent(applicationId);
-    }
+    const application = existing.status === "INTERVIEWING" && status !== "INTERVIEWING"
+      ? await applicationRepository.updateStatusAndClearInterview(applicationId, status)
+      : await applicationRepository.updateStatus(applicationId, status);
     return { application, existing };
+  },
+  async cancelInterview(
+    recruiterId: string,
+    applicationId: string,
+    nextStatus: "APPLIED" | "INTERVIEWING",
+  ) {
+    const existing = await applicationRepository.findWithRelations(applicationId);
+    if (!existing) throw notFound("Application not found");
+    if (existing.vacancy.recruiterId !== recruiterId) throw forbidden();
+    return applicationRepository.cancelInterview(applicationId, nextStatus);
   },
   async getRecruiterInterviews(recruiterId: string, month: number, year: number) {
     const startDate = new Date(year, month - 1, 1);

@@ -15,13 +15,14 @@ export const createVacancySchema = z.object({
 export const updateVacancySchema = createVacancySchema;
 
 export const scheduleInterviewSchema = z.object({
-  interviewDate: z.string().refine(
-    (date) => new Date(date) > new Date(),
-    'Interview date must be in the future'
-  ),
+  interviewDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date format must be YYYY-MM-DD'),
   interviewTime: z.string().regex(/^\d{2}:\d{2}$/, 'Time format must be HH:mm'),
-  interviewNotes: z.string().optional(),
-});
+  scheduledAt: z.string().datetime({ offset: true }).refine(
+    (value) => new Date(value) > new Date(),
+    'Interview time must be in the future',
+  ),
+  interviewNotes: z.string().max(2000).optional(),
+}).strict();
 
 export const updateVacancyStatusSchema = z.object({
   status: z.enum(['PUBLISHED', 'CLOSED', 'ARCHIVED']),
