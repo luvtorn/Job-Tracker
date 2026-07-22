@@ -6,10 +6,16 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/features/auth/context/auth-context";
 import Image from "next/image";
 import { CareerDocuments } from "./career-documents";
+import { useTranslations } from "next-intl";
+import { useToast } from "@/components/ui/toast";
 
 type UserRole = "SEEKER" | "RECRUITER" | "ADMIN";
 
 export function ProfileCard() {
+  const t = useTranslations("profileUi");
+  const common = useTranslations("common");
+  const feedback = useTranslations("profileFeedback");
+  const { showToast } = useToast();
   const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -63,13 +69,15 @@ export function ProfileCard() {
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        updateUser(data.user);
-        setIsEditing(false);
-      }
+      if (!response.ok) throw new Error(feedback("updateFailed"));
+
+      const data = await response.json();
+      updateUser(data.user);
+      setIsEditing(false);
+      showToast(feedback("updated"), "success");
     } catch (error) {
       console.error("Failed to update profile:", error);
+      showToast(feedback("updateFailed"), "error");
     } finally {
       setIsSaving(false);
     }
@@ -85,12 +93,12 @@ export function ProfileCard() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setUploadError("Please select an image file");
+      setUploadError(t("imageOnly"));
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setUploadError("File size must be less than 5MB");
+      setUploadError(t("imageSize"));
       return;
     }
 
@@ -110,12 +118,11 @@ export function ProfileCard() {
         const data = await response.json();
         updateUser(data.user);
       } else {
-        const error = await response.json();
-        setUploadError(error.message || "Failed to upload avatar");
+        setUploadError(t("avatarUploadFailed"));
       }
     } catch (error) {
       console.error("Failed to upload avatar:", error);
-      setUploadError("Failed to upload avatar");
+      setUploadError(t("avatarUploadFailed"));
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -142,7 +149,7 @@ export function ProfileCard() {
             {user.avatarUrl ? (
               <Image
                 src={user.avatarUrl}
-                alt="Avatar"
+                alt={t("avatar")}
                 width={96}
                 height={96}
                 className="w-24 h-24 rounded-full object-cover"
@@ -156,6 +163,7 @@ export function ProfileCard() {
             )}
             <label
               htmlFor="avatar-upload"
+              aria-label={t("uploadAvatar")}
               className="absolute bottom-0 right-0 bg-white border-2 border-neutral-200 rounded-full p-2 hover:bg-neutral-50 transition-colors cursor-pointer group-hover:border-primary-500"
             >
               {isUploadingAvatar ? (
@@ -183,7 +191,7 @@ export function ProfileCard() {
             </p>
             <p className="text-neutral-600 flex items-center gap-2 mt-1">
               <User size={16} />
-              {user.role === "SEEKER" ? "Job Seeker" : "Recruiter"}
+              {user.role === "SEEKER" ? t("seeker") : t("recruiter")}
             </p>
             {uploadError && (
               <p className="text-red-600 text-sm mt-2">{uploadError}</p>
@@ -196,13 +204,13 @@ export function ProfileCard() {
       <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-neutral-900">
-            Personal Information
+            {t("personalInformation")}
           </h3>
           <button
             onClick={() => setIsEditing(!isEditing)}
             className="text-sm font-medium text-primary-600 hover:text-primary-700"
           >
-            {isEditing ? "Cancel" : "Edit"}
+            {isEditing ? common("cancel") : common("edit")}
           </button>
         </div>
 
@@ -211,7 +219,7 @@ export function ProfileCard() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  First Name
+                  {t("firstName")}
                 </label>
                 <input
                   type="text"
@@ -223,7 +231,7 @@ export function ProfileCard() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Last Name
+                  {t("lastName")}
                 </label>
                 <input
                   type="text"
@@ -237,7 +245,7 @@ export function ProfileCard() {
 
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Email
+                {t("email")}
               </label>
               <input
                 type="email"
@@ -247,7 +255,7 @@ export function ProfileCard() {
                 className="w-full px-4 py-2 border border-neutral-200 rounded-lg bg-neutral-50 text-neutral-600"
               />
               <p className="text-xs text-neutral-500 mt-1">
-                Email cannot be changed
+                {t("emailFixed")}
               </p>
             </div>
 
@@ -257,39 +265,39 @@ export function ProfileCard() {
                 disabled={isSaving}
                 className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium disabled:opacity-50"
               >
-                {isSaving ? "Saving..." : "Save Changes"}
+                {isSaving ? t("saving") : t("saveChanges")}
               </button>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
                 className="px-6 py-2 border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors font-medium"
               >
-                Cancel
+                {common("cancel")}
               </button>
             </div>
           </form>
         ) : (
           <div className="space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-              <span className="text-neutral-600">First Name</span>
+              <span className="text-neutral-600">{t("firstName")}</span>
               <span className="font-medium text-neutral-900">
                 {user.firstName}
               </span>
             </div>
             <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-              <span className="text-neutral-600">Last Name</span>
+              <span className="text-neutral-600">{t("lastName")}</span>
               <span className="font-medium text-neutral-900">
                 {user.lastName}
               </span>
             </div>
             <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-              <span className="text-neutral-600">Email</span>
+              <span className="text-neutral-600">{t("email")}</span>
               <span className="font-medium text-neutral-900">{user.email}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-neutral-600">Account Type</span>
+              <span className="text-neutral-600">{t("accountType")}</span>
               <span className="font-medium text-neutral-900">
-                {user.role === "SEEKER" ? "Job Seeker" : "Recruiter"}
+                {user.role === "SEEKER" ? t("seeker") : t("recruiter")}
               </span>
             </div>
           </div>
@@ -301,14 +309,14 @@ export function ProfileCard() {
       {/* Security Section */}
       <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
         <h3 className="text-lg font-semibold text-neutral-900 mb-6">
-          Security
+          {t("security")}
         </h3>
         <div className="space-y-3">
-          <button className="w-full px-4 py-3 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors text-left font-medium text-neutral-700">
-            Change Password
+          <button disabled className="w-full px-4 py-3 border border-neutral-200 rounded-lg text-left font-medium text-neutral-400 cursor-not-allowed">
+            {t("changePassword")}
           </button>
-          <button className="w-full px-4 py-3 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors text-left font-medium text-neutral-700">
-            Active Sessions
+          <button disabled className="w-full px-4 py-3 border border-neutral-200 rounded-lg text-left font-medium text-neutral-400 cursor-not-allowed">
+            {t("activeSessions")}
           </button>
         </div>
       </div>

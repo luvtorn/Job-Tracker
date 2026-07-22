@@ -42,6 +42,8 @@ export function VacanciesList() {
   const [isActionLoading, setIsActionLoading] = useState(false);
   const { showToast } = useToast();
   const t = useTranslations('vacancies');
+  const ui = useTranslations('vacancyUi');
+  const common = useTranslations('common');
   const locale = useLocale();
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export function VacanciesList() {
         if (status !== 'ALL') params.set('status', status);
         if (search.trim()) params.set('search', search.trim());
         const response = await fetch(`/api/vacancies?${params}`);
-        if (!response.ok) throw new Error('Failed to fetch vacancies');
+        if (!response.ok) throw new Error(t('loadFailed'));
         const data = await response.json();
         setVacancies(data.vacancies || []);
       } catch (err) {
@@ -74,7 +76,7 @@ export function VacanciesList() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete vacancy');
+        throw new Error(t('deleteFailed'));
       }
 
       setVacancies((currentVacancies) => currentVacancies.filter((vacancy) => vacancy.id !== vacancyId));
@@ -94,7 +96,7 @@ export function VacanciesList() {
         body: JSON.stringify({ status: nextStatus }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to update vacancy status');
+      if (!response.ok) throw new Error(t('updateFailed'));
       setVacancies((currentVacancies) => currentVacancies.map((vacancy) => (
         vacancy.id === data.vacancy.id ? { ...vacancy, ...data.vacancy } : vacancy
       )));
@@ -120,15 +122,16 @@ export function VacanciesList() {
   const getDialogContent = () => {
     if (!pendingAction) return null;
     if (pendingAction.type === 'delete') {
-      return { title: 'Delete vacancy?', description: `This permanently removes “${pendingAction.vacancy.title}” and its applications. This action cannot be undone.`, confirmLabel: 'Delete', variant: 'destructive' as const };
+      return { title: ui('deleteTitle'), description: ui('deleteDescription', { title: pendingAction.vacancy.title }), confirmLabel: common('delete'), variant: 'destructive' as const };
     }
-    const action = pendingAction.nextStatus === 'ARCHIVED' ? 'Archive' : pendingAction.nextStatus === 'CLOSED' ? 'Close' : 'Publish';
+    const action = pendingAction.nextStatus === 'ARCHIVED' ? ui('archive') : pendingAction.nextStatus === 'CLOSED' ? ui('close') : ui('publish');
+    const title = pendingAction.nextStatus === 'ARCHIVED' ? ui('archiveTitle') : pendingAction.nextStatus === 'CLOSED' ? ui('closeTitle') : ui('publishTitle');
     const description = pendingAction.nextStatus === 'ARCHIVED'
-      ? `“${pendingAction.vacancy.title}” will be removed from public jobs.`
+      ? ui('archiveDescription', { title: pendingAction.vacancy.title })
       : pendingAction.nextStatus === 'CLOSED'
-        ? `“${pendingAction.vacancy.title}” will stop accepting new applications.`
-        : `“${pendingAction.vacancy.title}” will become visible in public jobs again.`;
-    return { title: `${action} vacancy?`, description, confirmLabel: action, variant: 'default' as const };
+        ? ui('closeDescription', { title: pendingAction.vacancy.title })
+        : ui('publishDescription', { title: pendingAction.vacancy.title });
+    return { title, description, confirmLabel: action, variant: 'default' as const };
   };
 
   const dialogContent = getDialogContent();
@@ -169,7 +172,7 @@ export function VacanciesList() {
             <option value="ALL">{t('allStatuses')}</option><option value="PUBLISHED">{t('published')}</option><option value="CLOSED">{t('closed')}</option><option value="ARCHIVED">{t('archived')}</option>
           </select>
           <select value={`${sortBy}:${sortDirection}`} onChange={(event) => { const [nextSortBy, nextSortDirection] = event.target.value.split(':') as ['createdAt' | 'publishedAt', 'asc' | 'desc']; setSortBy(nextSortBy); setSortDirection(nextSortDirection); }} className="rounded-lg border border-neutral-200 px-3 py-2 text-sm">
-            <option value="createdAt:desc">Newest created</option><option value="createdAt:asc">Oldest created</option><option value="publishedAt:desc">Newest published</option><option value="publishedAt:asc">Oldest published</option>
+            <option value="createdAt:desc">{ui('newestCreated')}</option><option value="createdAt:asc">{ui('oldestCreated')}</option><option value="publishedAt:desc">{ui('newestPublished')}</option><option value="publishedAt:asc">{ui('oldestPublished')}</option>
           </select>
         </div>
       </div>
@@ -194,32 +197,32 @@ export function VacanciesList() {
               <Link
                 href={`/vacancies/${vacancy.id}/edit`}
                 className="p-2 text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors"
-                aria-label={`Edit ${vacancy.title}`}
+                aria-label={ui('editLabel', { title: vacancy.title })}
               >
                 <Edit2 size={18} />
               </Link>
               {vacancy.status === 'PUBLISHED' && (
-                <button onClick={() => setPendingAction({ type: 'status', vacancy, nextStatus: 'CLOSED' })} className="p-2 text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors" aria-label={`Close ${vacancy.title}`}><XCircle size={18} /></button>
+                <button onClick={() => setPendingAction({ type: 'status', vacancy, nextStatus: 'CLOSED' })} className="p-2 text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors" aria-label={ui('closeLabel', { title: vacancy.title })}><XCircle size={18} /></button>
               )}
               {(vacancy.status === 'PUBLISHED' || vacancy.status === 'CLOSED') && (
                 <button
                   onClick={() => setPendingAction({ type: 'status', vacancy, nextStatus: 'ARCHIVED' })}
                   className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                  aria-label={`Archive ${vacancy.title}`}
+                  aria-label={ui('archiveLabel', { title: vacancy.title })}
                 >
                   <Archive size={18} />
                 </button>
               )}
               {vacancy.status === 'ARCHIVED' && (
-                <button onClick={() => setPendingAction({ type: 'status', vacancy, nextStatus: 'PUBLISHED' })} className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors" aria-label={`Reactivate ${vacancy.title}`}><RotateCcw size={18} /></button>
+                <button onClick={() => setPendingAction({ type: 'status', vacancy, nextStatus: 'PUBLISHED' })} className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors" aria-label={ui('reactivateLabel', { title: vacancy.title })}><RotateCcw size={18} /></button>
               )}
               {vacancy.status === 'CLOSED' && (
-                <button onClick={() => setPendingAction({ type: 'status', vacancy, nextStatus: 'PUBLISHED' })} className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors" aria-label={`Publish ${vacancy.title}`}><CheckCircle2 size={18} /></button>
+                <button onClick={() => setPendingAction({ type: 'status', vacancy, nextStatus: 'PUBLISHED' })} className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors" aria-label={ui('publishLabel', { title: vacancy.title })}><CheckCircle2 size={18} /></button>
               )}
               <button
                 onClick={() => setPendingAction({ type: 'delete', vacancy })}
                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                aria-label={`Delete ${vacancy.title}`}
+                aria-label={ui('deleteLabel', { title: vacancy.title })}
               >
                 <Trash2 size={18} />
               </button>
@@ -230,7 +233,7 @@ export function VacanciesList() {
             <span>📍 {vacancy.location}</span>
             {vacancy.salaryMin && (
               <span>
-                💰 {vacancy.salaryMin.toLocaleString()} - {vacancy.salaryMax?.toLocaleString() || 'N/A'} {vacancy.currency}
+                💰 {vacancy.salaryMin.toLocaleString(locale)} - {vacancy.salaryMax?.toLocaleString(locale) || ui('salaryMissing')} {vacancy.currency}
               </span>
             )}
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -240,7 +243,7 @@ export function VacanciesList() {
                   ? 'bg-neutral-100 text-neutral-700'
                 : 'bg-yellow-100 text-yellow-700'
             }`}>
-              {vacancy.status}
+              {vacancy.status === 'PUBLISHED' ? t('published') : vacancy.status === 'ARCHIVED' ? t('archived') : t('closed')}
             </span>
           </div>
 

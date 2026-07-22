@@ -52,8 +52,7 @@ export default function RegisterPage() {
       if (!response.ok) {
         const contentType = response.headers.get('content-type');
         if (contentType?.includes('application/json')) {
-          const responseData = await response.json();
-          setError(responseData.message || t('registrationFailed'));
+          setError(t('registrationFailed'));
         } else {
           setError(t('registrationRetry'));
         }

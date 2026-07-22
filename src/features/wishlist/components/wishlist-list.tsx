@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Trash2, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
+import { useToast } from '@/components/ui/toast';
 
 interface WishlistItem {
   id: string;
@@ -20,35 +22,41 @@ interface WishlistItem {
 }
 
 export function WishlistList() {
+  const t = useTranslations('wishlistUi');
+  const locale = useLocale();
+  const { showToast } = useToast();
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const loadWishlist = async () => {
       try {
         const response = await fetch('/api/wishlist');
-        if (!response.ok) throw new Error('Failed to fetch wishlist');
+        if (!response.ok) throw new Error(t('loadFailed'));
         const result = await response.json();
         setItems(result.data || []);
       } catch (error) {
         console.error('Failed to fetch wishlist:', error);
+        setError(t('loadFailed'));
       } finally {
         setIsLoading(false);
       }
     };
 
     void loadWishlist();
-  }, []);
+  }, [t]);
 
   const handleRemove = async (id: string) => {
     try {
       const response = await fetch(`/api/wishlist/${id}`, {
         method: 'DELETE',
       });
-      if (!response.ok) throw new Error('Failed to remove from wishlist');
-      setItems(items.filter(item => item.id !== id));
+      if (!response.ok) throw new Error(t('removeFailed'));
+      setItems((currentItems) => currentItems.filter((item) => item.id !== id));
     } catch (error) {
       console.error('Failed to remove from wishlist:', error);
+      showToast(t('removeFailed'), 'error');
     }
   };
 
@@ -65,21 +73,25 @@ export function WishlistList() {
     );
   }
 
+  if (error) {
+    return <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>;
+  }
+
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Heart size={48} className="text-neutral-300 mb-4" />
         <h3 className="text-lg font-semibold text-neutral-900 mb-2">
-          No wishlist items yet
+          {t('empty')}
         </h3>
         <p className="text-neutral-600 mb-6">
-          Add jobs to your wishlist to keep track of opportunities
+          {t('emptyHint')}
         </p>
         <Link
           href="/jobs"
           className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
         >
-          Browse Jobs
+          {t('browse')}
         </Link>
       </div>
     );
@@ -107,7 +119,7 @@ export function WishlistList() {
             <button
               onClick={() => handleRemove(item.id)}
               className="p-1.5 hover:bg-red-50 rounded-lg transition-colors text-neutral-400 hover:text-red-600"
-              title="Remove from wishlist"
+              aria-label={t('remove', { title: item.vacancy.title })}
             >
               <Trash2 size={18} />
             </button>
@@ -117,8 +129,8 @@ export function WishlistList() {
             <p>{item.vacancy.location}</p>
             {item.vacancy.salaryMin && item.vacancy.salaryMax && (
               <p>
-                {item.vacancy.currency} {item.vacancy.salaryMin.toLocaleString()} -{' '}
-                {item.vacancy.salaryMax.toLocaleString()}
+                {item.vacancy.currency} {item.vacancy.salaryMin.toLocaleString(locale)} -{' '}
+                {item.vacancy.salaryMax.toLocaleString(locale)}
               </p>
             )}
           </div>
@@ -127,7 +139,7 @@ export function WishlistList() {
             href={`/jobs/${item.vacancy.id}`}
             className="flex items-center gap-2 text-primary-600 hover:text-primary-700 text-sm font-medium"
           >
-            View Details
+            {t('details')}
             <ExternalLink size={16} />
           </Link>
         </motion.div>

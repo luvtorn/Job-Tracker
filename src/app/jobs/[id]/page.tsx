@@ -102,10 +102,8 @@ export default function JobDetailPage() {
         body: JSON.stringify({ vacancyId: jobId }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        setApplyError(data.message || t('submitFailed'));
+        setApplyError(t('submitFailed'));
         return;
       }
 

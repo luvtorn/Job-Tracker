@@ -57,6 +57,7 @@ type CandidatesListProps = {
 
 export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
   const t = useTranslations('candidates');
+  const loadErrors = useTranslations('loadErrors');
   const statusT = useTranslations('statuses');
   const locale = useLocale();
   const { showToast } = useToast();
@@ -81,7 +82,7 @@ export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
       try {
         setIsLoading(true);
         const response = await fetch('/api/vacancies');
-        if (!response.ok) throw new Error('Failed to fetch vacancies');
+        if (!response.ok) throw new Error(loadErrors('vacancies'));
 
         const data = await response.json();
         const availableVacancies: Vacancy[] = data.vacancies || [];
@@ -90,14 +91,14 @@ export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
         if (availableVacancies.length > 0) setSelectedVacancyId(requestedVacancy?.id ?? availableVacancies[0].id);
       } catch (err) {
         console.error('Failed to fetch vacancies:', err);
-        setError('Failed to load vacancies');
+        setError(loadErrors('vacancies'));
       } finally {
         setIsLoading(false);
       }
     };
 
     void loadVacancies();
-  }, [initialVacancyId]);
+  }, [initialVacancyId, loadErrors]);
 
   useEffect(() => {
     if (!selectedVacancyId) {
@@ -110,19 +111,19 @@ export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
       try {
         setIsLoading(true);
         const response = await fetch(`/api/vacancies/${selectedVacancyId}/candidates`);
-        if (!response.ok) throw new Error('Failed to fetch candidates');
+        if (!response.ok) throw new Error(loadErrors('candidates'));
         const data = await response.json();
         setCandidates(data.applications || []);
       } catch (err) {
         console.error('Failed to fetch candidates:', err);
-        setError('Failed to load candidates');
+        setError(loadErrors('candidates'));
       } finally {
         setIsLoading(false);
       }
     };
 
     void loadCandidates();
-  }, [selectedVacancyId]);
+  }, [loadErrors, selectedVacancyId]);
 
   const handleStatusChange = async (candidateId: string, newStatus: string) => {
     const candidate = candidates.find((item) => item.id === candidateId);
@@ -151,10 +152,8 @@ export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
         body: JSON.stringify({ status: newStatus }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.message || t('updateFailed'));
+        throw new Error(t('updateFailed'));
       }
       showToast(t('updated'), 'success');
     } catch (err) {
@@ -188,8 +187,7 @@ export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
       );
 
       if (!interviewRes.ok) {
-        const err = await interviewRes.json();
-        throw new Error(err.message || t('scheduleFailed'));
+        throw new Error(t('scheduleFailed'));
       }
 
       setCandidates((current) =>

@@ -14,7 +14,7 @@ This roadmap tracks the production-readiness plan. A stage is complete only afte
 
 - [x] Stage 0 — Baseline dashboard/reminders localization and vacancy-aware candidates navigation
 - [x] Stage 1 — Single-source calendar interviews and complete event editing
-- [ ] Stage 2 — Full localization and UX audit
+- [x] Stage 2 — Full localization and UX audit
 - [ ] Stage 3 — Architecture, security, integration tests, and critical E2E coverage
 - [ ] Stage 4 — Opt-in WebGPU/WebLLM browser runtime
 - [ ] Stage 5 — Versioned AI generation history
@@ -30,6 +30,13 @@ This roadmap tracks the production-readiness plan. A stage is complete only afte
 - Next.js production build: passed
 - `/candidates?vacancyId=<id>` selects an accessible vacancy and safely falls back for missing or unauthorized IDs
 - Dashboard and shared reminders use typed `en`, `pl`, and `ru` translations
+
+## Stage 2 completed on 2026-07-22
+
+- Tests: 27 passed, 0 failed
+- ESLint, TypeScript, and the Next.js production build passed
+- Public server-rendered pages returned localized content and matching `html lang` values for `en`, `pl`, and `ru`
+- Protected and shared interfaces were audited for hardcoded copy; the localization regression test now covers dashboard, workspace, statistics, profile, vacancies, wishlist, candidates, applications, jobs, calendar, and 404 UI
 
 ## Delivery rules
 

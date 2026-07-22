@@ -19,6 +19,7 @@ export function CompaniesWorkspace() {
   const [error, setError] = useState('');
   const { showToast } = useToast();
   const t = useTranslations('workspace');
+  const actions = useTranslations('workspaceActions');
   const common = useTranslations('common');
 
   const load = useCallback(async () => {
@@ -26,11 +27,11 @@ export function CompaniesWorkspace() {
     try {
       const response = await fetch('/api/companies');
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to load companies');
+      if (!response.ok) throw new Error(actions('companiesLoadFailed'));
       setItems(data.companies);
-    } catch (loadError) { setError(loadError instanceof Error ? loadError.message : 'Failed to load companies'); }
+    } catch (loadError) { setError(loadError instanceof Error ? loadError.message : actions('companiesLoadFailed')); }
     finally { setLoading(false); }
-  }, []);
+  }, [actions]);
 
   useEffect(() => { const timer = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(timer); }, [load]);
 
@@ -39,25 +40,24 @@ export function CompaniesWorkspace() {
     event.preventDefault(); setSaving(true);
     try {
       const response = await fetch(editingId ? `/api/companies/${editingId}` : '/api/companies', { method: editingId ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to save company');
-      showToast(editingId ? 'Company updated.' : 'Company added.', 'success'); reset(); await load();
-    } catch (saveError) { showToast(saveError instanceof Error ? saveError.message : 'Failed to save company', 'error'); }
+      if (!response.ok) throw new Error(actions('companySaveFailed'));
+      showToast(editingId ? actions('companyUpdated') : actions('companyAdded'), 'success'); reset(); await load();
+    } catch (saveError) { showToast(saveError instanceof Error ? saveError.message : actions('companySaveFailed'), 'error'); }
     finally { setSaving(false); }
   };
   const remove = async () => {
     if (!pendingDelete) return; setSaving(true);
     try {
       const response = await fetch(`/api/companies/${pendingDelete.id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Failed to remove company');
-      setItems((current) => current.filter((item) => item.id !== pendingDelete.id)); setPendingDelete(null); showToast('Company removed. Its contacts were kept.', 'success');
-    } catch (deleteError) { showToast(deleteError instanceof Error ? deleteError.message : 'Failed to remove company', 'error'); }
+      if (!response.ok) throw new Error(actions('companyRemoveFailed'));
+      setItems((current) => current.filter((item) => item.id !== pendingDelete.id)); setPendingDelete(null); showToast(actions('companyRemoved'), 'success');
+    } catch (deleteError) { showToast(deleteError instanceof Error ? deleteError.message : actions('companyRemoveFailed'), 'error'); }
     finally { setSaving(false); }
   };
 
   return <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
     <form onSubmit={submit} className="h-fit space-y-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm"><h2 className="font-semibold text-neutral-900">{editingId ? t('editCompany') : t('addCompany')}</h2>{(['name', 'website', 'location'] as const).map((field) => <input key={field} required={field === 'name'} value={form[field]} onChange={(event) => setForm({ ...form, [field]: event.target.value })} placeholder={t(field === 'name' ? 'companyName' : field)} className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-primary-500" />)}<textarea value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} placeholder={t('notes')} rows={4} className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-primary-500" /><div className="flex gap-2"><button disabled={saving} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60">{saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}{common('save')}</button>{editingId && <button type="button" onClick={reset} className="rounded-lg border px-3 text-sm">{common('cancel')}</button>}</div></form>
-    <div>{loading ? <div className="grid gap-4 md:grid-cols-2">{[0, 1].map((item) => <div key={item} className="h-40 animate-pulse rounded-xl bg-neutral-100" />)}</div> : error ? <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">{error}<button onClick={() => void load()} className="ml-3 font-semibold underline">Try again</button></div> : items.length === 0 ? <div className="rounded-xl border border-dashed border-neutral-300 bg-white p-12 text-center text-neutral-500"><Building2 className="mx-auto mb-3" /><p>No companies yet. Add companies you want to keep track of.</p></div> : <div className="grid gap-4 md:grid-cols-2">{items.map((item) => <article key={item.id} className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm"><div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold text-neutral-900">{item.name}</h3><p className="text-sm text-neutral-500">{item.location || 'Location not set'} · {item._count?.contacts ?? 0} contacts</p></div><div className="flex"><button onClick={() => { setEditingId(item.id); setForm({ name: item.name, website: item.website || '', location: item.location || '', notes: item.notes || '' }); }} className="p-2 text-neutral-500 hover:text-primary-600" aria-label="Edit company"><Pencil size={16} /></button><button onClick={() => setPendingDelete({ id: item.id, label: item.name })} className="p-2 text-neutral-500 hover:text-red-600" aria-label="Delete company"><Trash2 size={16} /></button></div></div>{item.website && <a href={item.website} target="_blank" rel="noreferrer" className="mt-3 block truncate text-sm text-primary-600">{item.website}</a>}{item.notes && <p className="mt-3 whitespace-pre-wrap text-sm text-neutral-600">{item.notes}</p>}</article>)}</div>}</div>
-    <ConfirmationDialog isOpen={Boolean(pendingDelete)} title="Delete company?" description={`${pendingDelete?.label || 'This company'} will be removed. Linked contacts will be kept and unlinked from the company.`} confirmLabel="Delete" variant="destructive" isLoading={saving} onClose={() => setPendingDelete(null)} onConfirm={() => void remove()} />
+    <div>{loading ? <div className="grid gap-4 md:grid-cols-2">{[0, 1].map((item) => <div key={item} className="h-40 animate-pulse rounded-xl bg-neutral-100" />)}</div> : error ? <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">{error}<button onClick={() => void load()} className="ml-3 font-semibold underline">{common('tryAgain')}</button></div> : items.length === 0 ? <div className="rounded-xl border border-dashed border-neutral-300 bg-white p-12 text-center text-neutral-500"><Building2 className="mx-auto mb-3" /><p>{t('noCompanies')}</p></div> : <div className="grid gap-4 md:grid-cols-2">{items.map((item) => <article key={item.id} className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm"><div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold text-neutral-900">{item.name}</h3><p className="text-sm text-neutral-500">{item.location || t('locationMissing')} · {t('contactsCount', { count: item._count?.contacts ?? 0 })}</p></div><div className="flex"><button onClick={() => { setEditingId(item.id); setForm({ name: item.name, website: item.website || '', location: item.location || '', notes: item.notes || '' }); }} className="p-2 text-neutral-500 hover:text-primary-600" aria-label={t('editCompanyLabel')}><Pencil size={16} /></button><button onClick={() => setPendingDelete({ id: item.id, label: item.name })} className="p-2 text-neutral-500 hover:text-red-600" aria-label={t('deleteCompanyLabel')}><Trash2 size={16} /></button></div></div>{item.website && <a href={item.website} target="_blank" rel="noreferrer" className="mt-3 block truncate text-sm text-primary-600">{item.website}</a>}{item.notes && <p className="mt-3 whitespace-pre-wrap text-sm text-neutral-600">{item.notes}</p>}</article>)}</div>}</div>
+    <ConfirmationDialog isOpen={Boolean(pendingDelete)} title={actions('deleteCompanyTitle')} description={actions('deleteCompanyDescription', { company: pendingDelete?.label || actions('thisCompany') })} confirmLabel={common('delete')} variant="destructive" isLoading={saving} onClose={() => setPendingDelete(null)} onConfirm={() => void remove()} />
   </div>;
 }

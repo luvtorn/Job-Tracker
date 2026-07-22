@@ -15,6 +15,7 @@ import {
   YAxis,
 } from 'recharts';
 import { RecruiterVacancyStatistics } from './recruiter-vacancy-statistics';
+import { useLocale, useTranslations } from 'next-intl';
 
 type Period = '30' | '90' | 'all';
 type RecruiterStatisticsData = {
@@ -27,13 +28,11 @@ type RecruiterStatisticsData = {
   }>;
 };
 
-const periods: Array<{ value: Period; label: string }> = [
-  { value: '30', label: '30 days' },
-  { value: '90', label: '90 days' },
-  { value: 'all', label: 'All time' },
-];
-
 export function RecruiterStatistics() {
+  const t = useTranslations('statisticsUi');
+  const common = useTranslations('common');
+  const statusT = useTranslations('statuses');
+  const locale = useLocale();
   const [period, setPeriod] = useState<Period>('30');
   const [data, setData] = useState<RecruiterStatisticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,14 +44,14 @@ export function RecruiterStatistics() {
     try {
       const response = await fetch(`/api/recruiter/statistics?period=${period}`);
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Failed to load statistics');
+      if (!response.ok) throw new Error(t('loadFailed'));
       setData(result);
     } catch (fetchError) {
-      setError(fetchError instanceof Error ? fetchError.message : 'Failed to load statistics');
+      setError(fetchError instanceof Error ? fetchError.message : t('loadFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, [period]);
+  }, [period, t]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Fetching is synchronized with the selected reporting period.
@@ -67,7 +66,7 @@ export function RecruiterStatistics() {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-700">
         <p>{error}</p>
-        <button onClick={() => void fetchStatistics()} className="mt-3 font-medium underline">Try again</button>
+        <button onClick={() => void fetchStatistics()} className="mt-3 font-medium underline">{common('tryAgain')}</button>
       </div>
     );
   }
@@ -75,13 +74,25 @@ export function RecruiterStatistics() {
   if (!data) return null;
 
   const cards = [
-    { label: 'Applications Received', value: data.summary.total, icon: Users },
-    { label: 'Pending Review', value: data.summary.pending, icon: Clock },
-    { label: 'Current Interviews', value: data.summary.interviewing, icon: BriefcaseBusiness },
-    { label: 'Offers', value: data.summary.offers, icon: Handshake },
-    { label: 'Hires', value: data.summary.hired, icon: UserCheck },
+    { label: t('applicationsReceived'), value: data.summary.total, icon: Users },
+    { label: t('pendingReview'), value: data.summary.pending, icon: Clock },
+    { label: t('currentInterviews'), value: data.summary.interviewing, icon: BriefcaseBusiness },
+    { label: t('offers'), value: data.summary.offers, icon: Handshake },
+    { label: t('hires'), value: data.summary.hired, icon: UserCheck },
   ];
-  const visibleDistribution = data.statusDistribution.filter((item) => item.value > 0);
+  const visibleDistribution = data.statusDistribution.filter((item) => item.value > 0).map((item) => ({
+    ...item,
+    name: statusT(item.status.toLowerCase() as 'applied' | 'interviewing' | 'offer' | 'accepted' | 'rejected' | 'withdrawn'),
+  }));
+  const periods: Array<{ value: Period; label: string }> = [
+    { value: '30', label: t('days30') },
+    { value: '90', label: t('days90') },
+    { value: 'all', label: t('allTime') },
+  ];
+  const timeline = data.applicationsOverTime.map((item) => ({
+    ...item,
+    label: new Intl.DateTimeFormat(locale, item.label.length === 7 ? { month: 'short', year: 'numeric', timeZone: 'UTC' } : { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${item.label}${item.label.length === 7 ? '-01' : ''}T00:00:00Z`)),
+  }));
 
   return (
     <div className="space-y-6">
@@ -97,7 +108,7 @@ export function RecruiterStatistics() {
             </button>
           ))}
         </div>
-        {isLoading && <span className="text-sm text-neutral-500">Updating…</span>}
+        {isLoading && <span className="text-sm text-neutral-500">{t('updating')}</span>}
       </div>
 
       {error && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
@@ -114,7 +125,7 @@ export function RecruiterStatistics() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold">Current Status Distribution</h2>
+          <h2 className="mb-4 text-lg font-semibold">{t('statusDistribution')}</h2>
           {visibleDistribution.length ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -124,13 +135,13 @@ export function RecruiterStatistics() {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-          ) : <div className="flex h-[300px] items-center justify-center text-neutral-500">No applications in this period</div>}
+          ) : <div className="flex h-[300px] items-center justify-center text-neutral-500">{t('noApplicationsPeriod')}</div>}
         </section>
 
         <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold">New Applications Over Time</h2>
+          <h2 className="mb-4 text-lg font-semibold">{t('applicationsOverTime')}</h2>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.applicationsOverTime} margin={{ left: 0, right: 10, bottom: 35 }}>
+            <BarChart data={timeline} margin={{ left: 0, right: 10, bottom: 35 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="label" angle={-35} textAnchor="end" fontSize={11} />
               <YAxis allowDecimals={false} />

@@ -61,8 +61,7 @@ export function RecentApplications({ applications: initialApplications }: Recent
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || interviewT('failed'));
+      throw new Error(interviewT('failed'));
     }
 
     setApplications((prev) =>

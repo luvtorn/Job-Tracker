@@ -15,6 +15,7 @@ import {
   Bar,
 } from 'recharts';
 import { TrendingUp, Target, Clock, CheckCircle2 } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface StatsData {
   stats: {
@@ -25,7 +26,7 @@ interface StatsData {
     accepted: number;
     rejected: number;
   };
-  statusDistribution: Array<{ name: string; value: number; fill: string }>;
+  statusDistribution: Array<{ status: string; name: string; value: number; fill: string }>;
   applicationsByDate: Array<{ date: string; count: number }>;
   metrics: {
     successRate: number;
@@ -35,27 +36,33 @@ interface StatsData {
 }
 
 export function StatisticsCharts() {
+  const t = useTranslations('statisticsUi');
+  const common = useTranslations('common');
+  const statusT = useTranslations('statuses');
+  const locale = useLocale();
   const [data, setData] = useState<StatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const loadStats = async () => {
       try {
         const response = await fetch('/api/applications/stats');
-        if (!response.ok) throw new Error('Failed to fetch stats');
+        if (!response.ok) throw new Error(t('loadFailed'));
         const result = await response.json();
         setData(result);
       } catch (error) {
         console.error('Failed to fetch stats:', error);
+        setError(t('loadFailed'));
       } finally {
         setIsLoading(false);
       }
     };
 
     void loadStats();
-  }, []);
+  }, [t]);
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {[...Array(4)].map((_, i) => (
@@ -63,6 +70,10 @@ export function StatisticsCharts() {
         ))}
       </div>
     );
+  }
+
+  if (error || !data) {
+    return <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-red-700">{error || t('loadFailed')}<button onClick={() => window.location.reload()} className="ml-3 font-semibold underline">{common('tryAgain')}</button></div>;
   }
 
   const containerVariants = {
@@ -86,32 +97,32 @@ export function StatisticsCharts() {
 
   const metricCards = [
     {
-      label: 'Success Rate',
+      label: t('successRate'),
       value: `${data.metrics.successRate}%`,
       icon: Target,
       color: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-      description: 'Offers & Accepted',
+      description: t('offersAccepted'),
     },
     {
-      label: 'Response Rate',
+      label: t('responseRate'),
       value: `${data.metrics.responseRate}%`,
       icon: TrendingUp,
       color: 'bg-blue-50 text-blue-600 border-blue-200',
-      description: 'Non-applied status',
+      description: t('nonAppliedStatus'),
     },
     {
-      label: 'Avg Applications/Day',
+      label: t('averagePerDay'),
       value: data.metrics.averagePerDay,
       icon: Clock,
       color: 'bg-purple-50 text-purple-600 border-purple-200',
-      description: 'Daily average',
+      description: t('dailyAverage'),
     },
     {
-      label: 'Total Applications',
+      label: t('totalApplications'),
       value: data.stats.total,
       icon: CheckCircle2,
       color: 'bg-yellow-50 text-yellow-600 border-yellow-200',
-      description: 'All time',
+      description: t('allTime'),
     },
   ];
 
@@ -154,13 +165,13 @@ export function StatisticsCharts() {
           variants={itemVariants}
         >
           <h3 className="text-lg font-semibold text-neutral-900 mb-4">
-            Application Status Distribution
+            {t('applicationDistribution')}
           </h3>
           {data.statusDistribution.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={data.statusDistribution}
+                  data={data.statusDistribution.map((item) => ({ ...item, name: statusT(item.status.toLowerCase() as 'applied' | 'interviewing' | 'offer' | 'accepted' | 'rejected') }))}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -178,7 +189,7 @@ export function StatisticsCharts() {
             </ResponsiveContainer>
           ) : (
             <div className="h-72 flex items-center justify-center text-neutral-500">
-              No data available
+              {t('noData')}
             </div>
           )}
         </motion.div>
@@ -189,12 +200,12 @@ export function StatisticsCharts() {
           variants={itemVariants}
         >
           <h3 className="text-lg font-semibold text-neutral-900 mb-4">
-            Applications Over Time
+            {t('timeline')}
           </h3>
           {data.applicationsByDate.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
-                data={data.applicationsByDate.slice(-14)}
+                data={data.applicationsByDate.slice(-14).map((item) => ({ ...item, date: new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${item.date}T00:00:00Z`)) }))}
                 margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -219,7 +230,7 @@ export function StatisticsCharts() {
             </ResponsiveContainer>
           ) : (
             <div className="h-72 flex items-center justify-center text-neutral-500">
-              No data available
+              {t('noData')}
             </div>
           )}
         </motion.div>
@@ -231,16 +242,16 @@ export function StatisticsCharts() {
         variants={itemVariants}
       >
         <h3 className="text-lg font-semibold text-neutral-900 mb-4">
-          Detailed Statistics
+          {t('detailed')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
-            { label: 'Total', value: data.stats.total, color: 'bg-blue-50' },
-            { label: 'Applied', value: data.stats.applied, color: 'bg-yellow-50' },
-            { label: 'Interviewing', value: data.stats.interviewing, color: 'bg-purple-50' },
-            { label: 'Offers', value: data.stats.offers, color: 'bg-green-50' },
-            { label: 'Accepted', value: data.stats.accepted, color: 'bg-emerald-50' },
-            { label: 'Rejected', value: data.stats.rejected, color: 'bg-red-50' },
+            { label: t('total'), value: data.stats.total, color: 'bg-blue-50' },
+            { label: t('applied'), value: data.stats.applied, color: 'bg-yellow-50' },
+            { label: t('interviewing'), value: data.stats.interviewing, color: 'bg-purple-50' },
+            { label: t('offers'), value: data.stats.offers, color: 'bg-green-50' },
+            { label: t('accepted'), value: data.stats.accepted, color: 'bg-emerald-50' },
+            { label: t('rejected'), value: data.stats.rejected, color: 'bg-red-50' },
           ].map((stat, idx) => (
             <motion.div
               key={idx}

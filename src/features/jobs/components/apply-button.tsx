@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Check, Send } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/auth-context';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 interface ApplyButtonProps {
   vacancyId: string;
@@ -12,6 +13,7 @@ interface ApplyButtonProps {
 }
 
 export function ApplyButton({ vacancyId, hasApplied = false }: ApplyButtonProps) {
+  const t = useTranslations('jobDetail');
   const [isLoading, setIsLoading] = useState(false);
   const [applied, setApplied] = useState(hasApplied);
   const [error, setError] = useState('');
@@ -34,10 +36,8 @@ export function ApplyButton({ vacancyId, hasApplied = false }: ApplyButtonProps)
         body: JSON.stringify({ vacancyId }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        setError(data.message || 'Failed to submit application');
+        setError(t('submitFailed'));
         return;
       }
 
@@ -45,7 +45,7 @@ export function ApplyButton({ vacancyId, hasApplied = false }: ApplyButtonProps)
       setError('');
     } catch (err) {
       console.error('Failed to apply:', err);
-      setError('An error occurred while submitting your application');
+      setError(t('submitError'));
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +81,7 @@ export function ApplyButton({ vacancyId, hasApplied = false }: ApplyButtonProps)
               >
                 <Check size={20} />
               </motion.div>
-              <span>Application Submitted</span>
+              <span>{t('submitted')}</span>
             </>
           ) : (
             <>
@@ -91,7 +91,7 @@ export function ApplyButton({ vacancyId, hasApplied = false }: ApplyButtonProps)
               >
                 <Send size={20} />
               </motion.div>
-              <span>{isLoading ? 'Submitting...' : 'Apply for this position'}</span>
+              <span>{isLoading ? t('applying') : t('apply')}</span>
             </>
           )}
         </motion.div>

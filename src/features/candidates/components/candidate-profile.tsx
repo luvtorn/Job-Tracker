@@ -28,7 +28,7 @@ export function CandidateProfile({ applicationId }: { applicationId: string }) {
       const response = await fetch(`/api/applications/${applicationId}/candidate-profile`);
       const result = await response.json();
       if (!response.ok) {
-        setError(result.message || t('profileLoadFailed'));
+        setError(t('profileLoadFailed'));
         return;
       }
       setData(result.application);

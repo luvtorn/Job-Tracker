@@ -12,15 +12,18 @@ type VacancyStatistics = {
 };
 
 export function RecruiterVacancyStatistics({ vacancies }: { vacancies: VacancyStatistics[] }) {
+  const t = useTranslations('statisticsUi');
+  const vacancyT = useTranslations('vacancies');
+  const headers = [t('total'), t('pending'), t('interviewing'), t('offers'), t('hired'), t('rejected'), t('hireRate')];
   return (
     <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-lg font-semibold text-neutral-900">Statistics by Vacancy</h2>
+      <h2 className="mb-4 text-lg font-semibold text-neutral-900">{t('byVacancy')}</h2>
       <div className="overflow-x-auto">
         <table className="min-w-[900px] w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-200 text-left text-neutral-500">
-              <th className="pb-3 font-medium">Vacancy</th>
-              {['Total', 'Pending', 'Interviewing', 'Offers', 'Hired', 'Rejected', 'Hire Rate'].map((label) => (
+              <th className="pb-3 font-medium">{t('vacancy')}</th>
+              {headers.map((label) => (
                 <th key={label} className="pb-3 text-center font-medium">{label}</th>
               ))}
             </tr>
@@ -29,7 +32,7 @@ export function RecruiterVacancyStatistics({ vacancies }: { vacancies: VacancySt
             {vacancies.length === 0 && (
               <tr>
                 <td colSpan={8} className="py-10 text-center text-neutral-500">
-                  No vacancies available
+                  {t('noVacancies')}
                 </td>
               </tr>
             )}
@@ -37,7 +40,7 @@ export function RecruiterVacancyStatistics({ vacancies }: { vacancies: VacancySt
               <tr key={vacancy.id} className="border-b border-neutral-100 last:border-0">
                 <td className="py-4">
                   <p className="font-medium text-neutral-900">{vacancy.title}</p>
-                  <p className="text-xs text-neutral-500">{vacancy.status}</p>
+                  <p className="text-xs text-neutral-500">{vacancy.status === 'PUBLISHED' ? vacancyT('published') : vacancy.status === 'CLOSED' ? vacancyT('closed') : vacancyT('archived')}</p>
                 </td>
                 <td className="py-4 text-center">{vacancy.total}</td>
                 <td className="py-4 text-center">{vacancy.pending}</td>
@@ -54,3 +57,4 @@ export function RecruiterVacancyStatistics({ vacancies }: { vacancies: VacancySt
     </section>
   );
 }
+import { useTranslations } from 'next-intl';

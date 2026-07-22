@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Loader } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 type VacancyFormData = {
   title: string;
@@ -23,6 +24,8 @@ const emptyFormData: VacancyFormData = {
 };
 
 export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
+  const t = useTranslations('vacancyUi');
+  const common = useTranslations('common');
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(Boolean(vacancyId));
@@ -36,7 +39,7 @@ export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
       try {
         const response = await fetch(`/api/vacancies/${vacancyId}`);
         const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Failed to fetch vacancy');
+        if (!response.ok) throw new Error(t('loadFailed'));
         const vacancy = data.vacancy;
         setFormData({
           title: vacancy.title,
@@ -51,14 +54,14 @@ export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
         });
       } catch (loadError) {
         console.error('Failed to load vacancy:', loadError);
-        setError('Failed to load vacancy');
+        setError(t('loadFailed'));
       } finally {
         setIsInitialLoading(false);
       }
     };
 
     void loadVacancy();
-  }, [vacancyId]);
+  }, [vacancyId, t]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -87,29 +90,14 @@ export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
       });
 
       if (!response.ok) {
-        const contentType = response.headers.get('content-type');
-        let errorMessage = vacancyId ? 'Failed to update vacancy' : 'Failed to create vacancy';
-
-        if (contentType?.includes('application/json')) {
-          try {
-            const data = await response.json();
-            errorMessage = data.message || errorMessage;
-          } catch (e) {
-            console.error('Failed to parse error response:', e);
-          }
-        } else {
-          const text = await response.text();
-          console.error('Non-JSON error response:', text);
-        }
-
-        setError(errorMessage);
+        setError(vacancyId ? t('updateFailed') : t('createFailed'));
         return;
       }
 
       router.push('/vacancies');
     } catch (err) {
       console.error('Failed to save vacancy:', err);
-      setError('Something went wrong. Please try again.');
+      setError(t('unexpected'));
     } finally {
       setIsLoading(false);
     }
@@ -130,28 +118,28 @@ export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Job Title *
+              {t('jobTitle')} *
             </label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="Senior Software Engineer"
+              placeholder={t('titlePlaceholder')}
               required
               className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Company *
+              {t('company')} *
             </label>
             <input
               type="text"
               name="company"
               value={formData.company}
               onChange={handleChange}
-              placeholder="Tech Company"
+              placeholder={t('companyPlaceholder')}
               required
               className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
@@ -162,28 +150,28 @@ export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Location *
+              {t('location')} *
             </label>
             <input
               type="text"
               name="location"
               value={formData.location}
               onChange={handleChange}
-              placeholder="San Francisco, CA"
+              placeholder={t('locationPlaceholder')}
               required
               className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Position Type
+              {t('positionType')}
             </label>
             <input
               type="text"
               name="position"
               value={formData.position}
               onChange={handleChange}
-              placeholder="Full-time"
+              placeholder={t('positionPlaceholder')}
               className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
@@ -193,7 +181,7 @@ export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
         <div className="grid grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Salary Min
+              {t('salaryMin')}
             </label>
             <input
               type="number"
@@ -206,7 +194,7 @@ export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Salary Max
+              {t('salaryMax')}
             </label>
             <input
               type="number"
@@ -219,7 +207,7 @@ export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Currency
+              {t('currency')}
             </label>
             <select
               name="currency"
@@ -238,13 +226,13 @@ export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
         {/* Description */}
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Job Description *
+            {t('description')} *
           </label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
-            placeholder="Describe the job responsibilities and requirements..."
+            placeholder={t('descriptionPlaceholder')}
             required
             rows={6}
             className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -254,13 +242,13 @@ export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
         {/* Requirements */}
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Requirements
+            {t('requirements')}
           </label>
           <textarea
             name="requirements"
             value={formData.requirements}
             onChange={handleChange}
-            placeholder="List the required skills and qualifications..."
+            placeholder={t('requirementsPlaceholder')}
             rows={4}
             className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
@@ -287,10 +275,10 @@ export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
             {isLoading ? (
               <>
                 <Loader size={18} className="animate-spin" />
-                {vacancyId ? 'Saving...' : 'Creating...'}
+                {vacancyId ? t('saving') : t('creating')}
               </>
             ) : (
-              vacancyId ? 'Save Changes' : 'Create Vacancy'
+              vacancyId ? t('saveChanges') : t('createVacancy')
             )}
           </button>
           <button
@@ -298,7 +286,7 @@ export function CreateVacancyForm({ vacancyId }: { vacancyId?: string }) {
             onClick={() => router.back()}
             className="px-6 py-2 border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 font-medium transition-colors"
           >
-            Cancel
+            {common('cancel')}
           </button>
         </div>
       </form>

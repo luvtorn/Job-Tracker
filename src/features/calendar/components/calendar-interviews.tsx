@@ -254,8 +254,7 @@ export function CalendarInterviews() {
       });
 
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || t('createFailed'));
+        throw new Error(t('createFailed'));
       }
 
       setShowCreateEventModal(false);

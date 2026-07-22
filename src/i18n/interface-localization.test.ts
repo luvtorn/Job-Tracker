@@ -25,6 +25,19 @@ const files = [
   'src/features/dashboard/components/recruiter/candidates-by-stage.tsx',
   'src/features/dashboard/components/recruiter/recent-applications.tsx',
   'src/features/workspace/components/reminders-workspace.tsx',
+  'src/features/workspace/components/companies-workspace.tsx',
+  'src/features/workspace/components/contacts-workspace.tsx',
+  'src/features/workspace/components/notes-workspace.tsx',
+  'src/features/statistics/components/recruiter-statistics.tsx',
+  'src/features/statistics/components/recruiter-vacancy-statistics.tsx',
+  'src/features/statistics/components/statistics-charts.tsx',
+  'src/features/profile/components/profile-card.tsx',
+  'src/features/profile/components/career-documents.tsx',
+  'src/features/vacancies/components/vacancies-list.tsx',
+  'src/features/vacancies/components/create-vacancy-form.tsx',
+  'src/features/wishlist/components/wishlist-list.tsx',
+  'src/features/jobs/components/apply-button.tsx',
+  'src/app/not-found.tsx',
 ];
 
 const forbiddenInterfaceText = [
@@ -48,6 +61,20 @@ const forbiddenInterfaceText = [
   '>No upcoming interviews scheduled<',
   '>Delete reminder?<',
   'placeholder="Reminder title"',
+  '>Page Not Found<',
+  '>Go to Dashboard<',
+  '>Go Home<',
+  '>No wishlist items yet<',
+  '>Browse Jobs<',
+  '>View Details<',
+  'title="Remove from wishlist"',
+  '>Personal Information<',
+  '>Career Documents<',
+  '>Detailed Statistics<',
+  '>Create Vacancy<',
+  'placeholder="you@example.com"',
+  'placeholder="John"',
+  'placeholder="Doe"',
 ];
 
 test('core localized interfaces do not reintroduce hardcoded English copy', () => {

@@ -16,6 +16,7 @@ const tagColors: Record<string, string> = { blue: 'bg-blue-100 text-blue-700', g
 
 export function ApplicationsList() {
   const t = useTranslations('applicationsUi');
+  const loadErrors = useTranslations('loadErrors');
   const candidateT = useTranslations('candidates');
   const statusT = useTranslations('statuses');
   const locale = useLocale();
@@ -31,16 +32,16 @@ export function ApplicationsList() {
       try {
         const response = await fetch('/api/applications');
         const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Failed to load applications');
+        if (!response.ok) throw new Error(loadErrors('applications'));
         setApplications(data.applications || []);
       } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : 'Failed to load applications');
+        setError(loadError instanceof Error ? loadError.message : loadErrors('applications'));
       } finally {
         setIsLoading(false);
       }
     };
     void load();
-  }, []);
+  }, [loadErrors]);
 
   if (isLoading) return <div className="flex justify-center py-12"><Loader className="animate-spin text-primary-600" size={24} /></div>;
   if (error) return <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>;
