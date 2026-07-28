@@ -5,9 +5,10 @@ import { motion } from 'framer-motion';
 import { Loader, ChevronDown, Mail, Calendar, Clock } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ScheduleInterviewModal } from './schedule-interview-modal';
+import { ScheduleInterviewModal, type InterviewFormData } from './schedule-interview-modal';
 import { useLocale, useTranslations } from 'next-intl';
 import { useToast } from '@/components/ui/toast';
+import { MeetingLinkStatus } from '@/features/calendar/components/meeting-link-status';
 
 interface User {
   id: string;
@@ -24,6 +25,11 @@ interface Candidate {
   interviewDate?: string;
   interviewTime?: string;
   interviewNotes?: string;
+  calendarEvent?: {
+    id: string;
+    meetingUrl?: string | null;
+    syncState: 'NOT_REQUIRED' | 'PENDING' | 'SYNCED' | 'FAILED';
+  };
   user: User;
 }
 
@@ -167,12 +173,7 @@ export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
     }
   };
 
-  const handleScheduleInterview = async (data: {
-    interviewDate: string;
-    interviewTime: string;
-    scheduledAt: string;
-    interviewNotes?: string;
-  }) => {
+  const handleScheduleInterview = async (data: InterviewFormData) => {
     const candidateId = selectedCandidateForInterview?.candidateId;
     if (!candidateId) return;
 
@@ -295,6 +296,12 @@ export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
                         📝 {candidate.interviewNotes}
                       </p>
                     )}
+                    <MeetingLinkStatus
+                      eventId={candidate.calendarEvent?.id}
+                      meetingUrl={candidate.calendarEvent?.meetingUrl}
+                      syncState={candidate.calendarEvent?.syncState}
+                      canRetry
+                    />
                   </div>
                 ))
             )}
@@ -439,6 +446,12 @@ export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
                             📝 {candidate.interviewNotes}
                           </p>
                         )}
+                        <MeetingLinkStatus
+                          eventId={candidate.calendarEvent?.id}
+                          meetingUrl={candidate.calendarEvent?.meetingUrl}
+                          syncState={candidate.calendarEvent?.syncState}
+                          canRetry
+                        />
                       </div>
                     )}
                     <Link href={`/candidates/${candidate.id}`} className="mt-3 inline-flex rounded-lg bg-primary-50 px-3 py-2 text-sm font-medium text-primary-700 hover:bg-primary-100">{t('viewProfile')}</Link>

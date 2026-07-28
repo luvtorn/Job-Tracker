@@ -15,6 +15,23 @@ export function omitMessageKeys<
 }
 
 const enBase = {
+  calendarIntegration: {
+    title: 'Google Calendar', description: 'Connect your calendar to create a private Google Meet for interviews.',
+    connect: 'Connect Google Calendar', reconnect: 'Reconnect Google Calendar', disconnect: 'Disconnect',
+    connectedAs: 'Connected as {email}', connected: 'Google Calendar connected.',
+    disconnected: 'Google Calendar disconnected.', connectionFailed: 'Could not connect Google Calendar.',
+    disconnectFailed: 'Could not disconnect Google Calendar.', meetingType: 'Video meeting',
+    automaticMeet: 'Create Google Meet automatically', manualMeet: 'Use a Google Meet link',
+    noVideo: 'No video link', manualUrl: 'Google Meet link',
+    manualUrlPlaceholder: 'https://meet.google.com/abc-defg-hij', invalidMeetUrl: 'Enter a valid Google Meet link.',
+    sendInvite: 'Send a Google Calendar invitation to the candidate',
+    sendInviteDescription: 'The candidate will receive an invitation from Google Calendar.',
+    calendarRequired: 'Connect Google Calendar in settings to create Meet links automatically.',
+    openSettings: 'Open integration settings', openMeet: 'Open Google Meet',
+    syncPending: 'Google Calendar sync is pending.',
+    syncFailed: 'Google Calendar sync failed. Retry or use a manual link.',
+    retry: 'Retry sync', retrying: 'Retrying…',
+  },
   authSecurity: {
     orContinue: 'Or continue with',
     continueGoogle: 'Continue with Google',

@@ -1,4 +1,4 @@
-import type { ApplicationStatus } from "@prisma/client";
+import type { ApplicationStatus, InterviewMeetingType } from "@prisma/client";
 
 export type InterviewPersistenceInput = {
   applicationId: string;
@@ -10,6 +10,13 @@ export type InterviewPersistenceInput = {
   eventTitle: string;
   recruiterId: string;
   setInterviewing: boolean;
+  eventId: string;
+  meetingType: InterviewMeetingType;
+  meetingUrl: string | null;
+  sendCalendarInvite: boolean;
+  googleEventId: string | null;
+  googleConferenceRequestId: string | null;
+  syncState: "NOT_REQUIRED" | "PENDING";
 };
 
 export function buildInterviewPersistence(input: InterviewPersistenceInput) {
@@ -28,6 +35,7 @@ export function buildInterviewPersistence(input: InterviewPersistenceInput) {
     calendarEvent: {
       where: { applicationId: input.applicationId },
       create: {
+        id: input.eventId,
         userId: input.recruiterId,
         applicationId: input.applicationId,
         title: input.eventTitle,
@@ -36,12 +44,25 @@ export function buildInterviewPersistence(input: InterviewPersistenceInput) {
         color: "blue",
         startTime: input.eventStart,
         endTime: input.eventEnd,
+        meetingType: input.meetingType,
+        meetingUrl: input.meetingUrl,
+        sendCalendarInvite: input.sendCalendarInvite,
+        googleEventId: input.googleEventId,
+        googleConferenceRequestId: input.googleConferenceRequestId,
+        syncState: input.syncState,
       },
       update: {
         title: input.eventTitle,
         description,
         startTime: input.eventStart,
         endTime: input.eventEnd,
+        meetingType: input.meetingType,
+        meetingUrl: input.meetingUrl,
+        sendCalendarInvite: input.sendCalendarInvite,
+        googleEventId: input.googleEventId,
+        googleConferenceRequestId: input.googleConferenceRequestId,
+        syncState: input.syncState,
+        syncErrorCode: null,
       },
     },
   };

@@ -22,7 +22,8 @@ test('round-trips a short-lived OAuth registration intent', () => {
     const token = oauthService.createRegistrationIntent(identity);
     assert.deepEqual(oauthService.readRegistrationIntent(token), identity);
   } finally {
-    process.env.JWT_SECRET = previousSecret;
+    if (previousSecret === undefined) delete process.env.JWT_SECRET;
+    else process.env.JWT_SECRET = previousSecret;
   }
 });
 
@@ -43,6 +44,7 @@ test('rejects a modified OAuth registration intent', () => {
 
     assert.throws(() => oauthService.readRegistrationIntent(modifiedToken));
   } finally {
-    process.env.JWT_SECRET = previousSecret;
+    if (previousSecret === undefined) delete process.env.JWT_SECRET;
+    else process.env.JWT_SECRET = previousSecret;
   }
 });

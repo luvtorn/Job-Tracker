@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Calendar, Clock, AlertCircle, Loader } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -13,15 +13,24 @@ interface ScheduleInterviewModalProps {
     interviewDate: string;
     interviewTime: string;
     interviewNotes?: string;
+    meetingType?: MeetingType;
+    meetingUrl?: string;
+    sendCalendarInvite?: boolean;
   };
   onClose: () => void;
-  onSubmit: (data: {
-    interviewDate: string;
-    interviewTime: string;
-    scheduledAt: string;
-    interviewNotes?: string;
-  }) => Promise<void>;
+  onSubmit: (data: InterviewFormData) => Promise<void>;
 }
+
+export type MeetingType = 'NONE' | 'MANUAL_GOOGLE_MEET' | 'GOOGLE_MEET';
+export type InterviewFormData = {
+  interviewDate: string;
+  interviewTime: string;
+  scheduledAt: string;
+  interviewNotes?: string;
+  meetingType: MeetingType;
+  manualMeetingUrl?: string;
+  sendCalendarInvite: boolean;
+};
 
 export function ScheduleInterviewModal({
   isOpen,
@@ -32,12 +41,32 @@ export function ScheduleInterviewModal({
   onSubmit,
 }: ScheduleInterviewModalProps) {
   const t = useTranslations('interview');
+  const calendarT = useTranslations('calendarIntegration');
   const common = useTranslations('common');
   const [interviewDate, setInterviewDate] = useState(initialData?.interviewDate ?? '');
   const [interviewTime, setInterviewTime] = useState(initialData?.interviewTime ?? '');
   const [interviewNotes, setInterviewNotes] = useState(initialData?.interviewNotes ?? '');
+  const [meetingType, setMeetingType] = useState<MeetingType>(initialData?.meetingType ?? 'NONE');
+  const [manualMeetingUrl, setManualMeetingUrl] = useState(
+    initialData?.meetingType === 'MANUAL_GOOGLE_MEET' ? initialData.meetingUrl ?? '' : '',
+  );
+  const [sendCalendarInvite, setSendCalendarInvite] = useState(initialData?.sendCalendarInvite ?? false);
+  const [calendarConnected, setCalendarConnected] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    void fetch('/api/integrations/google-calendar')
+      .then((response) => response.ok ? response.json() : { connected: false })
+      .then((data: { connected?: boolean }) => {
+        if (active) setCalendarConnected(Boolean(data.connected));
+      })
+      .catch(() => {
+        if (active) setCalendarConnected(false);
+      });
+    return () => { active = false; };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,11 +85,25 @@ export function ScheduleInterviewModal({
         setError(t('futureRequired'));
         return;
       }
+      if (
+        meetingType === 'MANUAL_GOOGLE_MEET'
+        && !/^https:\/\/meet\.google\.com\/[a-z]{3}-[a-z]{4}-[a-z]{3}(?:\?.*)?$/.test(manualMeetingUrl)
+      ) {
+        setError(calendarT('invalidMeetUrl'));
+        return;
+      }
+      if (meetingType === 'GOOGLE_MEET' && !calendarConnected) {
+        setError(calendarT('calendarRequired'));
+        return;
+      }
       await onSubmit({
         interviewDate,
         interviewTime,
         scheduledAt: scheduledAt.toISOString(),
         interviewNotes: interviewNotes || undefined,
+        meetingType,
+        manualMeetingUrl: meetingType === 'MANUAL_GOOGLE_MEET' ? manualMeetingUrl : undefined,
+        sendCalendarInvite: meetingType === 'GOOGLE_MEET' && sendCalendarInvite,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : t('failed'));
@@ -79,7 +122,7 @@ export function ScheduleInterviewModal({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white rounded-xl max-w-md w-full mx-4 shadow-xl"
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-white mx-4 shadow-xl"
       >
         <div className="flex items-center justify-between p-6 border-b border-neutral-200">
           <h2 className="text-lg font-bold text-neutral-900">{initialData ? t('reschedule') : t('schedule')}</h2>
@@ -127,6 +170,65 @@ export function ScheduleInterviewModal({
               className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-neutral-100 disabled:cursor-not-allowed"
             />
           </div>
+
+          <div>
+            <label htmlFor="meeting-type" className="mb-2 block text-sm font-medium text-neutral-900">
+              {calendarT('meetingType')}
+            </label>
+            <select
+              id="meeting-type"
+              value={meetingType}
+              onChange={(event) => setMeetingType(event.target.value as MeetingType)}
+              disabled={isLoading}
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="NONE">{calendarT('noVideo')}</option>
+              <option value="MANUAL_GOOGLE_MEET">{calendarT('manualMeet')}</option>
+              <option value="GOOGLE_MEET" disabled={calendarConnected === false}>
+                {calendarT('automaticMeet')}
+              </option>
+            </select>
+            {calendarConnected === false && (
+              <p className="mt-2 text-xs text-amber-700">
+                {calendarT('calendarRequired')}{' '}
+                <a href="/settings#google-calendar" className="font-semibold underline">{calendarT('openSettings')}</a>
+              </p>
+            )}
+          </div>
+
+          {meetingType === 'MANUAL_GOOGLE_MEET' && (
+            <div>
+              <label htmlFor="manual-meet-url" className="mb-2 block text-sm font-medium text-neutral-900">
+                {calendarT('manualUrl')}
+              </label>
+              <input
+                id="manual-meet-url"
+                type="url"
+                value={manualMeetingUrl}
+                onChange={(event) => setManualMeetingUrl(event.target.value)}
+                placeholder={calendarT('manualUrlPlaceholder')}
+                required
+                disabled={isLoading}
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          )}
+
+          {meetingType === 'GOOGLE_MEET' && (
+            <label className="flex items-start gap-3 rounded-lg border border-neutral-200 p-3">
+              <input
+                type="checkbox"
+                checked={sendCalendarInvite}
+                onChange={(event) => setSendCalendarInvite(event.target.checked)}
+                disabled={isLoading}
+                className="mt-1"
+              />
+              <span>
+                <span className="block text-sm font-medium text-neutral-900">{calendarT('sendInvite')}</span>
+                <span className="mt-1 block text-xs text-neutral-600">{calendarT('sendInviteDescription')}</span>
+              </span>
+            </label>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-neutral-900 mb-2">

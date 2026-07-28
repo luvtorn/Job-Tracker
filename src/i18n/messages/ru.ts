@@ -5,6 +5,23 @@ type Messages = { [K in keyof typeof en]: { [P in keyof (typeof en)[K]]: string 
 type BaseMessages = { [K in keyof typeof en]: Partial<Messages[K]> & Record<string, string> };
 
 const ruBase: BaseMessages = {
+  calendarIntegration: {
+    title: 'Google Календарь', description: 'Подключите календарь, чтобы создавать закрытые встречи Google Meet для интервью.',
+    connect: 'Подключить Google Календарь', reconnect: 'Переподключить Google Календарь', disconnect: 'Отключить',
+    connectedAs: 'Подключён аккаунт {email}', connected: 'Google Календарь подключён.',
+    disconnected: 'Google Календарь отключён.', connectionFailed: 'Не удалось подключить Google Календарь.',
+    disconnectFailed: 'Не удалось отключить Google Календарь.', meetingType: 'Видеовстреча',
+    automaticMeet: 'Создать Google Meet автоматически', manualMeet: 'Использовать ссылку Google Meet',
+    noVideo: 'Без видеоссылки', manualUrl: 'Ссылка Google Meet',
+    manualUrlPlaceholder: 'https://meet.google.com/abc-defg-hij', invalidMeetUrl: 'Введите корректную ссылку Google Meet.',
+    sendInvite: 'Отправить кандидату приглашение Google Календаря',
+    sendInviteDescription: 'Кандидат получит приглашение от Google Календаря.',
+    calendarRequired: 'Подключите Google Календарь в настройках для автоматического создания Meet.',
+    openSettings: 'Открыть настройки интеграции', openMeet: 'Открыть Google Meet',
+    syncPending: 'Ожидается синхронизация с Google Календарём.',
+    syncFailed: 'Синхронизация не удалась. Повторите попытку или укажите ссылку вручную.',
+    retry: 'Повторить синхронизацию', retrying: 'Повторяем…',
+  },
   authSecurity: {
     orContinue: 'Или продолжить через',
     continueGoogle: 'Продолжить через Google',

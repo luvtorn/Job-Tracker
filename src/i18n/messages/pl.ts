@@ -5,6 +5,23 @@ type Messages = { [K in keyof typeof en]: { [P in keyof (typeof en)[K]]: string 
 type BaseMessages = { [K in keyof typeof en]: Partial<Messages[K]> & Record<string, string> };
 
 const plBase: BaseMessages = {
+  calendarIntegration: {
+    title: 'Kalendarz Google', description: 'Połącz kalendarz, aby tworzyć prywatne spotkania Google Meet dla rozmów.',
+    connect: 'Połącz Kalendarz Google', reconnect: 'Połącz ponownie Kalendarz Google', disconnect: 'Odłącz',
+    connectedAs: 'Połączono jako {email}', connected: 'Kalendarz Google został połączony.',
+    disconnected: 'Kalendarz Google został odłączony.', connectionFailed: 'Nie udało się połączyć Kalendarza Google.',
+    disconnectFailed: 'Nie udało się odłączyć Kalendarza Google.', meetingType: 'Spotkanie wideo',
+    automaticMeet: 'Utwórz Google Meet automatycznie', manualMeet: 'Użyj linku Google Meet',
+    noVideo: 'Bez linku wideo', manualUrl: 'Link Google Meet',
+    manualUrlPlaceholder: 'https://meet.google.com/abc-defg-hij', invalidMeetUrl: 'Wpisz prawidłowy link Google Meet.',
+    sendInvite: 'Wyślij kandydatowi zaproszenie z Kalendarza Google',
+    sendInviteDescription: 'Kandydat otrzyma zaproszenie z Kalendarza Google.',
+    calendarRequired: 'Połącz Kalendarz Google w ustawieniach, aby automatycznie tworzyć linki Meet.',
+    openSettings: 'Otwórz ustawienia integracji', openMeet: 'Otwórz Google Meet',
+    syncPending: 'Synchronizacja z Kalendarzem Google oczekuje.',
+    syncFailed: 'Synchronizacja nie powiodła się. Spróbuj ponownie lub użyj ręcznego linku.',
+    retry: 'Ponów synchronizację', retrying: 'Ponawianie…',
+  },
   authSecurity: {
     orContinue: 'Lub kontynuuj przez',
     continueGoogle: 'Kontynuuj przez Google',

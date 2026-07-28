@@ -5,7 +5,7 @@ import { Calendar, dateFnsLocalizer, View, SlotInfo } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS, pl, ru } from 'date-fns/locale';
 import { Loader, Plus, AlertTriangle } from 'lucide-react';
-import { ScheduleInterviewModal } from '@/features/candidates/components/schedule-interview-modal';
+import { ScheduleInterviewModal, type InterviewFormData, type MeetingType } from '@/features/candidates/components/schedule-interview-modal';
 import { InterviewSidePanel } from './interview-side-panel';
 import { CreateEventModal } from './create-event-modal';
 import { useAuth } from '@/features/auth/context/auth-context';
@@ -40,6 +40,11 @@ interface Interview {
   interviewNotes?: string;
   status: string;
   company?: string;
+  meetingType?: MeetingType;
+  meetingUrl?: string;
+  sendCalendarInvite?: boolean;
+  syncState?: 'NOT_REQUIRED' | 'PENDING' | 'SYNCED' | 'FAILED';
+  calendarEventId?: string;
 }
 
 interface CalendarEventData {
@@ -53,6 +58,10 @@ interface CalendarEventData {
   location?: string;
   isCompleted: boolean;
   applicationId?: string;
+  meetingType?: MeetingType;
+  meetingUrl?: string;
+  sendCalendarInvite?: boolean;
+  syncState?: 'NOT_REQUIRED' | 'PENDING' | 'SYNCED' | 'FAILED';
   application?: {
     id: string;
     status: string;
@@ -144,6 +153,11 @@ export function CalendarInterviews() {
           interviewNotes: event.description || '',
           status: event.application?.status || 'INTERVIEWING',
           company: event.application?.vacancy?.company || undefined,
+          meetingType: event.meetingType,
+          meetingUrl: event.meetingUrl,
+          sendCalendarInvite: event.sendCalendarInvite,
+          syncState: event.syncState,
+          calendarEventId: event.id,
         } : {} as Interview;
 
         return {
@@ -192,12 +206,7 @@ export function CalendarInterviews() {
     }
   };
 
-  const handleScheduleInterview = async (data: {
-    interviewDate: string;
-    interviewTime: string;
-    scheduledAt: string;
-    interviewNotes?: string;
-  }) => {
+  const handleScheduleInterview = async (data: InterviewFormData) => {
     const interviewId = editingInterviewId || selectedInterview?.id;
     if (!interviewId) return;
 
@@ -425,6 +434,9 @@ export function CalendarInterviews() {
             interviewDate: selectedInterview.interviewDate,
             interviewTime: selectedInterview.interviewTime,
             interviewNotes: selectedInterview.interviewNotes,
+            meetingType: selectedInterview.meetingType,
+            meetingUrl: selectedInterview.meetingUrl,
+            sendCalendarInvite: selectedInterview.sendCalendarInvite,
           }}
           onClose={() => setShowEditModal(false)}
           onSubmit={handleScheduleInterview}

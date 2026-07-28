@@ -15,6 +15,13 @@ test("persists one interview event keyed by application", () => {
     eventTitle: "Interview: Candidate - Engineer",
     recruiterId: "recruiter-id",
     setInterviewing: true,
+    eventId: "event-id",
+    meetingType: "GOOGLE_MEET" as const,
+    meetingUrl: null,
+    sendCalendarInvite: true,
+    googleEventId: "google-event-id",
+    googleConferenceRequestId: "conference-request-id",
+    syncState: "PENDING" as const,
   };
 
   const persistence = buildInterviewPersistence(input);
@@ -51,4 +58,33 @@ test("interview scheduling requires an exact future instant", () => {
   assert.equal(scheduleInterviewSchema.safeParse(valid).success, true);
   assert.equal(scheduleInterviewSchema.safeParse({ ...valid, scheduledAt: new Date(0).toISOString() }).success, false);
   assert.equal(scheduleInterviewSchema.safeParse({ ...valid, scheduledAt: "2026-07-25 14:30" }).success, false);
+});
+
+test("accepts only valid manual Google Meet links", () => {
+  const base = {
+    interviewDate: "2026-07-25",
+    interviewTime: "14:30",
+    scheduledAt: new Date(Date.now() + 60_000).toISOString(),
+    meetingType: "MANUAL_GOOGLE_MEET",
+    sendCalendarInvite: false,
+  };
+  assert.equal(scheduleInterviewSchema.safeParse({
+    ...base,
+    manualMeetingUrl: "https://meet.google.com/abc-defg-hij",
+  }).success, true);
+  assert.equal(scheduleInterviewSchema.safeParse({
+    ...base,
+    manualMeetingUrl: "https://example.com/meeting",
+  }).success, false);
+});
+
+test("allows invitations only for automatic Google Meet", () => {
+  const result = scheduleInterviewSchema.safeParse({
+    interviewDate: "2026-07-25",
+    interviewTime: "14:30",
+    scheduledAt: new Date(Date.now() + 60_000).toISOString(),
+    meetingType: "NONE",
+    sendCalendarInvite: true,
+  });
+  assert.equal(result.success, false);
 });

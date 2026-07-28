@@ -47,6 +47,9 @@ export const env = {
   get googleClientSecret() {
     return getRequiredEnv("GOOGLE_CLIENT_SECRET");
   },
+  get googleCalendarTokenEncryptionKey() {
+    return getRequiredEnv("GOOGLE_CALENDAR_TOKEN_ENCRYPTION_KEY");
+  },
   get githubClientId() {
     return getRequiredEnv("GITHUB_CLIENT_ID");
   },

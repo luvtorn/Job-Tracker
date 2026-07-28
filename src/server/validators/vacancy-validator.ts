@@ -70,7 +70,37 @@ export const scheduleInterviewSchema = z.object({
     'Interview time must be in the future',
   ),
   interviewNotes: z.string().max(2000).optional(),
-}).strict();
+  meetingType: z.enum(['NONE', 'MANUAL_GOOGLE_MEET', 'GOOGLE_MEET']).default('NONE'),
+  manualMeetingUrl: z.string().trim().url().max(500).optional(),
+  sendCalendarInvite: z.boolean().default(false),
+}).strict().superRefine((data, context) => {
+  if (
+    data.meetingType === 'MANUAL_GOOGLE_MEET'
+    && !/^https:\/\/meet\.google\.com\/[a-z]{3}-[a-z]{4}-[a-z]{3}(?:\?.*)?$/.test(
+      data.manualMeetingUrl ?? '',
+    )
+  ) {
+    context.addIssue({
+      code: 'custom',
+      path: ['manualMeetingUrl'],
+      message: 'A valid Google Meet URL is required',
+    });
+  }
+  if (data.meetingType !== 'MANUAL_GOOGLE_MEET' && data.manualMeetingUrl) {
+    context.addIssue({
+      code: 'custom',
+      path: ['manualMeetingUrl'],
+      message: 'Manual URL is not allowed for this meeting type',
+    });
+  }
+  if (data.meetingType !== 'GOOGLE_MEET' && data.sendCalendarInvite) {
+    context.addIssue({
+      code: 'custom',
+      path: ['sendCalendarInvite'],
+      message: 'Calendar invitations require automatic Google Meet',
+    });
+  }
+});
 
 export const updateVacancyStatusSchema = z.object({
   status: z.enum(['PUBLISHED', 'CLOSED', 'ARCHIVED']),
