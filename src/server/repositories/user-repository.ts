@@ -2,6 +2,16 @@ import { hash, compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 const SALT_ROUNDS = 10;
+const publicUserSelect = {
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  role: true,
+  avatarUrl: true,
+  emailVerified: true,
+  createdAt: true,
+} as const;
 
 export async function hashPassword(password: string): Promise<string> {
   return hash(password, SALT_ROUNDS);
@@ -14,29 +24,35 @@ export async function verifyPassword(
   return compare(password, hashStr);
 }
 
-export async function createUser(data: {
+export async function createUserWithRefreshToken(data: {
   email: string;
   passwordHash: string;
   firstName: string;
   lastName: string;
   role: "SEEKER" | "RECRUITER";
+  refreshTokenHash: string;
+  refreshTokenExpiresAt: Date;
 }) {
-  return prisma.user.create({
-    data: {
-      email: data.email,
-      passwordHash: data.passwordHash,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      role: data.role,
-    },
-    select: {
-      id: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-      role: true,
-      createdAt: true,
-    },
+  return prisma.$transaction(async (transaction) => {
+    const user = await transaction.user.create({
+      data: {
+        email: data.email,
+        passwordHash: data.passwordHash,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        role: data.role,
+        lastLoginAt: new Date(),
+      },
+      select: publicUserSelect,
+    });
+    await transaction.refreshToken.create({
+      data: {
+        userId: user.id,
+        tokenHash: data.refreshTokenHash,
+        expiresAt: data.refreshTokenExpiresAt,
+      },
+    });
+    return user;
   });
 }
 
@@ -97,17 +113,6 @@ export async function updateUserLastLogin(userId: string) {
     data: { lastLoginAt: new Date() },
   });
 }
-
-const publicUserSelect = {
-  id: true,
-  email: true,
-  firstName: true,
-  lastName: true,
-  role: true,
-  avatarUrl: true,
-  emailVerified: true,
-  createdAt: true,
-} as const;
 
 export function updateUserProfile(userId: string, data: { firstName: string; lastName: string }) {
   return prisma.user.update({ where: { id: userId }, data, select: publicUserSelect });

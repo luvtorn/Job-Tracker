@@ -51,10 +51,8 @@ interface CalendarEventData {
   startTime: string;
   endTime: string;
   location?: string;
-  reminder?: number;
   isCompleted: boolean;
   applicationId?: string;
-  isReminder?: boolean;
   application?: {
     id: string;
     status: string;
@@ -111,10 +109,7 @@ export function CalendarInterviews() {
       const month = date.getMonth() + 1;
       const year = date.getFullYear();
 
-      const [eventsRes, remindersRes] = await Promise.all([
-        fetch(`/api/calendar/events?month=${month}&year=${year}`),
-        isRecruiter ? Promise.resolve(null) : fetch('/api/reminders'),
-      ]);
+      const eventsRes = await fetch(`/api/calendar/events?month=${month}&year=${year}`);
 
       if (!eventsRes.ok) {
         console.error('Events response:', eventsRes.status, eventsRes.statusText);
@@ -129,14 +124,6 @@ export function CalendarInterviews() {
 
       const eventsData = await eventsRes.json();
       const calendarEvents: CalendarEventData[] = eventsData.events || [];
-      if (remindersRes?.ok) {
-        const reminderData = await remindersRes.json();
-        for (const reminder of reminderData.reminders || []) {
-          const start = new Date(reminder.dueAt);
-          if (start.getMonth() + 1 !== month || start.getFullYear() !== year) continue;
-          calendarEvents.push({ id: reminder.id, title: reminder.title, description: reminder.application?.vacancy?.title, eventType: 'REMINDER', color: reminder.group === 'overdue' ? 'red' : reminder.completedAt ? 'gray' : 'yellow', startTime: reminder.dueAt, endTime: new Date(start.getTime() + 30 * 60 * 1000).toISOString(), isCompleted: Boolean(reminder.completedAt), isReminder: true });
-        }
-      }
 
       // Both interviews and custom events come from the same API
       // Calendar events include application data for interviews
@@ -176,7 +163,7 @@ export function CalendarInterviews() {
     } finally {
       setIsLoading(false);
     }
-  }, [date, isRecruiter, t]);
+  }, [date, t]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Fetching is synchronized with the visible calendar month.
@@ -274,7 +261,7 @@ export function CalendarInterviews() {
     startTime: Date;
     endTime: Date;
   }) => {
-    if (!selectedEvent || selectedEvent.isReminder) return;
+    if (!selectedEvent) return;
     const res = await fetch(`/api/calendar/events/${selectedEvent.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -411,7 +398,7 @@ export function CalendarInterviews() {
         />
       )}
 
-      {showEditEventModal && selectedEvent && !selectedEvent.isReminder && (
+      {showEditEventModal && selectedEvent && (
         <CreateEventModal
           key={selectedEvent.id}
           isOpen
@@ -551,18 +538,15 @@ export function CalendarInterviews() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    {!selectedEvent.isReminder && (
-                      <button
-                        onClick={() => setShowEditEventModal(true)}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-                      >
-                        {common('edit')}
-                      </button>
-                    )}
+                    <button
+                      onClick={() => setShowEditEventModal(true)}
+                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                    >
+                      {common('edit')}
+                    </button>
                     <button
                       onClick={() => handleDeleteEvent(selectedEvent.id, selectedEvent.eventType)}
-                      disabled={selectedEvent.isReminder}
-                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:hidden"
+                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
                     >
                       {common('delete')}
                     </button>

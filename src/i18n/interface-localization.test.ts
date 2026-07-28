@@ -24,8 +24,6 @@ const files = [
   'src/features/dashboard/components/recruiter/vacancy-overview.tsx',
   'src/features/dashboard/components/recruiter/candidates-by-stage.tsx',
   'src/features/dashboard/components/recruiter/recent-applications.tsx',
-  'src/features/workspace/components/reminders-workspace.tsx',
-  'src/features/workspace/components/companies-workspace.tsx',
   'src/features/workspace/components/contacts-workspace.tsx',
   'src/features/workspace/components/notes-workspace.tsx',
   'src/features/statistics/components/recruiter-statistics.tsx',
@@ -36,6 +34,8 @@ const files = [
   'src/features/vacancies/components/vacancies-list.tsx',
   'src/features/vacancies/components/create-vacancy-form.tsx',
   'src/features/wishlist/components/wishlist-list.tsx',
+  'src/features/jobs/components/jobs-list.tsx',
+  'src/features/jobs/components/wishlist-toggle.tsx',
   'src/features/jobs/components/apply-button.tsx',
   'src/app/not-found.tsx',
 ];

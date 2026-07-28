@@ -1,8 +1,10 @@
 import type en from './en';
+import { omitMessageKeys } from './en';
 
 type Messages = { [K in keyof typeof en]: { [P in keyof (typeof en)[K]]: string } };
+type BaseMessages = { [K in keyof typeof en]: Partial<Messages[K]> & Record<string, string> };
 
-const pl: Messages = {
+const plBase: BaseMessages = {
   loadErrors: { applications: 'Nie udało się wczytać aplikacji', vacancies: 'Nie udało się wczytać ofert', candidates: 'Nie udało się wczytać kandydatów' },
   notFound: { title: 'Nie znaleziono strony', description: 'Strona, której szukasz, nie istnieje lub została przeniesiona.', dashboard: 'Przejdź do panelu', home: 'Przejdź do strony głównej' },
   wishlistUi: { loadFailed: 'Nie udało się wczytać ulubionych', removeFailed: 'Nie udało się usunąć pozycji z ulubionych', empty: 'Lista ulubionych jest pusta', emptyHint: 'Zapisuj oferty, aby śledzić tutaj interesujące możliwości.', browse: 'Przeglądaj oferty', remove: 'Usuń {title} z ulubionych', details: 'Zobacz szczegóły' },
@@ -14,8 +16,8 @@ const pl: Messages = {
   metadata: { title: 'JobTracker', description: 'Śledź swoje aplikacje o pracę i rozmowy kwalifikacyjne' },
   common: { save: 'Zapisz', cancel: 'Anuluj', delete: 'Usuń', close: 'Zamknij', edit: 'Edytuj', create: 'Utwórz', loading: 'Ładowanie…', tryAgain: 'Spróbuj ponownie', search: 'Szukaj…', settings: 'Ustawienia', language: 'Język', noResults: 'Brak wyników' },
   navigation: { dashboard: 'Panel', applications: 'Wszystkie aplikacje', findJobs: 'Znajdź pracę', wishlist: 'Ulubione', calendar: 'Kalendarz', companies: 'Firmy', contacts: 'Kontakty', notes: 'Notatki', reminders: 'Przypomnienia', notifications: 'Powiadomienia', statistics: 'Statystyki', profile: 'Profil', vacancies: 'Oferty pracy', candidates: 'Kandydaci', management: 'Zarządzanie', workspace: 'Organizacja', analytics: 'Analityka', settings: 'Ustawienia' },
-  topbar: { profileSettings: 'Ustawienia profilu', settings: 'Ustawienia', logout: 'Wyloguj', notifications: 'Powiadomienia', avatar: 'Awatar' },
-  public: { browseJobs: 'Przeglądaj oferty', myApplications: 'Moje aplikacje', dashboard: 'Panel', signIn: 'Zaloguj się', signUp: 'Zarejestruj się', browseTitle: 'Przeglądaj oferty pracy', menu: 'Otwórz menu nawigacji', closeMenu: 'Zamknij menu nawigacji', welcome: 'Witaj w JobTracker', heroPrefix: 'Znajdź swoją następną', heroHighlight: 'szansę', heroDescription: 'Odkrywaj ciekawe oferty pracy i śledź wszystkie aplikacje w jednym miejscu. Dołącz do osób, które znajdują wymarzoną pracę.', getStarted: 'Rozpocznij', opportunities: 'Oferty pracy', activeUsers: 'Aktywni użytkownicy', companies: 'Firmy', latest: 'Najnowsze oferty', latestDescription: 'Przeglądaj najnowsze ogłoszenia najlepszych firm' },
+  topbar: { profileSettings: 'Ustawienia profilu', settings: 'Ustawienia', logout: 'Wyloguj', logoutFailed: 'Nie udało się wylogować. Spróbuj ponownie.', notifications: 'Powiadomienia', avatar: 'Awatar' },
+  public: { browseJobs: 'Przeglądaj oferty', myApplications: 'Moje aplikacje', dashboard: 'Panel', backToDashboard: 'Wróć do panelu', signIn: 'Zaloguj się', signUp: 'Zarejestruj się', browseTitle: 'Przeglądaj oferty pracy', menu: 'Otwórz menu nawigacji', closeMenu: 'Zamknij menu nawigacji', welcome: 'Witaj w JobTracker', heroPrefix: 'Znajdź swoją następną', heroHighlight: 'szansę', heroDescription: 'Odkrywaj ciekawe oferty pracy i śledź wszystkie aplikacje w jednym miejscu. Dołącz do osób, które znajdują wymarzoną pracę.', getStarted: 'Rozpocznij', opportunities: 'Oferty pracy', activeUsers: 'Aktywni użytkownicy', companies: 'Firmy', latest: 'Najnowsze oferty', latestDescription: 'Przeglądaj najnowsze ogłoszenia najlepszych firm' },
   jobs: { search: 'Szukaj ofert…', location: 'Filtruj według lokalizacji…', searchButton: 'Szukaj', empty: 'Nie znaleziono ofert. Zmień kryteria wyszukiwania.', posted: 'Opublikowano {date}', previous: 'Poprzednia', next: 'Następna', loadFailed: 'Nie udało się wczytać ofert pracy', notAvailable: 'Brak' },
   vacancies: { active: 'Aktywne', archived: 'Archiwalne', search: 'Szukaj po nazwie lub firmie', allStatuses: 'Wszystkie statusy', published: 'Opublikowana', closed: 'Zamknięta', noMatch: 'Brak ofert pasujących do filtrów.', empty: 'Brak ofert. Utwórz pierwszą ofertę pracy.', created: 'Utworzono {date}', deleted: 'Oferta została usunięta.', updated: 'Status oferty został zmieniony.', deleteFailed: 'Nie udało się usunąć oferty.', updateFailed: 'Nie udało się zmienić statusu.', loadFailed: 'Nie udało się wczytać ofert' },
   language: { label: 'Język', description: 'Wybierz język używany w całym JobTracker.', detected: 'Początkowy język jest wybierany na podstawie ustawień przeglądarki.', english: 'English', polish: 'Polski', russian: 'Русский', changed: 'Zmieniono język', failed: 'Nie udało się zmienić języka' },
@@ -32,5 +34,91 @@ const pl: Messages = {
   interview: { schedule: 'Zaplanuj rozmowę', reschedule: 'Przełóż rozmowę', date: 'Data rozmowy', time: 'Godzina rozmowy', notes: 'Notatki (opcjonalnie)', notesPlaceholder: 'Dodaj notatki lub instrukcje dla kandydata…', scheduling: 'Planowanie…', required: 'Wypełnij wszystkie wymagane pola', futureRequired: 'Wybierz przyszłą datę i godzinę', failed: 'Nie udało się zaplanować rozmowy', details: 'Szczegóły rozmowy', position: 'Stanowisko', company: 'Firma', scheduleLabel: 'Termin rozmowy', notesLabel: 'Notatki', sendEmail: 'Wyślij e-mail', edit: 'Edytuj rozmowę', remove: 'Usuń rozmowę', removeTitle: 'Usunąć rozmowę?', removeDescription: 'Usuń termin rozmowy z {name} i wybierz, co ma się stać z etapem kandydata.', removeAndReset: 'Usuń i wróć do Aplikacji', removeAndKeepStatus: 'Usuń i zachowaj etap Rozmowy' },
   calendarUi: { today: 'Dzisiaj', previous: 'Wstecz', next: 'Dalej', month: 'Miesiąc', week: 'Tydzień', day: 'Dzień', agenda: 'Agenda', date: 'Data', time: 'Czas', event: 'Wydarzenie', noEvents: 'Brak wydarzeń w tym okresie.', createEvent: 'Utwórz wydarzenie', editEvent: 'Edytuj wydarzenie', creating: 'Tworzenie…', saving: 'Zapisywanie…', saveChanges: 'Zapisz zmiany', title: 'Tytuł wydarzenia', titlePlaceholder: 'Wpisz tytuł wydarzenia', titleRequired: 'Tytuł wydarzenia jest wymagany', eventType: 'Typ wydarzenia', description: 'Opis (opcjonalnie)', descriptionPlaceholder: 'Dodaj szczegóły wydarzenia…', color: 'Kolor', startDateTime: 'Data i czas rozpoczęcia', endDateTime: 'Data i czas zakończenia', optional: 'opcjonalnie', notSet: 'Nie ustawiono', selectDateTime: 'Wybierz datę i czas', endAfterStart: 'Czas zakończenia musi być późniejszy niż początek', createFailed: 'Nie udało się utworzyć wydarzenia', updateFailed: 'Nie udało się zaktualizować wydarzenia', updateInterviewFailed: 'Nie udało się zaktualizować rozmowy', deleteFailed: 'Nie udało się usunąć wydarzenia', deleteInterviewFailed: 'Nie udało się usunąć rozmowy', statusFailed: 'Nie udało się zmienić statusu', meeting: 'Spotkanie', deadline: 'Termin', followUp: 'Kontakt', note: 'Notatka', blue: 'Niebieski', green: 'Zielony', yellow: 'Żółty', red: 'Czerwony', purple: 'Fioletowy', gray: 'Szary', type: 'Typ', start: 'Początek', end: 'Koniec', emptyHint: 'Kliknij wydarzenie, aby zobaczyć szczegóły, lub wybierz przedział czasu, aby je utworzyć', unauthorized: 'Brak uprawnień do kalendarza', loadFailed: 'Nie udało się wczytać kalendarza' },
 };
+
+const removedWorkspaceActionKeys = new Set([
+  'companiesLoadFailed',
+  'companySaveFailed',
+  'companyUpdated',
+  'companyAdded',
+  'companyRemoveFailed',
+  'companyRemoved',
+  'deleteCompanyTitle',
+  'deleteCompanyDescription',
+  'thisCompany',
+]);
+const plWorkspaceActions = Object.fromEntries(
+  Object.entries(plBase.workspaceActions).filter(([key]) => !removedWorkspaceActionKeys.has(key)),
+);
+
+const pl = {
+  ...plBase,
+  navigation: omitMessageKeys(plBase.navigation, ['companies', 'reminders'] as const),
+  pages: omitMessageKeys(plBase.pages, ['companiesTitle', 'companiesDescription', 'remindersTitle', 'remindersDescription'] as const),
+  dashboard: omitMessageKeys(plBase.dashboard, ['dueReminders'] as const),
+  workspace: omitMessageKeys(plBase.workspace, [
+    'addCompany', 'editCompany', 'companyName', 'website', 'location', 'noCompanies',
+    'locationMissing', 'contactsCount', 'editCompanyLabel', 'deleteCompanyLabel', 'noCompany',
+    'reminderTitle', 'noApplication', 'noRemindersDue', 'overdue', 'today', 'upcoming',
+    'completed', 'noReminders', 'reopenReminder', 'completeReminder', 'editReminder',
+    'deleteReminder', 'remindersLoadFailed', 'reminderSaveFailed', 'reminderCreated',
+    'reminderUpdated', 'reminderUpdateFailed', 'reminderReopened', 'reminderCompleted',
+    'reminderRemoveFailed', 'reminderRemoved', 'deleteReminderTitle',
+    'deleteReminderDescription', 'thisReminder',
+  ] as const),
+  workspaceActions: {
+    ...plWorkspaceActions,
+    tagNameRequired: 'Wpisz nazwę tagu.',
+    tagNameTooLong: 'Nazwa tagu nie może przekraczać 50 znaków.',
+    tagDuplicate: 'Tag o tej nazwie już istnieje.',
+    tagInvalid: 'Sprawdź nazwę i kolor tagu.',
+  },
+  vacancyUi: {
+    ...plBase.vacancyUi,
+    titleMin: 'Wpisz co najmniej 5 znaków.',
+    titleMax: 'Nazwa nie może przekraczać 200 znaków.',
+    companyMin: 'Wpisz co najmniej 2 znaki.',
+    companyMax: 'Nazwa firmy nie może przekraczać 200 znaków.',
+    locationMin: 'Wpisz co najmniej 2 znaki.',
+    locationMax: 'Lokalizacja nie może przekraczać 200 znaków.',
+    positionMin: 'Wpisz co najmniej 2 znaki.',
+    positionMax: 'Typ stanowiska nie może przekraczać 100 znaków.',
+    descriptionMin: 'Opis musi zawierać co najmniej 100 znaków.',
+    descriptionMax: 'Opis nie może przekraczać 5000 znaków.',
+    requirementsMin: 'Wymagania muszą zawierać co najmniej 50 znaków.',
+    requirementsMax: 'Wymagania nie mogą przekraczać 5000 znaków.',
+    salaryPositive: 'Wynagrodzenie musi być dodatnią liczbą całkowitą.',
+    salaryPair: 'Wpisz minimalne i maksymalne wynagrodzenie.',
+    salaryRange: 'Maksymalne wynagrodzenie nie może być niższe od minimalnego.',
+    currencyInvalid: 'Wybierz obsługiwaną walutę.',
+    invalidField: 'Sprawdź to pole.',
+    characterCount: '{count}/{max} znaków',
+  },
+  jobs: {
+    ...plBase.jobs,
+    searchLabel: 'Szukaj według nazwy stanowiska',
+    locationLabel: 'Szukaj według lokalizacji',
+    updating: 'Aktualizowanie wyników…',
+    viewMode: 'Sposób wyświetlania ofert',
+    cards: 'Karty',
+    table: 'Tabela',
+    titleColumn: 'Stanowisko',
+    companyColumn: 'Firma',
+    locationColumn: 'Lokalizacja',
+    typeColumn: 'Typ',
+    salaryColumn: 'Wynagrodzenie',
+    dateColumn: 'Opublikowano',
+    actionsColumn: 'Działania',
+    pagination: 'Strony wyników ofert',
+    pageLabel: 'Strona {page}',
+    favoriteLoadFailed: 'Nie udało się wczytać ulubionych',
+    favoriteAddFailed: 'Nie udało się dodać oferty do ulubionych',
+    favoriteRemoveFailed: 'Nie udało się usunąć oferty z ulubionych',
+    favoriteUpdateFailed: 'Nie udało się zaktualizować ulubionych',
+    favoriteAdded: 'Dodano ofertę do ulubionych.',
+    favoriteRemoved: 'Usunięto ofertę z ulubionych.',
+    favoriteAddLabel: 'Dodaj {title} do ulubionych',
+    favoriteRemoveLabel: 'Usuń {title} z ulubionych',
+  },
+} as Messages;
 
 export default pl;

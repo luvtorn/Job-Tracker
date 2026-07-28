@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import {
   hashPassword,
   verifyPassword,
-  createUser,
+  createUserWithRefreshToken,
   getUserByEmail,
   createRefreshToken,
   deleteExpiredRefreshTokens,
@@ -28,16 +28,19 @@ export class AuthService {
     }
 
     const passwordHash = await hashPassword(input.password);
+    const session = this.createSessionCredentials();
 
-    const user = await createUser({
+    const user = await createUserWithRefreshToken({
       email: input.email,
       passwordHash,
       firstName: input.firstName,
       lastName: input.lastName,
       role: input.role,
+      refreshTokenHash: hashRefreshToken(session.refreshToken),
+      refreshTokenExpiresAt: session.refreshTokenExpiresAt,
     });
 
-    return user;
+    return this.createAuthResult(user, session);
   }
 
   async login(input: LoginInput) {
@@ -62,31 +65,16 @@ export class AuthService {
 
     await updateUserLastLogin(user.id);
 
-    const refreshTokenExpiry = Date.now() + REFRESH_TOKEN_TTL_MS;
-    const refreshTokenString = generateRefreshToken();
-    const refreshTokenHash = hashRefreshToken(refreshTokenString);
+    const session = this.createSessionCredentials();
 
     await deleteExpiredRefreshTokens(user.id);
     await createRefreshToken(
       user.id,
-      refreshTokenHash,
-      new Date(refreshTokenExpiry),
+      hashRefreshToken(session.refreshToken),
+      session.refreshTokenExpiresAt,
     );
 
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
-      tokens: {
-        accessToken: this.generateAccessToken(user.id, user.email, user.role),
-        refreshToken: refreshTokenString,
-        refreshTokenExpiresAt: new Date(refreshTokenExpiry),
-      },
-    };
+    return this.createAuthResult(user, session);
   }
 
   async refresh(refreshToken: string) {
@@ -108,6 +96,35 @@ export class AuthService {
 
   async logout(refreshToken?: string) {
     if (refreshToken) await revokeRefreshToken(hashRefreshToken(refreshToken));
+  }
+
+  private createSessionCredentials() {
+    return {
+      refreshToken: generateRefreshToken(),
+      refreshTokenExpiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+    };
+  }
+
+  private createAuthResult(
+    user: {
+      id: string;
+      email: string;
+      firstName: string | null;
+      lastName: string | null;
+      role: "SEEKER" | "RECRUITER" | "ADMIN";
+      avatarUrl: string | null;
+      emailVerified: boolean;
+      createdAt: Date;
+    },
+    session: { refreshToken: string; refreshTokenExpiresAt: Date },
+  ) {
+    return {
+      user: this.toPublicUser(user),
+      tokens: {
+        accessToken: this.generateAccessToken(user.id, user.email, user.role),
+        ...session,
+      },
+    };
   }
 
   private toPublicUser(user: {

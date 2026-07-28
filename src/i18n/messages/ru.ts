@@ -1,8 +1,10 @@
 import type en from './en';
+import { omitMessageKeys } from './en';
 
 type Messages = { [K in keyof typeof en]: { [P in keyof (typeof en)[K]]: string } };
+type BaseMessages = { [K in keyof typeof en]: Partial<Messages[K]> & Record<string, string> };
 
-const ru: Messages = {
+const ruBase: BaseMessages = {
   loadErrors: { applications: 'Не удалось загрузить отклики', vacancies: 'Не удалось загрузить вакансии', candidates: 'Не удалось загрузить кандидатов' },
   notFound: { title: 'Страница не найдена', description: 'Запрашиваемая страница не существует или была перемещена.', dashboard: 'Перейти на главную', home: 'На главную страницу' },
   wishlistUi: { loadFailed: 'Не удалось загрузить избранное', removeFailed: 'Не удалось удалить вакансию из избранного', empty: 'В избранном пока ничего нет', emptyHint: 'Сохраняйте вакансии, чтобы следить здесь за интересными возможностями.', browse: 'Смотреть вакансии', remove: 'Удалить вакансию «{title}» из избранного', details: 'Подробнее' },
@@ -14,8 +16,8 @@ const ru: Messages = {
   metadata: { title: 'JobTracker', description: 'Отслеживайте отклики и собеседования' },
   common: { save: 'Сохранить', cancel: 'Отмена', delete: 'Удалить', close: 'Закрыть', edit: 'Редактировать', create: 'Создать', loading: 'Загрузка…', tryAgain: 'Повторить', search: 'Поиск…', settings: 'Настройки', language: 'Язык', noResults: 'Ничего не найдено' },
   navigation: { dashboard: 'Главная', applications: 'Все отклики', findJobs: 'Найти вакансии', wishlist: 'Избранное', calendar: 'Календарь', companies: 'Компании', contacts: 'Контакты', notes: 'Заметки', reminders: 'Напоминания', notifications: 'Уведомления', statistics: 'Статистика', profile: 'Профиль', vacancies: 'Вакансии', candidates: 'Кандидаты', management: 'Управление', workspace: 'Рабочее пространство', analytics: 'Аналитика', settings: 'Настройки' },
-  topbar: { profileSettings: 'Настройки профиля', settings: 'Настройки', logout: 'Выйти', notifications: 'Уведомления', avatar: 'Аватар' },
-  public: { browseJobs: 'Смотреть вакансии', myApplications: 'Мои отклики', dashboard: 'Главная', signIn: 'Войти', signUp: 'Регистрация', browseTitle: 'Вакансии', menu: 'Открыть меню навигации', closeMenu: 'Закрыть меню навигации', welcome: 'Добро пожаловать в JobTracker', heroPrefix: 'Найдите следующую', heroHighlight: 'возможность', heroDescription: 'Находите интересные вакансии и отслеживайте все отклики в одном месте. Присоединяйтесь к тем, кто уже ищет работу мечты.', getStarted: 'Начать', opportunities: 'Вакансии', activeUsers: 'Активные пользователи', companies: 'Компании', latest: 'Новые возможности', latestDescription: 'Смотрите свежие вакансии от ведущих компаний' },
+  topbar: { profileSettings: 'Настройки профиля', settings: 'Настройки', logout: 'Выйти', logoutFailed: 'Не удалось выйти. Попробуйте ещё раз.', notifications: 'Уведомления', avatar: 'Аватар' },
+  public: { browseJobs: 'Смотреть вакансии', myApplications: 'Мои отклики', dashboard: 'Главная', backToDashboard: 'Вернуться на главную', signIn: 'Войти', signUp: 'Регистрация', browseTitle: 'Вакансии', menu: 'Открыть меню навигации', closeMenu: 'Закрыть меню навигации', welcome: 'Добро пожаловать в JobTracker', heroPrefix: 'Найдите следующую', heroHighlight: 'возможность', heroDescription: 'Находите интересные вакансии и отслеживайте все отклики в одном месте. Присоединяйтесь к тем, кто уже ищет работу мечты.', getStarted: 'Начать', opportunities: 'Вакансии', activeUsers: 'Активные пользователи', companies: 'Компании', latest: 'Новые возможности', latestDescription: 'Смотрите свежие вакансии от ведущих компаний' },
   jobs: { search: 'Поиск вакансий…', location: 'Фильтр по местоположению…', searchButton: 'Найти', empty: 'Вакансии не найдены. Измените параметры поиска.', posted: 'Опубликовано {date}', previous: 'Назад', next: 'Вперёд', loadFailed: 'Не удалось загрузить вакансии', notAvailable: 'Нет данных' },
   vacancies: { active: 'Активные', archived: 'Архивные', search: 'Поиск по названию или компании', allStatuses: 'Все статусы', published: 'Опубликована', closed: 'Закрыта', noMatch: 'По выбранным фильтрам вакансий нет.', empty: 'Вакансий пока нет. Создайте первую вакансию.', created: 'Создано {date}', deleted: 'Вакансия удалена.', updated: 'Статус вакансии обновлён.', deleteFailed: 'Не удалось удалить вакансию.', updateFailed: 'Не удалось обновить статус.', loadFailed: 'Не удалось загрузить вакансии' },
   language: { label: 'Язык', description: 'Выберите язык интерфейса JobTracker.', detected: 'Изначально язык определяется из настроек браузера.', english: 'English', polish: 'Polski', russian: 'Русский', changed: 'Язык изменён', failed: 'Не удалось изменить язык' },
@@ -32,5 +34,91 @@ const ru: Messages = {
   interview: { schedule: 'Назначить собеседование', reschedule: 'Перенести собеседование', date: 'Дата собеседования', time: 'Время собеседования', notes: 'Заметки (необязательно)', notesPlaceholder: 'Добавьте заметки или инструкции для кандидата…', scheduling: 'Назначение…', required: 'Заполните все обязательные поля', futureRequired: 'Выберите будущие дату и время', failed: 'Не удалось назначить собеседование', details: 'Детали собеседования', position: 'Вакансия', company: 'Компания', scheduleLabel: 'Время собеседования', notesLabel: 'Заметки', sendEmail: 'Отправить письмо', edit: 'Редактировать собеседование', remove: 'Удалить собеседование', removeTitle: 'Удалить собеседование?', removeDescription: 'Удалите встречу с кандидатом {name} и выберите, что сделать с этапом кандидата.', removeAndReset: 'Удалить и вернуть в «Отклик»', removeAndKeepStatus: 'Удалить и оставить «Собеседование»' },
   calendarUi: { today: 'Сегодня', previous: 'Назад', next: 'Вперёд', month: 'Месяц', week: 'Неделя', day: 'День', agenda: 'Повестка', date: 'Дата', time: 'Время', event: 'Событие', noEvents: 'В этом периоде событий нет.', createEvent: 'Создать событие', editEvent: 'Редактировать событие', creating: 'Создание…', saving: 'Сохранение…', saveChanges: 'Сохранить изменения', title: 'Название события', titlePlaceholder: 'Введите название события', titleRequired: 'Название события обязательно', eventType: 'Тип события', description: 'Описание (необязательно)', descriptionPlaceholder: 'Добавьте детали события…', color: 'Цвет', startDateTime: 'Дата и время начала', endDateTime: 'Дата и время окончания', optional: 'необязательно', notSet: 'Не задано', selectDateTime: 'Выберите дату и время', endAfterStart: 'Время окончания должно быть позже времени начала', createFailed: 'Не удалось создать событие', updateFailed: 'Не удалось обновить событие', updateInterviewFailed: 'Не удалось обновить собеседование', deleteFailed: 'Не удалось удалить событие', deleteInterviewFailed: 'Не удалось удалить собеседование', statusFailed: 'Не удалось изменить статус', meeting: 'Встреча', deadline: 'Дедлайн', followUp: 'Напомнить', note: 'Заметка', blue: 'Синий', green: 'Зелёный', yellow: 'Жёлтый', red: 'Красный', purple: 'Фиолетовый', gray: 'Серый', type: 'Тип', start: 'Начало', end: 'Конец', emptyHint: 'Нажмите на событие для просмотра или выберите временной интервал, чтобы создать новое', unauthorized: 'Нет доступа к календарю', loadFailed: 'Не удалось загрузить календарь' },
 };
+
+const removedWorkspaceActionKeys = new Set([
+  'companiesLoadFailed',
+  'companySaveFailed',
+  'companyUpdated',
+  'companyAdded',
+  'companyRemoveFailed',
+  'companyRemoved',
+  'deleteCompanyTitle',
+  'deleteCompanyDescription',
+  'thisCompany',
+]);
+const ruWorkspaceActions = Object.fromEntries(
+  Object.entries(ruBase.workspaceActions).filter(([key]) => !removedWorkspaceActionKeys.has(key)),
+);
+
+const ru = {
+  ...ruBase,
+  navigation: omitMessageKeys(ruBase.navigation, ['companies', 'reminders'] as const),
+  pages: omitMessageKeys(ruBase.pages, ['companiesTitle', 'companiesDescription', 'remindersTitle', 'remindersDescription'] as const),
+  dashboard: omitMessageKeys(ruBase.dashboard, ['dueReminders'] as const),
+  workspace: omitMessageKeys(ruBase.workspace, [
+    'addCompany', 'editCompany', 'companyName', 'website', 'location', 'noCompanies',
+    'locationMissing', 'contactsCount', 'editCompanyLabel', 'deleteCompanyLabel', 'noCompany',
+    'reminderTitle', 'noApplication', 'noRemindersDue', 'overdue', 'today', 'upcoming',
+    'completed', 'noReminders', 'reopenReminder', 'completeReminder', 'editReminder',
+    'deleteReminder', 'remindersLoadFailed', 'reminderSaveFailed', 'reminderCreated',
+    'reminderUpdated', 'reminderUpdateFailed', 'reminderReopened', 'reminderCompleted',
+    'reminderRemoveFailed', 'reminderRemoved', 'deleteReminderTitle',
+    'deleteReminderDescription', 'thisReminder',
+  ] as const),
+  workspaceActions: {
+    ...ruWorkspaceActions,
+    tagNameRequired: 'Введите название тега.',
+    tagNameTooLong: 'Название тега не может быть длиннее 50 символов.',
+    tagDuplicate: 'Тег с таким названием уже существует.',
+    tagInvalid: 'Проверьте название и цвет тега.',
+  },
+  vacancyUi: {
+    ...ruBase.vacancyUi,
+    titleMin: 'Введите не менее 5 символов.',
+    titleMax: 'Название не может быть длиннее 200 символов.',
+    companyMin: 'Введите не менее 2 символов.',
+    companyMax: 'Название компании не может быть длиннее 200 символов.',
+    locationMin: 'Введите не менее 2 символов.',
+    locationMax: 'Местоположение не может быть длиннее 200 символов.',
+    positionMin: 'Введите не менее 2 символов.',
+    positionMax: 'Тип занятости не может быть длиннее 100 символов.',
+    descriptionMin: 'Описание должно содержать не менее 100 символов.',
+    descriptionMax: 'Описание не может быть длиннее 5000 символов.',
+    requirementsMin: 'Требования должны содержать не менее 50 символов.',
+    requirementsMax: 'Требования не могут быть длиннее 5000 символов.',
+    salaryPositive: 'Зарплата должна быть положительным целым числом.',
+    salaryPair: 'Укажите минимальную и максимальную зарплату.',
+    salaryRange: 'Максимальная зарплата не может быть меньше минимальной.',
+    currencyInvalid: 'Выберите поддерживаемую валюту.',
+    invalidField: 'Проверьте это поле.',
+    characterCount: '{count}/{max} символов',
+  },
+  jobs: {
+    ...ruBase.jobs,
+    searchLabel: 'Поиск по названию вакансии',
+    locationLabel: 'Поиск по местоположению',
+    updating: 'Обновляем результаты…',
+    viewMode: 'Режим отображения вакансий',
+    cards: 'Карточки',
+    table: 'Таблица',
+    titleColumn: 'Вакансия',
+    companyColumn: 'Компания',
+    locationColumn: 'Местоположение',
+    typeColumn: 'Тип',
+    salaryColumn: 'Зарплата',
+    dateColumn: 'Опубликовано',
+    actionsColumn: 'Действия',
+    pagination: 'Страницы результатов вакансий',
+    pageLabel: 'Страница {page}',
+    favoriteLoadFailed: 'Не удалось загрузить избранное',
+    favoriteAddFailed: 'Не удалось добавить вакансию в избранное',
+    favoriteRemoveFailed: 'Не удалось удалить вакансию из избранного',
+    favoriteUpdateFailed: 'Не удалось обновить избранное',
+    favoriteAdded: 'Вакансия добавлена в избранное.',
+    favoriteRemoved: 'Вакансия удалена из избранного.',
+    favoriteAddLabel: 'Добавить вакансию «{title}» в избранное',
+    favoriteRemoveLabel: 'Удалить вакансию «{title}» из избранного',
+  },
+} as Messages;
 
 export default ru;

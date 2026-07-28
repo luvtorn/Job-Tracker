@@ -15,12 +15,11 @@ import {
   CalendarDays,
   ContactRound,
   NotebookPen,
-  AlarmClock,
   Settings,
 } from "lucide-react";
 import { useTranslations } from 'next-intl';
 
-type NavigationKey = 'dashboard' | 'applications' | 'findJobs' | 'wishlist' | 'calendar' | 'companies' | 'contacts' | 'notes' | 'reminders' | 'notifications' | 'statistics' | 'profile' | 'settings';
+type NavigationKey = 'dashboard' | 'applications' | 'findJobs' | 'wishlist' | 'calendar' | 'contacts' | 'notes' | 'notifications' | 'statistics' | 'profile' | 'settings';
 type SectionKey = 'workspace' | 'analytics' | 'settings' | 'applications';
 
 interface NavItem {
@@ -57,10 +56,8 @@ const navItems: NavItem[] = [
     href: "/calendar",
     icon: <CalendarDays size={20} />,
   },
-  { label: "companies", href: "/companies", icon: <Building2 size={20} />, section: "workspace" },
-  { label: "contacts", href: "/contacts", icon: <ContactRound size={20} /> },
+  { label: "contacts", href: "/contacts", icon: <ContactRound size={20} />, section: "workspace" },
   { label: "notes", href: "/notes", icon: <NotebookPen size={20} /> },
-  { label: "reminders", href: "/reminders", icon: <AlarmClock size={20} /> },
   {
     label: "notifications",
     href: "/notifications",

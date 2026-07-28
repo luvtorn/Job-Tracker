@@ -6,7 +6,6 @@ import { UpcomingInterviews } from './upcoming-interviews';
 import { RecentActivity } from './recent-activity';
 import { QuickActions } from './quick-actions';
 import { QuickStats } from '../quick-stats';
-import { RemindersWorkspace } from '@/features/workspace/components/reminders-workspace';
 import { useTranslations } from 'next-intl';
 
 export function SeekerDashboard() {
@@ -38,15 +37,9 @@ export function SeekerDashboard() {
           <DashboardCharts />
         </div>
 
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-xl font-bold text-neutral-900 mb-4">{t('upcomingInterviews')}</h2>
-            <UpcomingInterviews />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-neutral-900 mb-4">{t('dueReminders')}</h2>
-            <RemindersWorkspace compact />
-          </div>
+        <div>
+          <h2 className="text-xl font-bold text-neutral-900 mb-4">{t('upcomingInterviews')}</h2>
+          <UpcomingInterviews />
         </div>
       </div>
 
