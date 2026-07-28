@@ -6,7 +6,7 @@ It supports both sides of the hiring process: job seekers can organize their sea
 
 The project is designed as a production-oriented full-stack application rather than a simple CRUD demo. It focuses on clean architecture, strict authorization, reliable business workflows, localization, and maintainable TypeScript.
 
-> **Status:** Active development. The core job tracking, recruitment, calendar, workspace, notification, and analytics features are implemented. Google/GitHub authentication, Google Meet integration, and browser-based AI are planned.
+> **Status:** Active development. Core recruitment workflows, multilingual dashboards, secure account flows, Google/GitHub sign-in, and Google Meet interview integration are implemented.
 
 ## Product Overview
 
@@ -18,8 +18,8 @@ The project is designed as a production-oriented full-stack application rather t
 - View upcoming interviews in a personal calendar
 - Manage resumes and cover letters
 - Preview protected PDF and DOCX documents
-- Organize companies and professional contacts
-- Create notes, tags, and reminders
+- Organize professional contacts
+- Create notes and tags
 - Review personal application statistics
 - Receive real-time notifications
 - Manage profile information and avatar
@@ -33,6 +33,8 @@ The project is designed as a production-oriented full-stack application rather t
 - Open candidate profiles and authorized documents
 - Move candidates through the recruitment pipeline
 - Schedule, reschedule, and cancel interviews
+- Create a Google Meet automatically or use a validated manual Meet link
+- Choose whether Google Calendar sends the candidate an invitation
 - Review upcoming interviews in a calendar
 - Monitor vacancy and candidate metrics
 - Analyze hiring funnel performance
@@ -166,7 +168,7 @@ The application is organized around the following domains:
 | Interviews | Scheduling, rescheduling, cancellation, notifications |
 | Calendar | Interviews and private custom events |
 | Documents | Resumes, cover letters, protected access |
-| Workspace | Companies, contacts, notes, tags, reminders |
+| Workspace | Contacts, notes, and tags |
 | Notifications | Persistent notifications and real-time SSE updates |
 | Analytics | Seeker statistics and recruiter funnel metrics |
 | Localization | Typed English, Polish, and Russian dictionaries |
@@ -236,24 +238,24 @@ A read-only browser smoke test verifies real Chromium rendering, locale selectio
 - Custom calendar event management
 - Resume and cover letter storage
 - Wishlist
-- Companies and contacts
-- Notes, tags, and reminders
+- Contacts
+- Notes and tags
 - Real-time notifications
 - Seeker and recruiter analytics
 - Full English, Polish, and Russian localization
 - API security hardening
+- Email verification and password recovery through Resend
+- Google and GitHub authentication and connected sign-in methods
+- Separate Google Calendar consent for recruiters
+- Automatic and manual Google Meet interviews
+- Durable Google Calendar synchronization and retry status
 
-### Planned
+### Release preparation
 
-1. Google and GitHub authentication
-2. Separate Google Calendar connection for recruiters
-3. Automatic Google Meet creation for interviews
-4. Interview duration and external event synchronization
-5. Local browser-based AI runtime using WebLLM
-6. Versioned AI result history
-7. Additional AI features after product validation
-
-Planned integrations are intentionally separated from the completed feature list and are not presented as currently available.
+1. Configure production Google, GitHub, Resend, and Calendar credentials.
+2. Verify migrations and database restore on staging.
+3. Run real-provider Chrome and Edge acceptance tests.
+4. Enable privacy-safe production monitoring.
 
 ## Product Direction
 
@@ -263,16 +265,14 @@ The long-term goal is to provide a unified workspace for the complete hiring jou
 - application organization;
 - candidate management;
 - interview scheduling;
-- evidence-based recruiting;
-- private, browser-based AI assistance;
-- no automatic candidate ranking or autonomous hiring decisions.
-
-AI inference is planned to run locally in the browser through WebGPU. Resume content, vacancy context, and prompts will not be sent to an operator-funded external inference API.
+- secure account and integration management;
+- reliable multilingual recruitment workflows.
 
 ## Project Documentation
 
 - [Development roadmap](ROADMAP.md)
 - [Testing notes](docs/testing.md)
+- [Production configuration](docs/production.md)
 - [Calendar implementation report](SESSION_REPORT_20260712.md)
 - [Engineering rules](AGENTS.md)
 

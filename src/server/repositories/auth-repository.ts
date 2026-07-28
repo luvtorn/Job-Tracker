@@ -121,7 +121,6 @@ export async function resolveOAuthUserWithSession(
       data: {
         emailVerified: true,
         lastLoginAt: new Date(),
-        avatarUrl: account?.user.avatarUrl ?? identity.avatarUrl ?? undefined,
       },
       select: publicUserSelect,
     });
@@ -149,7 +148,6 @@ export async function createOAuthUserWithSession(
         firstName: input.firstName,
         lastName: input.lastName,
         role: input.role,
-        avatarUrl: identity.avatarUrl,
         lastLoginAt: new Date(),
       },
       select: publicUserSelect,

@@ -13,6 +13,8 @@ const files = [
   'src/features/calendar/components/calendar-interviews.tsx',
   'src/features/calendar/components/create-event-modal.tsx',
   'src/features/calendar/components/interview-side-panel.tsx',
+  'src/features/calendar/components/google-calendar-integration.tsx',
+  'src/features/calendar/components/meeting-link-status.tsx',
   'src/features/candidates/components/schedule-interview-modal.tsx',
   'src/features/dashboard/components/quick-stats.tsx',
   'src/features/dashboard/components/seeker/dashboard-metrics.tsx',
@@ -38,6 +40,7 @@ const files = [
   'src/features/jobs/components/wishlist-toggle.tsx',
   'src/features/jobs/components/apply-button.tsx',
   'src/app/not-found.tsx',
+  'src/app/privacy/page.tsx',
 ];
 
 const forbiddenInterfaceText = [

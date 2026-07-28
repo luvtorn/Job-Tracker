@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: jobtracker_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/jobtracker_test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/jobtracker_test
+      JWT_SECRET: ci-only-jwt-secret-with-at-least-thirty-two-characters
+      APP_URL: http://127.0.0.1:3000
+      CLOUDINARY_CLOUD_NAME: ci
+      CLOUDINARY_API_KEY: ci
+      CLOUDINARY_API_SECRET: ci
+      GOOGLE_CLIENT_ID: ci
+      GOOGLE_CLIENT_SECRET: ci
+      GITHUB_CLIENT_ID: ci
+      GITHUB_CLIENT_SECRET: ci
+      GOOGLE_CALENDAR_TOKEN_ENCRYPTION_KEY: BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc=
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma migrate deploy
+      - run: npm test
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm run build
+      - name: Install isolated browser runtime
+        run: |
+          npm install --global playwright@1.54.2
+          playwright install --with-deps chromium
+      - name: Run production browser smoke
+        env:
+          E2E_BASE_URL: http://127.0.0.1:3000
+        run: |
+          npm start &
+          server_pid=$!
+          trap "kill $server_pid" EXIT
+          for attempt in {1..30}; do
+            curl --fail --silent http://127.0.0.1:3000 >/dev/null && break
+            sleep 1
+          done
+          PLAYWRIGHT_NODE_PATH="$(npm root --global)" npm run test:browser-smoke

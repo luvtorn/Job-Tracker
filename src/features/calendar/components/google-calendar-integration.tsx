@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/features/auth/context/auth-context';
+import Link from 'next/link';
 
 type ConnectionStatus =
   | { connected: false }
@@ -11,6 +12,7 @@ type ConnectionStatus =
 
 export function GoogleCalendarIntegration() {
   const t = useTranslations('calendarIntegration');
+  const privacy = useTranslations('privacy');
   const { user } = useAuth();
   const [status, setStatus] = useState<ConnectionStatus>({ connected: false });
   const [loading, setLoading] = useState(true);
@@ -66,6 +68,9 @@ export function GoogleCalendarIntegration() {
         <div>
           <h2 className="text-lg font-semibold text-neutral-900">{t('title')}</h2>
           <p className="mt-1 text-sm text-neutral-600">{t('description')}</p>
+          <Link href="/privacy" className="mt-2 inline-flex text-xs font-semibold text-primary-700 hover:text-primary-800">
+            {privacy('link')}
+          </Link>
         </div>
       </div>
       {loading ? (

@@ -5,6 +5,19 @@ type Messages = { [K in keyof typeof en]: { [P in keyof (typeof en)[K]]: string 
 type BaseMessages = { [K in keyof typeof en]: Partial<Messages[K]> & Record<string, string> };
 
 const plBase: BaseMessages = {
+  privacy: {
+    link: 'Informacja o prywatności', title: 'Informacja o prywatności',
+    intro: 'JobTracker używa danych konta i integracji wyłącznie do obsługi wybranych funkcji.',
+    accountTitle: 'Konta logowania',
+    accountBody: 'Google i GitHub przekazują zweryfikowany e-mail oraz podstawową tożsamość profilu. Tokeny dostępu dostawców nie są przechowywane po logowaniu.',
+    emailTitle: 'Wiadomości konta',
+    emailBody: 'Resend dostarcza wiadomości weryfikacyjne i resetujące hasło. Tokeny jednorazowe są przechowywane wyłącznie jako skróty.',
+    calendarTitle: 'Kalendarz Google',
+    calendarBody: 'Dostęp do kalendarza jest opcjonalny i oddzielony od logowania Google. Zaszyfrowany token odświeżania służy tylko do obsługi wybranych wydarzeń rozmów.',
+    controlTitle: 'Twoja kontrola',
+    controlBody: 'W ustawieniach możesz odłączyć dostawców logowania i Kalendarz Google. Link Meet jest widoczny w JobTracker tylko dla rekrutera i kandydata.',
+    back: 'Wróć do JobTracker',
+  },
   calendarIntegration: {
     title: 'Kalendarz Google', description: 'Połącz kalendarz, aby tworzyć prywatne spotkania Google Meet dla rozmów.',
     connect: 'Połącz Kalendarz Google', reconnect: 'Połącz ponownie Kalendarz Google', disconnect: 'Odłącz',

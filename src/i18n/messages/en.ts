@@ -15,6 +15,19 @@ export function omitMessageKeys<
 }
 
 const enBase = {
+  privacy: {
+    link: 'Privacy notice', title: 'Privacy notice',
+    intro: 'JobTracker uses account and integration data only to provide the features you choose.',
+    accountTitle: 'Sign-in accounts',
+    accountBody: 'Google and GitHub provide a verified email and basic profile identity. Provider access tokens are not stored after sign-in.',
+    emailTitle: 'Account emails',
+    emailBody: 'Resend delivers verification and password-reset messages. One-time tokens are stored only as hashes.',
+    calendarTitle: 'Google Calendar',
+    calendarBody: 'Calendar access is optional and separate from Google sign-in. The encrypted refresh token is used only to create, update, or remove interview events you request.',
+    controlTitle: 'Your control',
+    controlBody: 'You can disconnect sign-in providers and Google Calendar in settings. Meet links are visible only to the recruiter and the candidate in JobTracker.',
+    back: 'Back to JobTracker',
+  },
   calendarIntegration: {
     title: 'Google Calendar', description: 'Connect your calendar to create a private Google Meet for interviews.',
     connect: 'Connect Google Calendar', reconnect: 'Reconnect Google Calendar', disconnect: 'Disconnect',

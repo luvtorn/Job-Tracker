@@ -26,7 +26,9 @@ test('rejects a modified encrypted Calendar token', () => {
 
   try {
     const encrypted = encryptCalendarToken('refresh-token');
-    const modified = `${encrypted.slice(0, -1)}${encrypted.endsWith('a') ? 'b' : 'a'}`;
+    const parts = encrypted.split('.');
+    parts[2] = `${parts[2].startsWith('a') ? 'b' : 'a'}${parts[2].slice(1)}`;
+    const modified = parts.join('.');
     assert.throws(() => decryptCalendarToken(modified));
   } finally {
     if (previousKey === undefined) delete process.env.GOOGLE_CALENDAR_TOKEN_ENCRYPTION_KEY;

@@ -18,6 +18,7 @@ function LoginPageContent() {
   const [error, setError] = useState('');
   const t = useTranslations('auth');
   const security = useTranslations('authSecurity');
+  const privacy = useTranslations('privacy');
 
   useEffect(() => {
     if (isSessionLoading || !user) return;
@@ -75,7 +76,10 @@ function LoginPageContent() {
         </div>
 
         <p className="text-center text-sm text-neutral-600 mt-6">
-          {t('terms')}
+          {t('terms')}{' '}
+          <Link href="/privacy" className="font-medium text-primary-700 hover:text-primary-800">
+            {privacy('link')}
+          </Link>
         </p>
       </div>
     </div>

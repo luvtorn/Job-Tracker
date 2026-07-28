@@ -5,6 +5,19 @@ type Messages = { [K in keyof typeof en]: { [P in keyof (typeof en)[K]]: string 
 type BaseMessages = { [K in keyof typeof en]: Partial<Messages[K]> & Record<string, string> };
 
 const ruBase: BaseMessages = {
+  privacy: {
+    link: 'Уведомление о конфиденциальности', title: 'Уведомление о конфиденциальности',
+    intro: 'JobTracker использует данные аккаунта и интеграций только для выбранных вами функций.',
+    accountTitle: 'Способы входа',
+    accountBody: 'Google и GitHub передают подтверждённый email и основные данные профиля. Токены доступа провайдеров после входа не сохраняются.',
+    emailTitle: 'Письма аккаунта',
+    emailBody: 'Resend доставляет письма подтверждения и сброса пароля. Одноразовые токены хранятся только в виде хешей.',
+    calendarTitle: 'Google Календарь',
+    calendarBody: 'Доступ к календарю необязателен и отделён от входа через Google. Зашифрованный refresh token используется только для выбранных вами событий интервью.',
+    controlTitle: 'Ваш контроль',
+    controlBody: 'В настройках можно отключить способы входа и Google Календарь. Ссылка Meet видна в JobTracker только рекрутеру и кандидату.',
+    back: 'Вернуться в JobTracker',
+  },
   calendarIntegration: {
     title: 'Google Календарь', description: 'Подключите календарь, чтобы создавать закрытые встречи Google Meet для интервью.',
     connect: 'Подключить Google Календарь', reconnect: 'Переподключить Google Календарь', disconnect: 'Отключить',

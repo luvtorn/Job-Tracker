@@ -41,7 +41,9 @@ export function proxy(request: NextRequest) {
       ? NextResponse.redirect(new URL("/dashboard", request.url))
       : NextResponse.next();
   }
-  if (pathname === "/" || pathname.startsWith("/jobs")) return NextResponse.next();
+  if (pathname === "/" || pathname === "/privacy" || pathname.startsWith("/jobs")) {
+    return NextResponse.next();
+  }
   if (!hasValidToken && !hasRefreshToken) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }

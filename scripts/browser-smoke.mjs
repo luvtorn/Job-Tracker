@@ -21,12 +21,12 @@ const browser = await chromium.launch({ headless: true, ...(executablePath ? { e
 
 try {
   const locales = [
-    { header: 'en-US', locale: 'en', expected: 'Find Your Next', jobsSearch: 'Search jobs\u2026', tableLabel: 'Table' },
-    { header: 'pl-PL', locale: 'pl', expected: 'Znajd\u017a swoj\u0105 nast\u0119pn\u0105', jobsSearch: 'Szukaj ofert\u2026', tableLabel: 'Tabela' },
-    { header: 'ru-RU', locale: 'ru', expected: '\u041d\u0430\u0439\u0434\u0438\u0442\u0435 \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0443\u044e', jobsSearch: '\u041f\u043e\u0438\u0441\u043a \u0432\u0430\u043a\u0430\u043d\u0441\u0438\u0439\u2026', tableLabel: '\u0422\u0430\u0431\u043b\u0438\u0446\u0430' },
+    { header: 'en-US', locale: 'en', expected: 'Find Your Next', jobsSearch: 'Search jobs\u2026', tableLabel: 'Table', google: 'Continue with Google', privacy: 'Privacy notice' },
+    { header: 'pl-PL', locale: 'pl', expected: 'Znajd\u017a swoj\u0105 nast\u0119pn\u0105', jobsSearch: 'Szukaj ofert\u2026', tableLabel: 'Tabela', google: 'Kontynuuj przez Google', privacy: 'Informacja o prywatno\u015bci' },
+    { header: 'ru-RU', locale: 'ru', expected: '\u041d\u0430\u0439\u0434\u0438\u0442\u0435 \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0443\u044e', jobsSearch: '\u041f\u043e\u0438\u0441\u043a \u0432\u0430\u043a\u0430\u043d\u0441\u0438\u0439\u2026', tableLabel: '\u0422\u0430\u0431\u043b\u0438\u0446\u0430', google: '\u041f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u044c \u0447\u0435\u0440\u0435\u0437 Google', privacy: '\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u0435 \u043e \u043a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0441\u0442\u0438' },
   ];
 
-  for (const { header, locale, expected, jobsSearch, tableLabel } of locales) {
+  for (const { header, locale, expected, jobsSearch, tableLabel, google, privacy } of locales) {
     const context = await browser.newContext({
       locale: header,
       extraHTTPHeaders: { 'Accept-Language': header },
@@ -64,6 +64,15 @@ try {
     await searchResponse;
     await page.waitForTimeout(100);
     assert.equal(jobRequests - requestsBeforeSearch, 1, `${locale}: debounced search sent more than one request`);
+
+    const loginResponse = await page.goto(`${baseUrl}/auth/login`, { waitUntil: 'networkidle' });
+    assert.equal(loginResponse?.status(), 200, `${locale}: login page did not return HTTP 200`);
+    assert.equal(await page.getByRole('link', { name: google, exact: true }).count(), 1, `${locale}: Google sign-in is missing`);
+    assert.equal(await page.getByRole('link', { name: privacy, exact: true }).count(), 1, `${locale}: privacy link is missing`);
+
+    const privacyResponse = await page.goto(`${baseUrl}/privacy`, { waitUntil: 'networkidle' });
+    assert.equal(privacyResponse?.status(), 200, `${locale}: privacy page did not return HTTP 200`);
+    assert.equal(await page.getByRole('heading', { name: privacy, exact: true }).count(), 1, `${locale}: privacy notice is not localized`);
 
     assert.deepEqual(failures, [], `${locale}: browser failures\n${failures.join('\n')}`);
     await context.close();
