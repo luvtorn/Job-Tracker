@@ -19,10 +19,15 @@ export default function ProtectedLayout({
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !user) router.replace("/auth/login");
+    if (isLoading) return;
+    if (!user) {
+      router.replace("/auth/login");
+      return;
+    }
+    if (!user.emailVerified) router.replace("/auth/verify-email");
   }, [isLoading, router, user]);
 
-  if (isLoading || !user) {
+  if (isLoading || !user || !user.emailVerified) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

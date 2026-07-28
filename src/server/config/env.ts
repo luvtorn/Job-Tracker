@@ -6,6 +6,8 @@ const getRequiredEnv = (name: string): string => {
   return value;
 };
 
+const getOptionalEnv = (name: string) => process.env[name]?.trim() || undefined;
+
 export const env = {
   get databaseUrl() {
     return getRequiredEnv("DATABASE_URL");
@@ -26,5 +28,29 @@ export const env = {
   },
   get cloudinaryApiSecret() {
     return getRequiredEnv("CLOUDINARY_API_SECRET");
+  },
+  get appUrl() {
+    const value = getOptionalEnv("APP_URL") ?? getOptionalEnv("NEXT_PUBLIC_APP_URL");
+    if (value) return new URL(value).origin;
+    if (process.env.NODE_ENV !== "production") return "http://localhost:3000";
+    return getRequiredEnv("APP_URL");
+  },
+  get resendApiKey() {
+    return getOptionalEnv("RESEND_API_KEY");
+  },
+  get emailFrom() {
+    return getOptionalEnv("EMAIL_FROM");
+  },
+  get googleClientId() {
+    return getRequiredEnv("GOOGLE_CLIENT_ID");
+  },
+  get googleClientSecret() {
+    return getRequiredEnv("GOOGLE_CLIENT_SECRET");
+  },
+  get githubClientId() {
+    return getRequiredEnv("GITHUB_CLIENT_ID");
+  },
+  get githubClientSecret() {
+    return getRequiredEnv("GITHUB_CLIENT_SECRET");
   },
 };

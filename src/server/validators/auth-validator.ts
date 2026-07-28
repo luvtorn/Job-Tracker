@@ -18,5 +18,28 @@ export const registerSchema = z.object({
   role: z.enum(['SEEKER', 'RECRUITER']),
 }).strict();
 
+export const emailSchema = z.object({
+  email: z.string().email('Invalid email address'),
+}).strict();
+
+export const authTokenSchema = z.object({
+  token: z.string().min(32, 'Invalid token').max(512, 'Invalid token'),
+}).strict();
+
+export const resetPasswordSchema = authTokenSchema.extend({
+  password: registerSchema.shape.password,
+}).strict();
+
+export const completeOAuthRegistrationSchema = z.object({
+  firstName: z.string().trim().min(1, 'First name is required').max(100),
+  lastName: z.string().trim().min(1, 'Last name is required').max(100),
+  role: z.enum(['SEEKER', 'RECRUITER']),
+}).strict();
+
+export const authProviderParamSchema = z.object({
+  provider: z.enum(['google', 'github']),
+}).strict();
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type CompleteOAuthRegistrationInput = z.infer<typeof completeOAuthRegistrationSchema>;

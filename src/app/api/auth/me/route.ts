@@ -4,7 +4,7 @@ import { requireAuthenticatedUser } from '@/server/middleware/role-auth';
 
 export async function GET() {
   try {
-    const user = await requireAuthenticatedUser();
+    const user = await requireAuthenticatedUser({ allowUnverified: true });
     return NextResponse.json({
       success: true,
       user: {

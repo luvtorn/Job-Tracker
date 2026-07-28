@@ -1,8 +1,9 @@
 import { hash, compare } from "bcryptjs";
+import type { AuthActionType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 const SALT_ROUNDS = 10;
-const publicUserSelect = {
+export const publicUserSelect = {
   id: true,
   email: true,
   firstName: true,
@@ -32,6 +33,11 @@ export async function createUserWithRefreshToken(data: {
   role: "SEEKER" | "RECRUITER";
   refreshTokenHash: string;
   refreshTokenExpiresAt: Date;
+  actionToken?: {
+    tokenHash: string;
+    type: AuthActionType;
+    expiresAt: Date;
+  };
 }) {
   return prisma.$transaction(async (transaction) => {
     const user = await transaction.user.create({
@@ -52,6 +58,16 @@ export async function createUserWithRefreshToken(data: {
         expiresAt: data.refreshTokenExpiresAt,
       },
     });
+    if (data.actionToken) {
+      await transaction.authActionToken.create({
+        data: {
+          userId: user.id,
+          tokenHash: data.actionToken.tokenHash,
+          type: data.actionToken.type,
+          expiresAt: data.actionToken.expiresAt,
+        },
+      });
+    }
     return user;
   });
 }

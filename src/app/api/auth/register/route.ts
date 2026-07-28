@@ -4,13 +4,22 @@ import { authService } from "@/server/services/auth-service";
 import { handleApiError } from "@/server/errors/application-error";
 import { enforceAuthRateLimit } from '@/server/security/request-security';
 import { setAuthCookies } from '@/server/auth/auth-cookies';
+import { getRequestLocale } from '@/i18n/server';
 
 export async function POST(request: NextRequest) {
   try {
     enforceAuthRateLimit(request, 'register');
-    const result = await authService.register(registerSchema.parse(await request.json()));
+    const result = await authService.register(
+      registerSchema.parse(await request.json()),
+      await getRequestLocale(),
+    );
     const response = NextResponse.json(
-      { success: true, message: "Account created successfully", user: result.user },
+      {
+        success: true,
+        message: "Account created successfully",
+        user: result.user,
+        emailSent: result.emailSent,
+      },
       { status: 201 },
     );
     setAuthCookies(response, result.tokens);

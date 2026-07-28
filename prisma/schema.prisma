@@ -17,11 +17,21 @@ enum UserRole {
   ADMIN
 }
 
+enum AuthProvider {
+  GOOGLE
+  GITHUB
+}
+
+enum AuthActionType {
+  VERIFY_EMAIL
+  PASSWORD_RESET
+}
+
 model User {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   email        String @unique
-  passwordHash String @map("password_hash")
+  passwordHash String? @map("password_hash")
 
   firstName String? @map("first_name")
   lastName  String? @map("last_name")
@@ -40,6 +50,8 @@ model User {
   deletedAt DateTime? @map("deleted_at")
 
   refreshTokens RefreshToken[]
+  authAccounts AuthAccount[]
+  authActionTokens AuthActionToken[]
   vacancies     Vacancy[]
   applications  Application[]
   wishlist      Wishlist[]
@@ -54,6 +66,40 @@ model User {
   @@index([role])
   @@index([createdAt(sort: Desc)])
   @@map("users")
+}
+
+model AuthAccount {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  provider          AuthProvider
+  providerAccountId String       @map("provider_account_id") @db.VarChar(255)
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([provider, providerAccountId])
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("auth_accounts")
+}
+
+model AuthActionToken {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  tokenHash String         @unique @map("token_hash") @db.VarChar(64)
+  type      AuthActionType
+  expiresAt DateTime       @map("expires_at")
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, type])
+  @@index([expiresAt])
+  @@map("auth_action_tokens")
 }
 
 model RefreshToken {

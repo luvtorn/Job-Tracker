@@ -12,6 +12,8 @@ const isValidAccessToken = (token?: string) => {
   }
 };
 
+const AUTH_ENTRY_PATHS = new Set(['/auth/login', '/auth/register']);
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (pathname.startsWith('/api/')) {
@@ -35,7 +37,7 @@ export function proxy(request: NextRequest) {
   const hasRefreshToken = Boolean(request.cookies.get("refreshToken")?.value);
 
   if (pathname.startsWith("/auth/")) {
-    return hasValidToken
+    return hasValidToken && AUTH_ENTRY_PATHS.has(pathname)
       ? NextResponse.redirect(new URL("/dashboard", request.url))
       : NextResponse.next();
   }

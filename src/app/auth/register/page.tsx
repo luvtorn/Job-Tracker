@@ -8,6 +8,7 @@ import { AuthLogo } from '@/features/auth/components/auth-logo';
 import type { UserRole } from '@/types/auth';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { SocialAuthButtons } from '@/features/auth/components/social-auth-buttons';
 
 export default function RegisterPage() {
   const [step, setStep] = useState<'role' | 'form'>('role');
@@ -59,7 +60,10 @@ export default function RegisterPage() {
         return;
       }
 
-      window.location.href = '/dashboard';
+      const result: { emailSent?: boolean } = await response.json();
+      window.location.href = result.emailSent
+        ? '/auth/verify-email'
+        : '/auth/verify-email?delivery=unavailable';
     } catch {
       setError(t('unexpected'));
     } finally {
@@ -83,6 +87,7 @@ export default function RegisterPage() {
               isLoading={isLoading}
               error={error}
             />
+            <div className="mt-6"><SocialAuthButtons /></div>
 
             <p className="text-center text-sm text-neutral-600 mt-6">
               {t('alreadyAccount')}{' '}

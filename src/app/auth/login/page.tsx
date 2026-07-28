@@ -1,23 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { LoginForm, type LoginFormData } from '@/features/auth/components/login-form';
 import { AuthLogo } from '@/features/auth/components/auth-logo';
 import { useAuth } from '@/features/auth/context/auth-context';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { SocialAuthButtons } from '@/features/auth/components/social-auth-buttons';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isLoading: isSessionLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const t = useTranslations('auth');
+  const security = useTranslations('authSecurity');
 
   useEffect(() => {
-    if (!isSessionLoading && user) router.replace('/dashboard');
+    if (isSessionLoading || !user) return;
+    router.replace(user.emailVerified ? '/dashboard' : '/auth/verify-email');
   }, [isSessionLoading, router, user]);
 
   const handleSubmit = async (data: LoginFormData) => {
@@ -54,7 +58,12 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <AuthLogo subtitle={t('tagline')} />
 
-        <LoginForm onSubmit={handleSubmit} isLoading={isLoading} error={error} />
+        <LoginForm
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+          error={error || (searchParams.has('oauthError') ? security('oauthFailed') : '')}
+        />
+        <div className="mt-6"><SocialAuthButtons /></div>
 
         <div className="text-center mt-6">
           <Link
@@ -70,5 +79,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
   );
 }
