@@ -6,6 +6,8 @@ import { useTranslations } from 'next-intl';
 import { z } from 'zod';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/toast';
+import { DocumentPreviewDialog } from '@/features/documents/components/document-preview-dialog';
+import { canPreviewDocument } from '@/features/documents/document-preview';
 
 type DocumentType = 'RESUME' | 'COVER_LETTER';
 const profileDocumentSchema = z.object({
@@ -181,6 +183,7 @@ export function CareerDocuments() {
         {(['RESUME', 'COVER_LETTER'] as const).map((type) => {
           const document = documents.find((item) => item.type === type);
           const isClean = document?.scanStatus === 'CLEAN';
+          const canPreview = isClean && canPreviewDocument(document.originalFilename);
           const label = type === 'RESUME' ? t('resume') : t('coverLetter');
           return (
             <div key={type} className="rounded-xl border border-neutral-200 p-4">
@@ -191,7 +194,8 @@ export function CareerDocuments() {
                   {document ? t('replace') : t('upload')}
                   <input type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden" disabled={loadingType !== null} onChange={(event) => void upload(type, event.target.files?.[0])} />
                 </label>
-                {document && isClean && <a href={`/api/documents/${document.id}/content`} className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50" aria-label={t('downloadLabel', { document: label })}><Download size={16} />{t('download')}</a>}
+                {document && canPreview && <DocumentPreviewDialog documentId={document.id} filename={document.originalFilename} triggerLabel={t('preview')} triggerAriaLabel={t('previewLabel', { document: label })} />}
+                {document && isClean && <a href={`/api/documents/${document.id}/download`} className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50" aria-label={t('downloadLabel', { document: label })}><Download size={16} />{t('download')}</a>}
                 {document && <button onClick={() => setDocumentToRemove(document)} className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">{t('remove')}</button>}
               </div>
             </div>
