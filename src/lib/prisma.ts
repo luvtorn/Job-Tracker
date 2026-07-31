@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaNeon } from "@prisma/adapter-neon";
+import { createDatabaseAdapter } from "@/lib/database-adapter";
 import { env } from "@/server/config/env";
 
 const globalForPrisma = globalThis as unknown as {
@@ -8,12 +8,8 @@ const globalForPrisma = globalThis as unknown as {
 
 const createPrismaClient = () => {
   try {
-    const neon = new PrismaNeon({
-      connectionString: env.databaseUrl,
-    });
-
     return new PrismaClient({
-      adapter: neon,
+      adapter: createDatabaseAdapter(env.databaseUrl),
       log:
         process.env.NODE_ENV === "development"
           ? ["error", "warn"]
