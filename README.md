@@ -273,7 +273,6 @@ The long-term goal is to provide a unified workspace for the complete hiring jou
 - [Development roadmap](ROADMAP.md)
 - [Testing notes](docs/testing.md)
 - [Production configuration](docs/production.md)
-- [Calendar implementation report](SESSION_REPORT_20260712.md)
 - [Engineering rules](AGENTS.md)
 
 ## License

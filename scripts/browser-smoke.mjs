@@ -45,8 +45,19 @@ try {
 
     const response = await page.goto(baseUrl, { waitUntil: 'networkidle' });
     assert.equal(response?.status(), 200, `${locale}: home page did not return HTTP 200`);
+    const csp = response?.headers()['content-security-policy'] ?? '';
+    assert.match(csp, /script-src[^;]*nonce-/, `${locale}: nonce CSP is missing`);
+    assert.doesNotMatch(csp, /script-src[^;]*unsafe-inline/, `${locale}: unsafe inline scripts are allowed`);
     assert.equal(await page.locator('html').getAttribute('lang'), locale, `${locale}: incorrect html lang`);
     assert.match(await page.locator('body').innerText(), new RegExp(expected), `${locale}: localized hero is missing`);
+
+    const csrfResponse = await context.request.post(`${baseUrl}/api/auth/logout`, {
+      headers: {
+        Origin: 'https://attacker.example',
+        'Sec-Fetch-Site': 'cross-site',
+      },
+    });
+    assert.equal(csrfResponse.status(), 403, `${locale}: cross-site mutation was not rejected`);
 
     let jobRequests = 0;
     page.on('request', (request) => {
