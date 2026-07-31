@@ -50,7 +50,9 @@ export function ScheduleInterviewModal({
   const [manualMeetingUrl, setManualMeetingUrl] = useState(
     initialData?.meetingType === 'MANUAL_GOOGLE_MEET' ? initialData.meetingUrl ?? '' : '',
   );
-  const [sendCalendarInvite, setSendCalendarInvite] = useState(initialData?.sendCalendarInvite ?? false);
+  const [sendCalendarInvite, setSendCalendarInvite] = useState(
+    initialData ? Boolean(initialData.sendCalendarInvite) : true,
+  );
   const [calendarConnected, setCalendarConnected] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');

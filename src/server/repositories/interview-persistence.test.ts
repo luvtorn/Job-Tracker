@@ -88,3 +88,19 @@ test("allows invitations only for automatic Google Meet", () => {
   });
   assert.equal(result.success, false);
 });
+
+test("enables candidate invitations by default only for automatic Google Meet", () => {
+  const base = {
+    interviewDate: "2026-07-25",
+    interviewTime: "14:30",
+    scheduledAt: new Date(Date.now() + 60_000).toISOString(),
+  };
+  const automaticMeet = scheduleInterviewSchema.parse({
+    ...base,
+    meetingType: "GOOGLE_MEET",
+  });
+  const withoutVideo = scheduleInterviewSchema.parse(base);
+
+  assert.equal(automaticMeet.sendCalendarInvite, true);
+  assert.equal(withoutVideo.sendCalendarInvite, false);
+});
