@@ -68,7 +68,7 @@ export const documentService = {
     }
 
     const timestamp = Math.floor(Date.now() / 1000);
-    const publicId = `job-tracker/documents/${userId}/${randomUUID()}`;
+    const publicId = `job-tracker/documents/${userId}/${randomUUID()}.${expectedExtension}`;
     const notificationUrl = `${env.appUrl}/api/integrations/cloudinary/malware-scan`;
     const uploadParameters = {
       timestamp,
