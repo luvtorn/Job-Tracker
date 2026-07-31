@@ -5,16 +5,22 @@ import test from 'node:test';
 const testDatabaseUrl = process.env.TEST_DATABASE_URL;
 const canUseTestDatabase = Boolean(testDatabaseUrl && /test/i.test(testDatabaseUrl));
 
-test('removed profile documents stay removed after they are listed again', {
+test('document upload IDs and removal lifecycle remain consistent', {
   skip: canUseTestDatabase
     ? false
     : 'Set a dedicated TEST_DATABASE_URL containing "test" to run database integration tests',
 }, async () => {
   process.env.DATABASE_URL = testDatabaseUrl;
-  const [{ DocumentScanStatus, DocumentType }, { prisma }, { documentRepository }] = await Promise.all([
+  const [
+    { DocumentScanStatus, DocumentType },
+    { prisma },
+    { documentRepository },
+    { documentService },
+  ] = await Promise.all([
     import('@prisma/client'),
     import('@/lib/prisma'),
     import('@/server/repositories/document-repository'),
+    import('@/server/services/document-service'),
   ]);
 
   const suffix = randomUUID();
@@ -34,6 +40,24 @@ test('removed profile documents stay removed after they are listed again', {
   });
 
   try {
+    const pdfIntent = await documentService.createUploadIntent(seeker.id, {
+      type: DocumentType.RESUME,
+      originalFilename: 'resume.pdf',
+      contentType: 'application/pdf',
+      size: 128,
+    });
+    assert.match(pdfIntent.document.publicId, /\.pdf$/);
+    assert.equal(pdfIntent.upload.fields.public_id, pdfIntent.document.publicId);
+
+    const docxIntent = await documentService.createUploadIntent(seeker.id, {
+      type: DocumentType.COVER_LETTER,
+      originalFilename: 'cover-letter.docx',
+      contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      size: 128,
+    });
+    assert.match(docxIntent.document.publicId, /\.docx$/);
+    assert.equal(docxIntent.upload.fields.public_id, docxIntent.document.publicId);
+
     const scanningDocument = await prisma.document.create({
       data: {
         userId: seeker.id,
