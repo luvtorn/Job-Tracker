@@ -44,6 +44,11 @@ const enBase = {
     syncPending: 'Google Calendar sync is pending.',
     syncFailed: 'Google Calendar sync failed. Retry or use a manual link.',
     retry: 'Retry sync', retrying: 'Retrying…',
+    errorAccessDenied: 'Google Calendar access was not granted.', errorConfiguration: 'Google OAuth configuration is invalid.',
+    errorProvider: 'Google could not complete Calendar authorization.', errorMissingRefreshToken: 'Google did not return offline Calendar access. Reconnect and grant access again.',
+    errorEmailNotVerified: 'A verified Google email is required.', errorScopeMissing: 'Google Calendar permission was not granted.',
+    errorSessionExpired: 'The Calendar connection session expired. Start the connection again.', errorSavingConnection: 'Calendar authorization succeeded, but the connection could not be saved.',
+    errorCode: 'Error code: {code}.',
   },
   authSecurity: {
     orContinue: 'Or continue with',
