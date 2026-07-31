@@ -13,11 +13,16 @@ import {
 } from '@/server/errors/application-error';
 import { documentRepository } from '@/server/repositories/document-repository';
 import {
+  hasDocumentSizeMismatch,
+  isReportedDocumentTooLarge,
+  MAX_DOCUMENT_SIZE,
+  readDocumentContent,
+} from '@/server/services/document-content';
+import {
   cloudinaryScanWebhookSchema,
   type DocumentUploadIntentInput,
 } from '@/server/validators/document-validator';
 
-const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024;
 const UPLOAD_INTENT_TTL_MS = 10 * 60 * 1000;
 const ALLOWED_FILE_TYPES = new Map([
   ['application/pdf', 'pdf'],
@@ -124,7 +129,7 @@ export const documentService = {
           moderations: true,
         }),
       );
-      if (resource.bytes <= 0 || resource.bytes > MAX_DOCUMENT_SIZE) {
+      if (isReportedDocumentTooLarge(resource.bytes)) {
         await destroyAsset(document.publicId);
         await documentRepository.markRejected(document.publicId);
         throw badRequest('File size must be less than 10MB');
@@ -144,8 +149,13 @@ export const documentService = {
         signal: AbortSignal.timeout(10_000),
       });
       if (!response.ok) throw new Error('Uploaded document is unavailable');
-      const content = Buffer.from(await response.arrayBuffer());
-      if (content.byteLength !== resource.bytes || content.byteLength > MAX_DOCUMENT_SIZE) {
+      const content = await readDocumentContent(response);
+      if (!content) {
+        await destroyAsset(document.publicId);
+        await documentRepository.markRejected(document.publicId);
+        throw badRequest('File size must be less than 10MB');
+      }
+      if (hasDocumentSizeMismatch(content.byteLength, resource.bytes)) {
         throw new Error('Uploaded document size mismatch');
       }
       const detected = await fileTypeFromBuffer(content);
