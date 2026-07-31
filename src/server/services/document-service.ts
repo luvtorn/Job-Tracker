@@ -1,7 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { DocumentScanStatus, DocumentType } from '@prisma/client';
 import { fileTypeFromBuffer } from 'file-type';
-import { z } from 'zod';
 import { cloudinary } from '@/server/config/cloudinary';
 import { env } from '@/server/config/env';
 import {
@@ -19,7 +18,9 @@ import {
   readDocumentContent,
 } from '@/server/services/document-content';
 import {
+  cloudinaryResourceSchema,
   cloudinaryScanWebhookSchema,
+  type CloudinaryResource,
   type DocumentUploadIntentInput,
 } from '@/server/validators/document-validator';
 
@@ -29,22 +30,18 @@ const ALLOWED_FILE_TYPES = new Map([
   ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx'],
 ]);
 
-const cloudinaryResourceSchema = z.object({
-  public_id: z.string().min(1),
-  bytes: z.number().int().nonnegative(),
-  format: z.string().min(1),
-  moderation: z.array(z.object({
-    kind: z.string(),
-    status: z.enum(['pending', 'approved', 'rejected']),
-  })).optional(),
-});
-
 const getDocumentContentType = (filename: string) => {
   const extension = filename.split('.').pop()?.toLowerCase();
   if (extension === 'pdf') return 'application/pdf';
   if (extension === 'docx') {
     return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
   }
+  throw badRequest('Unsupported document format');
+};
+
+const getDocumentExtension = (filename: string) => {
+  const extension = filename.split('.').pop()?.toLowerCase();
+  if (extension === 'pdf' || extension === 'docx') return extension;
   throw badRequest('Unsupported document format');
 };
 
@@ -56,7 +53,7 @@ const destroyAsset = (publicId: string) =>
   });
 
 const getModerationStatus = (
-  moderation: z.infer<typeof cloudinaryResourceSchema>['moderation'],
+  moderation: CloudinaryResource['moderation'],
 ) => moderation?.find((entry) =>
   entry.kind === 'perception_point' || entry.kind === 'metascan')?.status;
 
@@ -137,7 +134,7 @@ export const documentService = {
 
       const downloadUrl = cloudinary.utils.private_download_url(
         document.publicId,
-        resource.format,
+        getDocumentExtension(document.originalFilename),
         {
           resource_type: 'raw',
           type: 'authenticated',

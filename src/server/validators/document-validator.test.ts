@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { documentUploadIntentSchema } from './document-validator';
+import {
+  cloudinaryResourceSchema,
+  documentUploadIntentSchema,
+} from './document-validator';
 
 test('accepts bounded PDF and DOCX upload intents', () => {
   assert.equal(documentUploadIntentSchema.safeParse({
@@ -40,4 +43,16 @@ test('rejects traversal names, mismatched extensions, and oversized files', () =
   ]) {
     assert.equal(documentUploadIntentSchema.safeParse(input).success, false);
   }
+});
+
+test('accepts raw Cloudinary resource metadata without a separate format field', () => {
+  const result = cloudinaryResourceSchema.safeParse({
+    public_id: 'job-tracker/documents/user/document.pdf',
+    bytes: 4096,
+    resource_type: 'raw',
+    type: 'authenticated',
+    moderation: [{ kind: 'perception_point', status: 'pending' }],
+  });
+
+  assert.equal(result.success, true);
 });
