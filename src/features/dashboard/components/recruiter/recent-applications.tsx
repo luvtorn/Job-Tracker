@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useLocale, useTranslations } from 'next-intl';
 import { Mail, Calendar } from 'lucide-react';
 import { InterviewModal } from '@/features/applications/components/interview-modal';
+import type { InterviewFormData } from '@/features/candidates/components/schedule-interview-modal';
 
 interface RecentApplication {
   id: string;
@@ -46,12 +47,7 @@ export function RecentApplications({ applications: initialApplications }: Recent
   const [applications, setApplications] = useState<RecentApplication[]>(initialApplications);
   const [selectedApp, setSelectedApp] = useState<RecentApplication | null>(null);
 
-  const handleScheduleInterview = async (data: {
-    interviewDate: string;
-    interviewTime: string;
-    scheduledAt: string;
-    interviewNotes?: string;
-  }) => {
+  const handleScheduleInterview = async (data: InterviewFormData) => {
     if (!selectedApp) return;
 
     const response = await fetch(`/api/applications/${selectedApp.id}/interview`, {

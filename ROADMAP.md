@@ -1,47 +1,48 @@
 # JobTracker Roadmap
 
-This roadmap tracks the production-readiness plan. A stage is complete only after tests, lint, typecheck, build, and the relevant `en`, `pl`, and `ru` flows pass.
+JobTracker is developed as a production-ready job application and recruitment workspace. AI features are intentionally outside this roadmap.
 
 ## Quality gate
+
+Every stage must pass:
 
 - `npm test`
 - `npm run lint`
 - `npx tsc --noEmit`
 - `npm run build`
-- Manual role, locale, accessibility, loading, empty, and error-state checks
+- migration status without pending migrations
+- manual checks for English, Polish, and Russian
 
-## Stages
+## Completed
 
-- [x] Stage 0 — Baseline dashboard/reminders localization and vacancy-aware candidates navigation
-- [x] Stage 1 — Single-source calendar interviews and complete event editing
-- [x] Stage 2 — Full localization and UX audit
-- [ ] Stage 3 — Architecture, security, integration tests, and critical E2E coverage
-- [ ] Stage 4 — Opt-in WebGPU/WebLLM browser runtime
-- [ ] Stage 5 — Versioned AI generation history
-- [ ] Stage 6 — Match analysis, cover letter, candidate summary, and read-only assistant
-- [ ] Stage 7 — AI validation, browser compatibility, privacy-safe telemetry, and beta release
-- [ ] Stage 8 — CI, production hardening, staging migration checks, and post-validation monetization research
+- [x] Dashboard and workspace localization on `en`, `pl`, and `ru`
+- [x] Vacancy-aware candidate navigation
+- [x] One editable and removable interview event without duplicates
+- [x] Full localization and UX audit
+- [x] Debounced jobs search, card/table views, wishlist, vacancy validation, and note tags
+- [x] Stable registration, logout, notifications, and jobs navigation
+- [x] Route/service/repository boundaries, request validation, security headers, CSRF checks, and test foundation
+- [x] Email registration with immediate session and required email verification
+- [x] Resend verification and password reset with hashed one-time tokens
+- [x] Google and GitHub sign-in, registration, and connected sign-in methods
+- [x] Separate Google Calendar consent and encrypted offline token storage
+- [x] Automatic or manual Google Meet interviews with optional candidate invitations
+- [x] Idempotent Calendar synchronization, durable retry records, and manual fallback
 
-## Baseline recorded on 2026-07-22
+## Production release
 
-- Tests: 23 passed, 0 failed
-- ESLint: passed
-- TypeScript: passed
-- Next.js production build: passed
-- `/candidates?vacancyId=<id>` selects an accessible vacancy and safely falls back for missing or unauthorized IDs
-- Dashboard and shared reminders use typed `en`, `pl`, and `ru` translations
-
-## Stage 2 completed on 2026-07-22
-
-- Tests: 27 passed, 0 failed
-- ESLint, TypeScript, and the Next.js production build passed
-- Public server-rendered pages returned localized content and matching `html lang` values for `en`, `pl`, and `ru`
-- Protected and shared interfaces were audited for hardcoded copy; the localization regression test now covers dashboard, workspace, statistics, profile, vacancies, wishlist, candidates, applications, jobs, calendar, and 404 UI
+- [x] CI for migrations, unit/integration tests, lint, TypeScript, build, and browser smoke
+- [x] Production OAuth/Resend/Calendar configuration guide
+- [x] Privacy notice for connected accounts, email delivery, and Calendar access
+- [ ] Configure production provider credentials and exact callback URLs
+- [ ] Verify migrations and restore procedure on a staging Neon branch
+- [ ] Run real Google, GitHub, Resend, and Calendar smoke tests
+- [ ] Run Chrome and Edge desktop/mobile acceptance tests
+- [ ] Enable privacy-safe production error monitoring
 
 ## Delivery rules
 
 - Keep route handlers thin: route → service → repository → database.
-- Validate request bodies, route params, query params, and stored AI output with Zod.
-- Never send CV text, vacancy context, or prompts to an operator-funded AI service.
-- Never rank candidates or produce an automatic hiring decision.
-- Preserve unrelated working-tree changes and commit each completed stage separately.
+- Validate all external input with Zod.
+- Never log secrets, OAuth codes, Meet links, document contents, or personal messages.
+- Preserve unrelated working-tree changes and use a separate Conventional Commit for each stage.

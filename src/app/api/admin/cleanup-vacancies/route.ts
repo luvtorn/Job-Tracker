@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { vacancyService } from "@/server/services/vacancy-service";
 import { timingSafeEqual } from "crypto";
 import { env } from "@/server/config/env";
 import { handleApiError } from '@/server/errors/application-error';
+import { enforceAuthRateLimit } from '@/server/security/request-security';
+import { maintenanceService } from '@/server/services/maintenance-service';
 
 export async function POST(request: NextRequest) {
   try {
+    await enforceAuthRateLimit(request, 'admin-cleanup');
     let adminApiKey: string;
     try {
       adminApiKey = env.adminApiKey;
@@ -28,13 +30,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const deleted = await vacancyService.deleteExpiredVacancies();
+    const deleted = await maintenanceService.cleanupExpiredData();
 
     return NextResponse.json(
       {
         success: true,
-        message: `Deleted ${deleted} expired vacancies`,
-        deletedCount: deleted,
+        message: "Expired data cleanup completed",
+        deletedCount: deleted.vacancies + deleted.documentUploads,
+        deleted,
       },
       { status: 200 }
     );

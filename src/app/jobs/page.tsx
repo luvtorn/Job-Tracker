@@ -3,7 +3,7 @@
 import { useAuth } from "@/features/auth/context/auth-context";
 import { JobsList } from "@/features/jobs/components/jobs-list";
 import Link from "next/link";
-import { Menu, X, Briefcase } from "lucide-react";
+import { Menu, X, Briefcase, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from 'next-intl';
@@ -97,6 +97,9 @@ export default function JobsPage() {
             exit={{ opacity: 0, y: -10 }}
             className="md:hidden border-t border-neutral-200 px-6 py-4 space-y-4 bg-white"
           >
+            <div className="border-b border-neutral-100 pb-4">
+              <LanguageSwitcher expanded />
+            </div>
             <Link
               href="/jobs"
               className="block text-primary-600 font-medium"
@@ -145,6 +148,16 @@ export default function JobsPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-12">
+        {user && (
+          <Link
+            href="/dashboard"
+            aria-label={t('backToDashboard')}
+            className="mb-8 inline-flex items-center gap-2 rounded-lg border-2 border-primary-600 bg-white px-4 py-2.5 font-semibold text-primary-700 shadow-sm transition-all hover:bg-primary-50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+          >
+            <ArrowLeft size={18} aria-hidden="true" />
+            {t('backToDashboard')}
+          </Link>
+        )}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

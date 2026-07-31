@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { jobsService } from "@/server/services/jobs-service";
 import { jobsQuerySchema } from "@/server/validators/jobs-validator";
 import { handleApiError } from "@/server/errors/application-error";
+import { enforcePublicReadRateLimit } from '@/server/security/request-security';
 
 export async function GET(request: NextRequest) {
   try {
+    await enforcePublicReadRateLimit(request, 'jobs');
     const input = jobsQuerySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
     const result = await jobsService.list(input);
 

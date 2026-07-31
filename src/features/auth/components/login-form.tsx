@@ -3,6 +3,7 @@
 import { motion, Variants } from "framer-motion";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 
 interface LoginFormProps {
   onSubmit: (data: LoginFormData) => Promise<void>;
@@ -29,6 +30,7 @@ const itemVariants: Variants = {
 
 export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
   const t = useTranslations('auth');
+  const security = useTranslations('authSecurity');
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -84,9 +86,12 @@ export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
-            {t('password')}
-          </label>
+          <div className="mb-2 flex items-center justify-between">
+            <label className="block text-sm font-medium text-neutral-700">{t('password')}</label>
+            <Link href="/auth/forgot-password" className="text-sm font-medium text-primary-600 hover:text-primary-700">
+              {security('forgotPassword')}
+            </Link>
+          </div>
           <div className="relative">
             <Lock
               className="absolute left-3 top-3 text-neutral-400"

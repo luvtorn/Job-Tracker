@@ -6,9 +6,9 @@ import { enforceUploadRateLimit } from '@/server/security/request-security';
 
 export async function POST(request: NextRequest) {
   try {
-    enforceUploadRateLimit(request);
     const currentUser = await verifyAuth();
     if (!currentUser) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    await enforceUploadRateLimit(request, currentUser.id);
     const file = (await request.formData()).get("file");
     if (!(file instanceof File)) throw badRequest("No file provided");
     const user = await profileService.uploadAvatar(currentUser.id, file);

@@ -1,20 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Clock, TrendingUp, Briefcase, type LucideIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, pl, ru } from 'date-fns/locale';
 import { useLocale, useTranslations } from 'next-intl';
-
-interface Notification {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-}
+import { useNotifications } from '@/hooks/use-notifications';
 
 const statusIcons: Record<string, LucideIcon> = {
   NEW_APPLICATION: Briefcase,
@@ -28,27 +19,11 @@ const statusColors: Record<string, string> = {
 
 export function RecentActivity() {
   const t = useTranslations('dashboard');
+  const common = useTranslations('common');
   const locale = useLocale();
-  const dateLocale = { en: enUS, pl, ru }[locale as 'en' | 'pl' | 'ru'];
-  const [activities, setActivities] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadActivities = async () => {
-      try {
-        const response = await fetch('/api/notifications?limit=10');
-        if (!response.ok) throw new Error('Failed to fetch activities');
-        const data = await response.json();
-        setActivities(data.notifications);
-      } catch (error) {
-        console.error('Failed to fetch activities:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void loadActivities();
-  }, []);
+  const dateLocale = { en: enUS, pl, ru }[locale as 'en' | 'pl' | 'ru'] ?? enUS;
+  const { notifications, isLoading, error, fetchNotifications } = useNotifications();
+  const activities = notifications.slice(0, 10);
 
   if (isLoading) {
     return (
@@ -56,6 +31,21 @@ export function RecentActivity() {
         {[...Array(4)].map((_, i) => (
           <div key={i} className="h-20 bg-neutral-200 rounded-lg animate-pulse" />
         ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
+        <p>{t('loadFailed')}</p>
+        <button
+          type="button"
+          onClick={() => void fetchNotifications()}
+          className="mt-3 font-semibold underline underline-offset-2"
+        >
+          {common('tryAgain')}
+        </button>
       </div>
     );
   }

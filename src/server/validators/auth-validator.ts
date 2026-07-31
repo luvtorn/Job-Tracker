@@ -1,16 +1,23 @@
 import { z } from 'zod';
 
+const fitsBcryptInput = (value: string) =>
+  new TextEncoder().encode(value).byteLength <= 72;
+
+const passwordInputSchema = z
+  .string()
+  .max(256, 'Password is too long')
+  .refine(fitsBcryptInput, 'Password must be at most 72 bytes');
+
 export const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  password: passwordInputSchema.min(1, 'Password is required'),
 }).strict();
 
 export const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(100),
   lastName: z.string().min(1, 'Last name is required').max(100),
   email: z.string().email('Invalid email address'),
-  password: z
-    .string()
+  password: passwordInputSchema
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
@@ -18,5 +25,28 @@ export const registerSchema = z.object({
   role: z.enum(['SEEKER', 'RECRUITER']),
 }).strict();
 
+export const emailSchema = z.object({
+  email: z.string().email('Invalid email address'),
+}).strict();
+
+export const authTokenSchema = z.object({
+  token: z.string().min(32, 'Invalid token').max(512, 'Invalid token'),
+}).strict();
+
+export const resetPasswordSchema = authTokenSchema.extend({
+  password: registerSchema.shape.password,
+}).strict();
+
+export const completeOAuthRegistrationSchema = z.object({
+  firstName: z.string().trim().min(1, 'First name is required').max(100),
+  lastName: z.string().trim().min(1, 'Last name is required').max(100),
+  role: z.enum(['SEEKER', 'RECRUITER']),
+}).strict();
+
+export const authProviderParamSchema = z.object({
+  provider: z.enum(['google', 'github']),
+}).strict();
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type CompleteOAuthRegistrationInput = z.infer<typeof completeOAuthRegistrationSchema>;

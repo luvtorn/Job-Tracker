@@ -25,6 +25,7 @@ export async function GET(
           interviewDate: app.interviewDate,
           interviewTime: app.interviewTime,
           interviewNotes: app.interviewNotes,
+          calendarEvent: app.calendarEvent,
           user: app.user,
         })),
       },

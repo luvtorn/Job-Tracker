@@ -29,7 +29,9 @@ test('application and vacancy services enforce ownership against the test databa
   try {
     const vacancy = await vacancyService.createVacancy(recruiter.id, {
       title: 'Integration test vacancy',
-      description: 'A dedicated integration test vacancy description.',
+      description: 'A dedicated integration test vacancy description with responsibilities, team context, goals, and expected outcomes. '.repeat(2),
+      requirements: 'Relevant technical experience and strong communication skills are required.',
+      position: 'Full-time',
       company: 'Example',
       location: 'Remote',
       currency: 'USD',

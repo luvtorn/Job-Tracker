@@ -17,11 +17,21 @@ enum UserRole {
   ADMIN
 }
 
+enum AuthProvider {
+  GOOGLE
+  GITHUB
+}
+
+enum AuthActionType {
+  VERIFY_EMAIL
+  PASSWORD_RESET
+}
+
 model User {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  email        String @unique
-  passwordHash String @map("password_hash")
+  email        String  @unique
+  passwordHash String? @map("password_hash")
 
   firstName String? @map("first_name")
   lastName  String? @map("last_name")
@@ -30,6 +40,7 @@ model User {
   avatarPublicId String? @map("avatar_public_id")
 
   emailVerified Boolean @default(false) @map("email_verified")
+  authVersion   Int     @default(0) @map("auth_version")
 
   role UserRole @default(SEEKER)
 
@@ -39,18 +50,20 @@ model User {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  refreshTokens RefreshToken[]
-  vacancies     Vacancy[]
-  applications  Application[]
-  wishlist      Wishlist[]
-  notifications Notification[]
-  calendarEvents CalendarEvent[]
-  documents      Document[]
-  companies      Company[]
-  contacts       Contact[]
-  applicationNotes ApplicationNote[]
-  tags           Tag[]
-  reminders      Reminder[]
+  refreshTokens            RefreshToken[]
+  authAccounts             AuthAccount[]
+  authActionTokens         AuthActionToken[]
+  googleCalendarConnection GoogleCalendarConnection?
+  calendarSyncJobs         CalendarSyncJob[]
+  vacancies                Vacancy[]
+  applications             Application[]
+  wishlist                 Wishlist[]
+  notifications            Notification[]
+  calendarEvents           CalendarEvent[]
+  documents                Document[]
+  contacts                 Contact[]
+  applicationNotes         ApplicationNote[]
+  tags                     Tag[]
 
   @@index([email])
   @@index([role])
@@ -58,10 +71,47 @@ model User {
   @@map("users")
 }
 
+model AuthAccount {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  provider          AuthProvider
+  providerAccountId String       @map("provider_account_id") @db.VarChar(255)
+
+  userId String @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([provider, providerAccountId])
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("auth_accounts")
+}
+
+model AuthActionToken {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  tokenHash String         @unique @map("token_hash") @db.VarChar(64)
+  type      AuthActionType
+  expiresAt DateTime       @map("expires_at")
+
+  userId String @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, type])
+  @@index([expiresAt])
+  @@map("auth_action_tokens")
+}
+
 model RefreshToken {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tokenHash String   @unique @map("token_hash")
+  familyId  String   @map("family_id") @db.Uuid
   expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  revokedAt DateTime? @map("revoked_at")
 
   userId String @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -69,6 +119,7 @@ model RefreshToken {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@index([userId])
+  @@index([familyId])
   @@map("refresh_tokens")
 }
 
@@ -97,9 +148,42 @@ enum CalendarEventType {
   OTHER
 }
 
+enum InterviewMeetingType {
+  NONE
+  MANUAL_GOOGLE_MEET
+  GOOGLE_MEET
+}
+
+enum CalendarSyncState {
+  NOT_REQUIRED
+  PENDING
+  SYNCED
+  FAILED
+}
+
+enum CalendarSyncOperation {
+  UPSERT
+  DELETE
+}
+
+enum CalendarSyncJobStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+}
+
 enum DocumentType {
   RESUME
   COVER_LETTER
+}
+
+enum DocumentScanStatus {
+  PENDING_UPLOAD
+  SCANNING
+  CLEAN
+  REJECTED
+  FAILED
 }
 
 model Vacancy {
@@ -150,15 +234,14 @@ model Application {
   vacancyId String  @db.Uuid
   vacancy   Vacancy @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
 
-  interviewDate DateTime? @map("interview_date")
-  interviewTime String?   @map("interview_time")
-  interviewNotes String?  @map("interview_notes")
+  interviewDate  DateTime? @map("interview_date")
+  interviewTime  String?   @map("interview_time")
+  interviewNotes String?   @map("interview_notes")
 
   calendarEvent CalendarEvent?
   documents     ApplicationDocument[]
   notes         ApplicationNote[]
   tags          ApplicationTag[]
-  reminders     Reminder[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -172,120 +255,93 @@ model Application {
 }
 
 model Document {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type DocumentType
-  originalFilename String @map("original_filename") @db.VarChar(255)
-  publicId String @map("public_id")
-  isCurrent Boolean @default(true) @map("is_current")
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type             DocumentType
+  originalFilename String       @map("original_filename") @db.VarChar(255)
+  publicId         String       @map("public_id")
+  isCurrent        Boolean      @default(true) @map("is_current")
+  scanStatus       DocumentScanStatus @default(CLEAN) @map("scan_status")
+  uploadExpiresAt  DateTime?    @map("upload_expires_at")
 
-  userId String @db.Uuid
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String                @db.Uuid
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   applications ApplicationDocument[]
 
   createdAt DateTime @default(now()) @map("created_at")
 
   @@index([userId, type, isCurrent])
+  @@unique([publicId])
+  @@index([scanStatus, uploadExpiresAt])
   @@map("documents")
 }
 
 model ApplicationDocument {
-  applicationId String @db.Uuid
-  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  documentId String @db.Uuid
-  document Document @relation(fields: [documentId], references: [id], onDelete: Restrict)
-  type DocumentType
+  applicationId String       @db.Uuid
+  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  documentId    String       @db.Uuid
+  document      Document     @relation(fields: [documentId], references: [id], onDelete: Restrict)
+  type          DocumentType
 
   @@id([applicationId, type])
   @@index([documentId])
   @@map("application_documents")
 }
 
-model Company {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name String @db.VarChar(255)
-  website String?
-  location String?
-  notes String? @db.Text
-  userId String @db.Uuid
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  contacts Contact[]
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  @@unique([userId, name])
-  @@index([userId])
-  @@map("companies")
-}
-
 model Contact {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  firstName String @map("first_name")
-  lastName String @map("last_name")
-  email String?
-  phone String?
-  role String?
-  notes String? @db.Text
-  userId String @db.Uuid
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  companyId String? @db.Uuid
-  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  email     String?
+  phone     String?
+  role      String?
+  notes     String?  @db.Text
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+
   @@index([userId])
-  @@index([companyId])
   @@map("contacts")
 }
 
 model ApplicationNote {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  content String @db.Text
-  userId String @db.Uuid
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  applicationId String @db.Uuid
-  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content       String      @db.Text
+  userId        String      @db.Uuid
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId String      @db.Uuid
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
   @@index([userId])
   @@index([applicationId])
   @@map("application_notes")
 }
 
 model Tag {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name String @db.VarChar(50)
-  color String @default("blue") @db.VarChar(32)
-  userId String @db.Uuid
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String           @db.VarChar(50)
+  color        String           @default("blue") @db.VarChar(32)
+  userId       String           @db.Uuid
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   applications ApplicationTag[]
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt    DateTime         @default(now()) @map("created_at")
+
   @@unique([userId, name])
   @@index([userId])
   @@map("tags")
 }
 
 model ApplicationTag {
-  applicationId String @db.Uuid
-  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  tagId String @db.Uuid
-  tag Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  applicationId String      @db.Uuid
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  tagId         String      @db.Uuid
+  tag           Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
   @@id([applicationId, tagId])
   @@index([tagId])
   @@map("application_tags")
-}
-
-model Reminder {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title String @db.VarChar(255)
-  dueAt DateTime @map("due_at")
-  completedAt DateTime? @map("completed_at")
-  userId String @db.Uuid
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  applicationId String? @db.Uuid
-  application Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  @@index([userId, dueAt])
-  @@index([applicationId])
-  @@map("reminders")
 }
 
 model Wishlist {
@@ -308,11 +364,11 @@ model Wishlist {
 model Notification {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  type String
-  title String
-  message String
+  type     String
+  title    String
+  message  String
   metadata Json?
-  isRead Boolean @default(false) @map("is_read")
+  isRead   Boolean @default(false) @map("is_read")
 
   userId String @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -331,13 +387,13 @@ model Notification {
 model CalendarEvent {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  title       String @db.VarChar(255)
-  description String? @db.Text
+  title       String            @db.VarChar(255)
+  description String?           @db.Text
   eventType   CalendarEventType @default(INTERVIEW)
-  color       String @default("blue")
+  color       String            @default("blue")
 
-  startTime   DateTime @map("start_time")
-  endTime     DateTime @map("end_time")
+  startTime DateTime @map("start_time")
+  endTime   DateTime @map("end_time")
 
   userId String @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -348,6 +404,16 @@ model CalendarEvent {
   location    String?
   isCompleted Boolean @default(false) @map("is_completed")
 
+  meetingType               InterviewMeetingType @default(NONE) @map("meeting_type")
+  meetingUrl                String?              @map("meeting_url") @db.VarChar(500)
+  sendCalendarInvite        Boolean              @default(false) @map("send_calendar_invite")
+  googleEventId             String?              @unique @map("google_event_id") @db.VarChar(255)
+  googleConferenceRequestId String?              @map("google_conference_request_id") @db.VarChar(64)
+  syncState                 CalendarSyncState    @default(NOT_REQUIRED) @map("sync_state")
+  syncErrorCode             String?              @map("sync_error_code") @db.VarChar(100)
+
+  syncJob CalendarSyncJob?
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -356,4 +422,46 @@ model CalendarEvent {
   @@index([startTime(sort: Asc)])
   @@index([eventType])
   @@map("calendar_events")
+}
+
+model GoogleCalendarConnection {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  userId String @unique @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  googleAccountEmail    String    @map("google_account_email") @db.VarChar(320)
+  encryptedRefreshToken String    @map("encrypted_refresh_token") @db.Text
+  scopes                String    @db.Text
+  revokedAt             DateTime? @map("revoked_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("google_calendar_connections")
+}
+
+model CalendarSyncJob {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  userId String @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  calendarEventId String?        @unique @map("calendar_event_id") @db.Uuid
+  calendarEvent   CalendarEvent? @relation(fields: [calendarEventId], references: [id], onDelete: SetNull)
+
+  operation     CalendarSyncOperation
+  status        CalendarSyncJobStatus @default(PENDING)
+  googleEventId String?               @map("google_event_id") @db.VarChar(255)
+  attempts      Int                   @default(0)
+  nextAttemptAt DateTime              @default(now()) @map("next_attempt_at")
+  lockedAt      DateTime?             @map("locked_at")
+  lastErrorCode String?               @map("last_error_code") @db.VarChar(100)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([status, nextAttemptAt])
+  @@map("calendar_sync_jobs")
 }

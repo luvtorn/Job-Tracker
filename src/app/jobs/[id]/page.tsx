@@ -8,6 +8,7 @@ import { Menu, X, MapPin, DollarSign, Briefcase, Calendar, ArrowLeft, CheckCircl
 import { motion } from 'framer-motion';
 import { useLocale, useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { WishlistToggle } from '@/features/jobs/components/wishlist-toggle';
 
 interface Vacancy {
   id: string;
@@ -39,6 +40,7 @@ export default function JobDetailPage() {
   const [isApplying, setIsApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [wishlistItemId, setWishlistItemId] = useState<string>();
 
   useEffect(() => {
     const loadJobDetail = async () => {
@@ -84,6 +86,29 @@ export default function JobDetailPage() {
 
     void loadApplicationState();
   }, [jobId, user]);
+
+  useEffect(() => {
+    if (user?.role !== 'SEEKER') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Saved state belongs only to the active seeker.
+      setWishlistItemId(undefined);
+      return;
+    }
+    const controller = new AbortController();
+    const loadWishlistState = async () => {
+      try {
+        const response = await fetch('/api/wishlist', { signal: controller.signal });
+        if (!response.ok) return;
+        const result: { data?: Array<{ id: string; vacancy: { id: string } }> } = await response.json();
+        setWishlistItemId(result.data?.find((item) => item.vacancy.id === jobId)?.id);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          console.error('Failed to load wishlist state:', error);
+        }
+      }
+    };
+    void loadWishlistState();
+    return () => controller.abort();
+  }, [jobId, user?.role]);
 
   const handleApply = async () => {
     if (!user) {
@@ -363,6 +388,16 @@ export default function JobDetailPage() {
                 transition={{ delay: 0.2 }}
                 className="bg-white rounded-2xl p-8 border border-neutral-200 shadow-sm sticky top-24 space-y-6"
               >
+                {user?.role === 'SEEKER' && (
+                  <div className="flex justify-end">
+                    <WishlistToggle
+                      vacancyId={job.id}
+                      vacancyTitle={job.title}
+                      itemId={wishlistItemId}
+                      onChange={setWishlistItemId}
+                    />
+                  </div>
+                )}
                 {/* Error Message */}
                 {applyError && (
                   <motion.div

@@ -2,8 +2,8 @@ import type { User, UserRole } from '@prisma/client';
 import { forbidden, unauthorized } from '@/server/errors/application-error';
 import { verifyAuth } from '@/server/middleware/auth';
 
-export const requireAuthenticatedUser = async () => {
-  const user = await verifyAuth();
+export const requireAuthenticatedUser = async (options: { allowUnverified?: boolean } = {}) => {
+  const user = await verifyAuth(options);
   if (!user) throw unauthorized();
   return user;
 };

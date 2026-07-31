@@ -1,19 +1,29 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getSecurityHeaders } from './security-headers';
+import {
+  buildContentSecurityPolicy,
+  getSecurityHeaders,
+} from './security-headers';
 
-test('production headers restrict framing, MIME sniffing, browser capabilities, and script origins', () => {
+test('production headers restrict framing, MIME sniffing, and browser capabilities', () => {
   const headers = new Map(getSecurityHeaders(false).map(({ key, value }) => [key, value]));
   assert.equal(headers.get('X-Frame-Options'), 'DENY');
   assert.equal(headers.get('X-Content-Type-Options'), 'nosniff');
   assert.equal(headers.get('Strict-Transport-Security'), 'max-age=31536000; includeSubDomains');
+  assert.equal(headers.get('Referrer-Policy'), 'no-referrer');
   assert.match(headers.get('Permissions-Policy') ?? '', /camera=\(\)/);
-  assert.match(headers.get('Content-Security-Policy') ?? '', /frame-ancestors 'none'/);
-  assert.doesNotMatch(headers.get('Content-Security-Policy') ?? '', /unsafe-eval/);
 });
 
-test('development CSP permits only the tooling exceptions needed by the local server', () => {
-  const csp = getSecurityHeaders(true).find(({ key }) => key === 'Content-Security-Policy')?.value ?? '';
+test('production CSP requires a nonce and excludes unsafe script directives', () => {
+  const csp = buildContentSecurityPolicy('test-nonce', false);
+  assert.match(csp, /script-src 'self' 'nonce-test-nonce' 'strict-dynamic'/);
+  assert.match(csp, /frame-ancestors 'none'/);
+  assert.doesNotMatch(csp, /script-src[^;]*unsafe-inline/);
+  assert.doesNotMatch(csp, /unsafe-eval/);
+});
+
+test('development CSP permits only the eval and websocket tooling exceptions', () => {
+  const csp = buildContentSecurityPolicy('test-nonce', true);
   assert.match(csp, /unsafe-eval/);
   assert.match(csp, /ws: wss:/);
 });

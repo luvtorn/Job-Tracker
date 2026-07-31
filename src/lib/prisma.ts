@@ -20,7 +20,8 @@ const createPrismaClient = () => {
           : ["error"],
     });
   } catch (error) {
-    console.error("Failed to create PrismaClient:", error);
+    const name = error instanceof Error ? error.name : "UnknownError";
+    console.error(`Failed to create PrismaClient [${name}]`);
     throw error;
   }
 };

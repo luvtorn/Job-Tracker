@@ -5,13 +5,13 @@ import { clearAuthCookies } from "@/server/auth/auth-cookies";
 import { handleApiError } from "@/server/errors/application-error";
 
 export async function POST() {
+  const refreshToken = (await cookies()).get("refreshToken")?.value;
   try {
-    const refreshToken = (await cookies()).get("refreshToken")?.value;
     await authService.logout(refreshToken);
-    const response = NextResponse.json({ success: true, message: "Logged out successfully" });
-    clearAuthCookies(response);
-    return response;
   } catch (error) {
-    return handleApiError(error, "Failed to log out");
+    handleApiError(error, "Session revocation failed during logout");
   }
+  const response = NextResponse.json({ success: true, message: "Logged out successfully" });
+  clearAuthCookies(response);
+  return response;
 }

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { X, Mail, Calendar, Clock, Edit2, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
+import { MeetingLinkStatus } from './meeting-link-status';
 
 interface Interview {
   id: string;
@@ -17,6 +18,9 @@ interface Interview {
   interviewNotes?: string;
   status: string;
   company?: string;
+  meetingUrl?: string;
+  syncState?: 'NOT_REQUIRED' | 'PENDING' | 'SYNCED' | 'FAILED';
+  calendarEventId?: string;
 }
 
 interface InterviewSidePanelProps {
@@ -161,6 +165,13 @@ export function InterviewSidePanel({
             </div>
           </>
         )}
+
+        <MeetingLinkStatus
+          eventId={interview.calendarEventId}
+          meetingUrl={interview.meetingUrl}
+          syncState={interview.syncState}
+          canRetry={isRecruiter}
+        />
 
         {/* Actions */}
         <div className="h-px bg-neutral-200" />

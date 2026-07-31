@@ -1,10 +1,97 @@
-const workspaceActions = { companiesLoadFailed: 'Failed to load companies', companySaveFailed: 'Failed to save company', companyUpdated: 'Company updated.', companyAdded: 'Company added.', companyRemoveFailed: 'Failed to remove company', companyRemoved: 'Company removed. Its contacts were kept.', deleteCompanyTitle: 'Delete company?', deleteCompanyDescription: '{company} will be removed. Linked contacts will be kept and unlinked from the company.', thisCompany: 'This company', contactsLoadFailed: 'Failed to load contacts', contactSaveFailed: 'Failed to save contact', contactUpdated: 'Contact updated.', contactAdded: 'Contact added.', contactRemoveFailed: 'Failed to remove contact', contactRemoved: 'Contact removed.', firstName: 'First name', lastName: 'Last name', email: 'Email', phone: 'Phone', role: 'Role', deleteContactTitle: 'Delete contact?', deleteContactDescription: '{contact} will be permanently removed.', thisContact: 'This contact', notesLoadFailed: 'Failed to load notes', noteSaveFailed: 'Failed to save note', noteSaved: 'Note saved.', noteUpdateFailed: 'Failed to update note', noteUpdated: 'Note updated.', tagSaveFailed: 'Failed to save tag', tagUpdated: 'Tag updated.', tagCreated: 'Tag created.', tagsUpdateFailed: 'Failed to update application tags', tagDetached: 'Tag removed from application.', tagAttached: 'Tag added to application.', itemRemoveFailed: 'Failed to remove item', itemRemoved: 'Item removed.', thisNote: 'This note', tagName: 'Tag name', saveTag: 'Save tag', createTag: 'Create tag', cancelTagEditing: 'Cancel tag editing', tagColor_blue: 'Blue', tagColor_green: 'Green', tagColor_amber: 'Amber', tagColor_red: 'Red', tagColor_purple: 'Purple', tagColor_neutral: 'Neutral', deleteTagTitle: 'Delete tag?', deleteNoteTitle: 'Delete note?', deleteTagDescription: '{item} will be permanently removed from every application.', deleteNoteDescription: '{item} will be permanently removed.' } as const;
+const workspaceActions = { contactsLoadFailed: 'Failed to load contacts', contactSaveFailed: 'Failed to save contact', contactUpdated: 'Contact updated.', contactAdded: 'Contact added.', contactRemoveFailed: 'Failed to remove contact', contactRemoved: 'Contact removed.', firstName: 'First name', lastName: 'Last name', email: 'Email', phone: 'Phone', role: 'Role', deleteContactTitle: 'Delete contact?', deleteContactDescription: '{contact} will be permanently removed.', thisContact: 'This contact', notesLoadFailed: 'Failed to load notes', noteSaveFailed: 'Failed to save note', noteSaved: 'Note saved.', noteUpdateFailed: 'Failed to update note', noteUpdated: 'Note updated.', tagSaveFailed: 'Failed to save tag', tagNameRequired: 'Enter a tag name.', tagNameTooLong: 'Tag name cannot exceed 50 characters.', tagDuplicate: 'A tag with this name already exists.', tagInvalid: 'Check the tag name and color.', tagUpdated: 'Tag updated.', tagCreated: 'Tag created.', tagsUpdateFailed: 'Failed to update application tags', tagDetached: 'Tag removed from application.', tagAttached: 'Tag added to application.', itemRemoveFailed: 'Failed to remove item', itemRemoved: 'Item removed.', thisNote: 'This note', tagName: 'Tag name', saveTag: 'Save tag', createTag: 'Create tag', cancelTagEditing: 'Cancel tag editing', tagColor_blue: 'Blue', tagColor_green: 'Green', tagColor_amber: 'Amber', tagColor_red: 'Red', tagColor_purple: 'Purple', tagColor_neutral: 'Neutral', deleteTagTitle: 'Delete tag?', deleteNoteTitle: 'Delete note?', deleteTagDescription: '{item} will be permanently removed from every application.', deleteNoteDescription: '{item} will be permanently removed.' } as const;
 
 const statisticsUi = { loadFailed: 'Failed to load statistics', updating: 'Updating…', days30: '30 days', days90: '90 days', allTime: 'All time', applicationsReceived: 'Applications received', pendingReview: 'Pending review', currentInterviews: 'Current interviews', offers: 'Offers', hires: 'Hires', statusDistribution: 'Current status distribution', noApplicationsPeriod: 'No applications in this period', applicationsOverTime: 'New applications over time', byVacancy: 'Statistics by vacancy', vacancy: 'Vacancy', total: 'Total', pending: 'Pending', interviewing: 'Interviewing', hired: 'Hired', rejected: 'Rejected', hireRate: 'Hire rate', noVacancies: 'No vacancies available', successRate: 'Success rate', offersAccepted: 'Offers and accepted', responseRate: 'Response rate', nonAppliedStatus: 'Applications with a response', averagePerDay: 'Average applications/day', dailyAverage: 'Daily average', totalApplications: 'Total applications', applicationDistribution: 'Application status distribution', noData: 'No data available', timeline: 'Applications over time', detailed: 'Detailed statistics', applied: 'Applied', accepted: 'Accepted' } as const;
-const profileUi = { seeker: 'Job seeker', recruiter: 'Recruiter', avatar: 'Profile avatar', uploadAvatar: 'Upload profile avatar', imageOnly: 'Please select an image file', imageSize: 'File size must be less than 5 MB', avatarUploadFailed: 'Failed to upload avatar', personalInformation: 'Personal information', firstName: 'First name', lastName: 'Last name', email: 'Email', emailFixed: 'Email cannot be changed', saving: 'Saving…', saveChanges: 'Save changes', accountType: 'Account type', security: 'Security', changePassword: 'Change password', activeSessions: 'Active sessions', careerDocuments: 'Career documents', documentsHelp: 'PDF or DOCX, up to 10 MB. Current files are attached when you apply.', resume: 'Resume', coverLetter: 'Cover letter', notUploaded: 'Not uploaded', replace: 'Replace', upload: 'Upload', preview: 'Preview', previewLabel: 'Preview {document}', download: 'Download', downloadLabel: 'Download {document}', remove: 'Remove', removeTitle: 'Remove document?', removeDescription: 'It will be removed from your profile. Existing application snapshots remain available to their recruiters.', uploadFailed: 'Failed to upload document', uploaded: '{document} uploaded.', removeFailed: 'Failed to remove document', removed: 'Document removed from your profile.' } as const;
-const vacancyUi = { back: 'Back to vacancies', createTitle: 'Create new vacancy', createDescription: 'Post a new job opening for your company', editTitle: 'Edit vacancy', editDescription: "Update this job opening's details", jobTitle: 'Job title', company: 'Company', location: 'Location', positionType: 'Position type', salaryMin: 'Minimum salary', salaryMax: 'Maximum salary', currency: 'Currency', description: 'Job description', requirements: 'Requirements', titlePlaceholder: 'Senior Software Engineer', companyPlaceholder: 'Technology company', locationPlaceholder: 'Warsaw, Poland', positionPlaceholder: 'Full-time', descriptionPlaceholder: 'Describe the job responsibilities and requirements…', requirementsPlaceholder: 'List the required skills and qualifications…', loadFailed: 'Failed to load vacancy', updateFailed: 'Failed to update vacancy', createFailed: 'Failed to create vacancy', unexpected: 'Something went wrong. Please try again.', saving: 'Saving…', creating: 'Creating…', saveChanges: 'Save changes', createVacancy: 'Create vacancy', newestCreated: 'Newest created', oldestCreated: 'Oldest created', newestPublished: 'Newest published', oldestPublished: 'Oldest published', deleteTitle: 'Delete vacancy?', deleteDescription: 'This permanently removes “{title}” and its applications. This action cannot be undone.', archiveTitle: 'Archive vacancy?', archiveDescription: '“{title}” will be removed from public jobs.', closeTitle: 'Close vacancy?', closeDescription: '“{title}” will stop accepting new applications.', publishTitle: 'Publish vacancy?', publishDescription: '“{title}” will become visible in public jobs again.', archive: 'Archive', close: 'Close', publish: 'Publish', editLabel: 'Edit {title}', closeLabel: 'Close {title}', archiveLabel: 'Archive {title}', reactivateLabel: 'Reactivate {title}', publishLabel: 'Publish {title}', deleteLabel: 'Delete {title}', salaryMissing: 'N/A' } as const;
+const profileUi = { seeker: 'Job seeker', recruiter: 'Recruiter', avatar: 'Profile avatar', uploadAvatar: 'Upload profile avatar', imageOnly: 'Please select an image file', imageSize: 'File size must be less than 5 MB', avatarUploadFailed: 'Failed to upload avatar', personalInformation: 'Personal information', firstName: 'First name', lastName: 'Last name', email: 'Email', emailFixed: 'Email cannot be changed', saving: 'Saving…', saveChanges: 'Save changes', accountType: 'Account type', security: 'Security', changePassword: 'Change password', activeSessions: 'Active sessions', careerDocuments: 'Career documents', documentsHelp: 'PDF or DOCX, up to 10 MB. Files become available after a security scan.', resume: 'Resume', coverLetter: 'Cover letter', notUploaded: 'Not uploaded', replace: 'Replace', upload: 'Upload', preview: 'Preview', previewLabel: 'Preview {document}', download: 'Download', downloadLabel: 'Download {document}', remove: 'Remove', removeTitle: 'Remove document?', removeDescription: 'It will be removed from your profile. Existing application snapshots remain available to their recruiters.', uploadFailed: 'Failed to upload document', uploaded: '{document} uploaded.', scanPending: 'Security scan in progress', scanRejected: 'The file did not pass the security scan', scanFailed: 'The security scan failed. Upload the file again.', removeFailed: 'Failed to remove document', removed: 'Document removed from your profile.' } as const;
+const vacancyUi = { back: 'Back to vacancies', createTitle: 'Create new vacancy', createDescription: 'Post a new job opening for your company', editTitle: 'Edit vacancy', editDescription: "Update this job opening's details", jobTitle: 'Job title', company: 'Company', location: 'Location', positionType: 'Position type', salaryMin: 'Minimum salary', salaryMax: 'Maximum salary', currency: 'Currency', description: 'Job description', requirements: 'Requirements', titlePlaceholder: 'Senior Software Engineer', companyPlaceholder: 'Technology company', locationPlaceholder: 'Warsaw, Poland', positionPlaceholder: 'Full-time', descriptionPlaceholder: 'Describe the job responsibilities and requirements…', requirementsPlaceholder: 'List the required skills and qualifications…', loadFailed: 'Failed to load vacancy', updateFailed: 'Failed to update vacancy', createFailed: 'Failed to create vacancy', unexpected: 'Something went wrong. Please try again.', saving: 'Saving…', creating: 'Creating…', saveChanges: 'Save changes', createVacancy: 'Create vacancy', newestCreated: 'Newest created', oldestCreated: 'Oldest created', newestPublished: 'Newest published', oldestPublished: 'Oldest published', deleteTitle: 'Delete vacancy?', deleteDescription: 'This permanently removes “{title}” and its applications. This action cannot be undone.', archiveTitle: 'Archive vacancy?', archiveDescription: '“{title}” will be removed from public jobs.', closeTitle: 'Close vacancy?', closeDescription: '“{title}” will stop accepting new applications.', publishTitle: 'Publish vacancy?', publishDescription: '“{title}” will become visible in public jobs again.', archive: 'Archive', close: 'Close', publish: 'Publish', editLabel: 'Edit {title}', closeLabel: 'Close {title}', archiveLabel: 'Archive {title}', reactivateLabel: 'Reactivate {title}', publishLabel: 'Publish {title}', deleteLabel: 'Delete {title}', salaryMissing: 'N/A', titleMin: 'Enter at least 5 characters.', titleMax: 'Title cannot exceed 200 characters.', companyMin: 'Enter at least 2 characters.', companyMax: 'Company cannot exceed 200 characters.', locationMin: 'Enter at least 2 characters.', locationMax: 'Location cannot exceed 200 characters.', positionMin: 'Enter at least 2 characters.', positionMax: 'Position type cannot exceed 100 characters.', descriptionMin: 'Description must contain at least 100 characters.', descriptionMax: 'Description cannot exceed 5,000 characters.', requirementsMin: 'Requirements must contain at least 50 characters.', requirementsMax: 'Requirements cannot exceed 5,000 characters.', salaryPositive: 'Salary must be a positive whole number.', salaryPair: 'Enter both minimum and maximum salary.', salaryRange: 'Maximum salary cannot be lower than minimum salary.', currencyInvalid: 'Select a supported currency.', invalidField: 'Check this field.', characterCount: '{count}/{max} characters' } as const;
 
-const en = {
+export function omitMessageKeys<
+  T extends Record<string, string>,
+  K extends readonly (keyof T)[],
+>(messages: T, keys: K): Omit<T, K[number]> {
+  const removed = new Set<keyof T>(keys);
+  return Object.fromEntries(
+    Object.entries(messages).filter(([key]) => !removed.has(key)),
+  ) as Omit<T, K[number]>;
+}
+
+const enBase = {
+  privacy: {
+    link: 'Privacy notice', title: 'Privacy notice',
+    intro: 'JobTracker uses account and integration data only to provide the features you choose.',
+    accountTitle: 'Sign-in accounts',
+    accountBody: 'Google and GitHub provide a verified email and basic profile identity. Provider access tokens are not stored after sign-in.',
+    emailTitle: 'Account emails',
+    emailBody: 'Resend delivers verification and password-reset messages. One-time tokens are stored only as hashes.',
+    calendarTitle: 'Google Calendar',
+    calendarBody: 'Calendar access is optional and separate from Google sign-in. The encrypted refresh token is used only to create, update, or remove interview events you request.',
+    controlTitle: 'Your control',
+    controlBody: 'You can disconnect sign-in providers and Google Calendar in settings. Meet links are visible only to the recruiter and the candidate in JobTracker.',
+    back: 'Back to JobTracker',
+  },
+  calendarIntegration: {
+    title: 'Google Calendar', description: 'Connect your calendar to create a private Google Meet for interviews.',
+    connect: 'Connect Google Calendar', reconnect: 'Reconnect Google Calendar', disconnect: 'Disconnect',
+    connectedAs: 'Connected as {email}', connected: 'Google Calendar connected.',
+    disconnected: 'Google Calendar disconnected.', connectionFailed: 'Could not connect Google Calendar.',
+    disconnectFailed: 'Could not disconnect Google Calendar.', meetingType: 'Video meeting',
+    automaticMeet: 'Create Google Meet automatically', manualMeet: 'Use a Google Meet link',
+    noVideo: 'No video link', manualUrl: 'Google Meet link',
+    manualUrlPlaceholder: 'https://meet.google.com/abc-defg-hij', invalidMeetUrl: 'Enter a valid Google Meet link.',
+    sendInvite: 'Send a Google Calendar invitation to the candidate',
+    sendInviteDescription: 'The candidate will receive an invitation from Google Calendar.',
+    calendarRequired: 'Connect Google Calendar in settings to create Meet links automatically.',
+    openSettings: 'Open integration settings', openMeet: 'Open Google Meet',
+    syncPending: 'Google Calendar sync is pending.',
+    syncFailed: 'Google Calendar sync failed. Retry or use a manual link.',
+    retry: 'Retry sync', retrying: 'Retrying…',
+  },
+  authSecurity: {
+    orContinue: 'Or continue with',
+    continueGoogle: 'Continue with Google',
+    continueGithub: 'Continue with GitHub',
+    forgotPassword: 'Forgot password?',
+    verificationTitle: 'Confirm your email',
+    verificationDescription: 'We sent a confirmation link to {email}. Open it to continue to your dashboard.',
+    verifying: 'Confirming your email…',
+    verifiedTitle: 'Email confirmed',
+    verifiedDescription: 'Your account is ready. You can now open your dashboard.',
+    verifyFailed: 'This confirmation link is invalid or has expired.',
+    resend: 'Send a new link',
+    resending: 'Sending…',
+    resendSuccess: 'A new confirmation link has been requested.',
+    emailUnavailable: 'Email delivery is not configured. Contact the site administrator.',
+    backLogin: 'Back to sign in',
+    openDashboard: 'Open dashboard',
+    forgotTitle: 'Reset your password',
+    forgotDescription: 'Enter your email address. If an account exists, we will send a reset link.',
+    sendReset: 'Send reset link',
+    sending: 'Sending…',
+    resetSentTitle: 'Check your inbox',
+    resetSentDescription: 'If an account exists for that email, a password reset link has been sent.',
+    resetTitle: 'Choose a new password',
+    resetDescription: 'Use a strong password that you do not use elsewhere.',
+    newPassword: 'New password',
+    resetAction: 'Save new password',
+    resetting: 'Saving…',
+    resetSuccess: 'Password updated. Sign in with your new password.',
+    invalidReset: 'This reset link is invalid or has expired.',
+    oauthFailed: 'Social sign-in could not be completed. Please try again.',
+    completeTitle: 'Finish creating your account',
+    completeDescription: 'Confirm your name and choose how you will use JobTracker.',
+    completeAction: 'Create account',
+    completing: 'Creating account…',
+    connectedAccounts: 'Sign-in methods',
+    connectedDescription: 'Connect Google or GitHub so you can use them to sign in.',
+    connectGoogle: 'Connect Google',
+    connectGithub: 'Connect GitHub',
+    disconnect: 'Disconnect',
+    connected: 'Connected',
+    disconnected: 'Account disconnected.',
+    connectFailed: 'Could not connect this account.',
+    disconnectFailed: 'Could not disconnect this account.',
+    lastMethod: 'You cannot disconnect your last sign-in method.',
+    passwordMethod: 'Email and password',
+  },
   workspaceActions,
   statisticsUi,
   profileUi,
@@ -16,9 +103,9 @@ const en = {
   metadata: { title: 'JobTracker', description: 'Track your job applications and interviews' },
   common: { save: 'Save', cancel: 'Cancel', delete: 'Delete', close: 'Close', edit: 'Edit', create: 'Create', loading: 'Loading…', tryAgain: 'Try again', search: 'Search…', settings: 'Settings', language: 'Language', noResults: 'No results found' },
   navigation: { dashboard: 'Dashboard', applications: 'All Applications', findJobs: 'Find Jobs', wishlist: 'Wishlist', calendar: 'Calendar', companies: 'Companies', contacts: 'Contacts', notes: 'Notes', reminders: 'Reminders', notifications: 'Notifications', statistics: 'Statistics', profile: 'Profile', vacancies: 'Vacancies', candidates: 'Candidates', management: 'Management', workspace: 'Workspace', analytics: 'Analytics', settings: 'Settings' },
-  topbar: { profileSettings: 'Profile Settings', settings: 'Settings', logout: 'Logout', notifications: 'Notifications', avatar: 'Avatar' },
-  public: { browseJobs: 'Browse Jobs', myApplications: 'My Applications', dashboard: 'Dashboard', signIn: 'Sign In', signUp: 'Sign Up', browseTitle: 'Browse Jobs', menu: 'Open navigation menu', closeMenu: 'Close navigation menu', welcome: 'Welcome to JobTracker', heroPrefix: 'Find Your Next', heroHighlight: 'Opportunity', heroDescription: 'Discover amazing job opportunities and track your applications all in one place. Join thousands of job seekers finding their dream positions.', getStarted: 'Get Started', opportunities: 'Job Opportunities', activeUsers: 'Active Users', companies: 'Companies', latest: 'Latest Opportunities', latestDescription: 'Browse the newest job postings from top companies' },
-  jobs: { search: 'Search jobs…', location: 'Filter by location…', searchButton: 'Search', empty: 'No job vacancies found. Try adjusting your search filters.', posted: 'Posted {date}', previous: 'Previous', next: 'Next', loadFailed: 'Failed to load job vacancies', notAvailable: 'N/A' },
+  topbar: { profileSettings: 'Profile Settings', settings: 'Settings', logout: 'Logout', logoutFailed: 'Could not log out. Please try again.', notifications: 'Notifications', avatar: 'Avatar' },
+  public: { browseJobs: 'Browse Jobs', myApplications: 'My Applications', dashboard: 'Dashboard', backToDashboard: 'Back to dashboard', signIn: 'Sign In', signUp: 'Sign Up', browseTitle: 'Browse Jobs', menu: 'Open navigation menu', closeMenu: 'Close navigation menu', welcome: 'Welcome to JobTracker', heroPrefix: 'Find Your Next', heroHighlight: 'Opportunity', heroDescription: 'Discover amazing job opportunities and track your applications all in one place. Join thousands of job seekers finding their dream positions.', getStarted: 'Get Started', opportunities: 'Job Opportunities', activeUsers: 'Active Users', companies: 'Companies', latest: 'Latest Opportunities', latestDescription: 'Browse the newest job postings from top companies' },
+  jobs: { search: 'Search jobs…', searchLabel: 'Search by job title', location: 'Filter by location…', locationLabel: 'Search by location', searchButton: 'Search', empty: 'No job vacancies found. Try adjusting your search filters.', posted: 'Posted {date}', previous: 'Previous', next: 'Next', loadFailed: 'Failed to load job vacancies', notAvailable: 'N/A', updating: 'Updating results…', viewMode: 'Job display mode', cards: 'Cards', table: 'Table', titleColumn: 'Job title', companyColumn: 'Company', locationColumn: 'Location', typeColumn: 'Type', salaryColumn: 'Salary', dateColumn: 'Published', actionsColumn: 'Actions', pagination: 'Job results pages', pageLabel: 'Page {page}', favoriteLoadFailed: 'Failed to load favorites', favoriteAddFailed: 'Failed to add job to favorites', favoriteRemoveFailed: 'Failed to remove job from favorites', favoriteUpdateFailed: 'Failed to update favorites', favoriteAdded: 'Job added to favorites.', favoriteRemoved: 'Job removed from favorites.', favoriteAddLabel: 'Add {title} to favorites', favoriteRemoveLabel: 'Remove {title} from favorites' },
   vacancies: { active: 'Active', archived: 'Archived', search: 'Search title or company', allStatuses: 'All statuses', published: 'Published', closed: 'Closed', noMatch: 'No vacancies match these filters.', empty: 'No vacancies yet. Create your first vacancy to get started.', created: 'Created {date}', deleted: 'Vacancy deleted successfully.', updated: 'Vacancy status updated successfully.', deleteFailed: 'Failed to delete vacancy.', updateFailed: 'Failed to update vacancy status.', loadFailed: 'Failed to load vacancies' },
   language: { label: 'Language', description: 'Choose the language used throughout JobTracker.', detected: 'The initial language is selected from your browser settings.', english: 'English', polish: 'Polski', russian: 'Русский', changed: 'Language changed', failed: 'Failed to change language' },
   documents: { securePreview: 'Secure document preview', download: 'Download', open: 'Open document in new tab', close: 'Close preview', unavailable: 'Preview unavailable', fallback: 'You can still download the original document.', loadFailed: 'Failed to load document preview' },
@@ -33,6 +120,23 @@ const en = {
   jobDetail: { browsePrefix: 'Browse', browseHighlight: 'Job Opportunities', browseDescription: 'Search and apply to positions from top companies around the world. Track your applications and manage your job search in one place.', loadFailed: 'Failed to load job details', notFound: 'Job not found', back: 'Back to jobs', location: 'Location', salary: 'Salary', type: 'Type', posted: 'Posted', about: 'About the Role', requirements: 'Requirements', apply: 'Apply Now', applying: 'Applying…', submitted: 'Application submitted successfully!', submitFailed: 'Failed to submit application', submitError: 'An error occurred while submitting your application', recruiterBlocked: 'Recruiter accounts cannot apply for positions.', sent: 'Application Sent!', review: 'The company will review your application.', signInApply: 'Sign In to Apply', noAccount: "Don't have an account?", createAccount: 'Create Account', companyDetails: 'Company Details', company: 'Company' },
   interview: { schedule: 'Schedule Interview', reschedule: 'Reschedule Interview', date: 'Interview Date', time: 'Interview Time', notes: 'Notes (Optional)', notesPlaceholder: 'Add any notes or instructions for the candidate…', scheduling: 'Scheduling…', required: 'Please fill in all required fields', futureRequired: 'Choose a future date and time', failed: 'Failed to schedule interview', details: 'Interview Details', position: 'Position', company: 'Company', scheduleLabel: 'Interview Schedule', notesLabel: 'Notes', sendEmail: 'Send email', edit: 'Edit Interview', remove: 'Remove Interview', removeTitle: 'Remove Interview?', removeDescription: "Remove {name}'s appointment and choose what should happen to the candidate stage.", removeAndReset: 'Remove and return to Applied', removeAndKeepStatus: 'Remove and keep Interviewing' },
   calendarUi: { today: 'Today', previous: 'Back', next: 'Next', month: 'Month', week: 'Week', day: 'Day', agenda: 'Agenda', date: 'Date', time: 'Time', event: 'Event', noEvents: 'There are no events in this range.', createEvent: 'Create Event', editEvent: 'Edit Event', creating: 'Creating…', saving: 'Saving…', saveChanges: 'Save Changes', title: 'Event Title', titlePlaceholder: 'Enter event title', titleRequired: 'Event title is required', eventType: 'Event Type', description: 'Description (Optional)', descriptionPlaceholder: 'Add event details…', color: 'Color', startDateTime: 'Start Date & Time', endDateTime: 'End Date & Time', optional: 'Optional', notSet: 'Not set', selectDateTime: 'Select date and time', endAfterStart: 'End time must be after start time', createFailed: 'Failed to create event', updateFailed: 'Failed to update event', updateInterviewFailed: 'Failed to update interview', deleteFailed: 'Failed to delete event', deleteInterviewFailed: 'Failed to remove interview', statusFailed: 'Failed to change status', meeting: 'Meeting', deadline: 'Deadline', followUp: 'Follow-up', note: 'Note', blue: 'Blue', green: 'Green', yellow: 'Yellow', red: 'Red', purple: 'Purple', gray: 'Gray', type: 'Type', start: 'Start', end: 'End', emptyHint: 'Click an event to view details or select a time slot to create a new event', unauthorized: 'Not authorized to view calendar', loadFailed: 'Failed to fetch calendar data' },
+} as const;
+
+const en = {
+  ...enBase,
+  navigation: omitMessageKeys(enBase.navigation, ['companies', 'reminders'] as const),
+  pages: omitMessageKeys(enBase.pages, ['companiesTitle', 'companiesDescription', 'remindersTitle', 'remindersDescription'] as const),
+  dashboard: omitMessageKeys(enBase.dashboard, ['dueReminders'] as const),
+  workspace: omitMessageKeys(enBase.workspace, [
+    'addCompany', 'editCompany', 'companyName', 'website', 'location', 'noCompanies',
+    'locationMissing', 'contactsCount', 'editCompanyLabel', 'deleteCompanyLabel', 'noCompany',
+    'reminderTitle', 'noApplication', 'noRemindersDue', 'overdue', 'today', 'upcoming',
+    'completed', 'noReminders', 'reopenReminder', 'completeReminder', 'editReminder',
+    'deleteReminder', 'remindersLoadFailed', 'reminderSaveFailed', 'reminderCreated',
+    'reminderUpdated', 'reminderUpdateFailed', 'reminderReopened', 'reminderCompleted',
+    'reminderRemoveFailed', 'reminderRemoved', 'deleteReminderTitle',
+    'deleteReminderDescription', 'thisReminder',
+  ] as const),
 } as const;
 
 export default en;

@@ -32,34 +32,4 @@ export const calendarEventService = {
     return calendarEventRepository.deleteById(eventId, userId);
   },
 
-  async createInterviewEvent(
-    userId: string,
-    applicationId: string,
-    candidateName: string,
-    vacancyTitle: string,
-    interviewDate: Date,
-    interviewTime: string,
-    notes?: string
-  ) {
-    const [hours, minutes] = interviewTime.split(":").map(Number);
-    const startTime = new Date(interviewDate);
-    startTime.setHours(hours, minutes, 0, 0);
-
-    const endTime = new Date(startTime);
-    endTime.setHours(hours + 1, minutes, 0, 0);
-
-    return calendarEventRepository.createOrUpdateInterviewEvent(
-      userId,
-      applicationId,
-      candidateName,
-      vacancyTitle,
-      startTime,
-      endTime,
-      notes
-    );
-  },
-
-  async getEventById(eventId: string) {
-    return calendarEventRepository.findById(eventId);
-  },
 };

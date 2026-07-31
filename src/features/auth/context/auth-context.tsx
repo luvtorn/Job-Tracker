@@ -1,14 +1,14 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 const ACCESS_TOKEN_REFRESH_INTERVAL_MS = 50 * 60 * 1000;
 
 export type User = {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  firstName: string | null;
+  lastName: string | null;
   role: 'SEEKER' | 'RECRUITER' | 'ADMIN';
   avatarUrl?: string;
   emailVerified: boolean;
@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isLoading, user]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       setError(null);
       const response = await fetch('/api/auth/logout', { method: 'POST' });
@@ -135,11 +135,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError('Logout failed');
       throw err;
     }
-  };
+  }, []);
 
-  const updateUser = (updatedUser: User) => {
+  const updateUser = useCallback((updatedUser: User) => {
     setUser(updatedUser);
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, isLoading, error, logout, updateUser }}>

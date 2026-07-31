@@ -3,22 +3,22 @@
 import { Search, Bell, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/context/auth-context';
 import { useNotifications } from '@/hooks/use-notifications';
 import { NotificationsDropdown } from '@/features/notifications/components/notifications-dropdown';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { useToast } from '@/components/ui/toast';
 
 export function TopBar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
   const { user, logout } = useAuth();
   const { unreadCount } = useNotifications();
+  const { showToast } = useToast();
   const t = useTranslations();
 
   useEffect(() => {
@@ -38,9 +38,9 @@ export function TopBar() {
   const handleLogout = async () => {
     try {
       await logout();
-      router.push('/auth/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
+      window.location.replace('/auth/login');
+    } catch {
+      showToast(t('topbar.logoutFailed'), 'error');
     }
   };
 

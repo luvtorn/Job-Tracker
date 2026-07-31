@@ -20,6 +20,25 @@ Every feature must be implemented as if it were intended for production.
 6. Inspect and edit only relevant files.
 7. Stop after the requested result is verified.
 
+---
+
+# Security First
+
+Security is a primary, non-negotiable requirement of JobTracker. A feature is not complete if it introduces an unresolved security or privacy risk.
+
+For every new or changed feature:
+
+1. Review its authentication, authorization, validation, data exposure, and abuse risks before considering it complete.
+2. Enforce resource ownership and role permissions on the server. Never rely on hidden buttons or client-side checks for authorization.
+3. Validate and normalize every external input with Zod, including bodies, query parameters, route parameters, OAuth callbacks, uploaded-file metadata, and third-party API responses.
+4. Apply least privilege to database access, OAuth scopes, integrations, cookies, tokens, and returned API fields.
+5. Fail closed: denied, malformed, expired, replayed, or unverifiable requests must not perform mutations or reveal protected data.
+6. Never log or expose passwords, token values, OAuth codes, encryption keys, Meet URLs, document contents, private notes, or unnecessary personal data.
+7. Protect mutations against CSRF, injection, XSS, SSRF, open redirects, brute force, replay attacks, session fixation, and insecure direct object references.
+8. Store passwords, refresh tokens, one-time tokens, and integration credentials only with the approved hashing or authenticated-encryption strategy.
+9. Add or update security tests for authentication, authorization, ownership, validation, token lifecycle, and safe error responses whenever those boundaries change.
+10. Treat any unresolved critical or high-severity security issue as a release blocker.
+
 # Tech Stack
 
 ## Frontend

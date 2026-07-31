@@ -91,7 +91,19 @@ export const vacancyRepository = {
       where: { id, recruiterId },
       include: {
         applications: {
-          include: { user: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true, createdAt: true } } },
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true, createdAt: true } },
+            calendarEvent: {
+              select: {
+                id: true,
+                meetingType: true,
+                meetingUrl: true,
+                sendCalendarInvite: true,
+                syncState: true,
+                syncErrorCode: true,
+              },
+            },
+          },
           orderBy: { createdAt: "desc" },
         },
       },

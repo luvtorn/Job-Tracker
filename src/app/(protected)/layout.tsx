@@ -4,8 +4,8 @@ import { useAuth } from "@/features/auth/context/auth-context";
 import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { RecruiterSidebar } from "@/components/RecruiterSidebar";
 import { MobileHeader } from "@/components/MobileHeader";
-import { useState } from "react";
-import { redirect } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from 'next-intl';
 
 export default function ProtectedLayout({
@@ -16,8 +16,18 @@ export default function ProtectedLayout({
   const { user, isLoading } = useAuth();
   const t = useTranslations('common');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const router = useRouter();
 
-  if (isLoading) {
+  useEffect(() => {
+    if (isLoading) return;
+    if (!user) {
+      router.replace("/auth/login");
+      return;
+    }
+    if (!user.emailVerified) router.replace("/auth/verify-email");
+  }, [isLoading, router, user]);
+
+  if (isLoading || !user || !user.emailVerified) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -26,10 +36,6 @@ export default function ProtectedLayout({
         </div>
       </div>
     );
-  }
-
-  if (!user) {
-    redirect("/auth/login");
   }
 
   const isRecruiter = user.role === "RECRUITER";
