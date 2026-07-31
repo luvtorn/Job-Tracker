@@ -17,6 +17,10 @@ test('production headers restrict framing, MIME sniffing, and browser capabiliti
 test('production CSP requires a nonce and excludes unsafe script directives', () => {
   const csp = buildContentSecurityPolicy('test-nonce', false);
   assert.match(csp, /script-src 'self' 'nonce-test-nonce' 'strict-dynamic'/);
+  assert.match(
+    csp,
+    /connect-src 'self' https:\/\/api\.cloudinary\.com https:\/\/res\.cloudinary\.com/,
+  );
   assert.match(csp, /frame-ancestors 'none'/);
   assert.doesNotMatch(csp, /script-src[^;]*unsafe-inline/);
   assert.doesNotMatch(csp, /unsafe-eval/);
