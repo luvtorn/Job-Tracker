@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { CalendarDays } from 'lucide-react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/features/auth/context/auth-context';
-import Link from 'next/link';
+import {
+  isGoogleCalendarConnectionErrorCode,
+  type GoogleCalendarConnectionErrorCode,
+} from '@/types/google-calendar';
 
 type ConnectionStatus =
   | { connected: false }
@@ -33,7 +37,31 @@ export function GoogleCalendarIntegration() {
         setStatus(data);
         const query = new URLSearchParams(window.location.search);
         if (query.has('calendarConnected')) setMessage(t('connected'));
-        if (query.has('calendarError')) setMessage(t('connectionFailed'));
+        const errorCode = query.get('calendarError');
+        if (errorCode && isGoogleCalendarConnectionErrorCode(errorCode)) {
+          const messages: Record<GoogleCalendarConnectionErrorCode, string> = {
+            access_denied: t('errorAccessDenied'),
+            invalid_client: t('errorConfiguration'),
+            invalid_grant: t('errorConfiguration'),
+            redirect_uri_mismatch: t('errorConfiguration'),
+            provider_error: t('errorProvider'),
+            provider_unavailable: t('errorProvider'),
+            invalid_token_response: t('errorProvider'),
+            missing_refresh_token: t('errorMissingRefreshToken'),
+            userinfo_failed: t('errorProvider'),
+            invalid_user_response: t('errorProvider'),
+            email_not_verified: t('errorEmailNotVerified'),
+            calendar_scope_missing: t('errorScopeMissing'),
+            session_expired: t('errorSessionExpired'),
+            state_mismatch: t('errorSessionExpired'),
+            invalid_callback: t('errorSessionExpired'),
+            connection_save_failed: t('errorSavingConnection'),
+            connection_failed: t('connectionFailed'),
+          };
+          setMessage(`${messages[errorCode]} ${t('errorCode', { code: errorCode })}`);
+        } else if (errorCode) {
+          setMessage(t('connectionFailed'));
+        }
       } catch {
         if (active) setMessage(t('connectionFailed'));
       } finally {

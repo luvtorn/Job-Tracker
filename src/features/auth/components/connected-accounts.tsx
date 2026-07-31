@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { SocialAuthButtons } from '@/features/auth/components/social-auth-buttons';
+import {
+  SocialAuthButtons,
+  type SocialAuthProvider,
+} from '@/features/auth/components/social-auth-buttons';
 
-type Provider = 'google' | 'github';
-type Account = { provider: Provider; createdAt: string };
+type Account = { provider: SocialAuthProvider; createdAt: string };
 type AccountsResponse = { accounts: Account[]; hasPassword: boolean };
+
+const SOCIAL_AUTH_PROVIDERS = ['google', 'github'] as const;
 
 export function ConnectedAccounts() {
   const t = useTranslations('authSecurity');
@@ -38,7 +42,7 @@ export function ConnectedAccounts() {
     return () => { active = false; };
   }, [t]);
 
-  const disconnect = async (provider: Provider) => {
+  const disconnect = async (provider: SocialAuthProvider) => {
     setMessage('');
     try {
       const response = await fetch(`/api/auth/accounts/${provider}`, { method: 'DELETE' });
@@ -55,6 +59,10 @@ export function ConnectedAccounts() {
   };
 
   if (loading) return <div className="mt-4 h-20 animate-pulse rounded-lg bg-neutral-100" />;
+
+  const availableProviders = SOCIAL_AUTH_PROVIDERS.filter(
+    (provider) => !accounts.some((account) => account.provider === provider),
+  );
 
   return (
     <section className="mt-8 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
@@ -89,7 +97,11 @@ export function ConnectedAccounts() {
           </div>
         ))}
       </div>
-      {accounts.length < 2 && <div className="mt-5"><SocialAuthButtons mode="connect" /></div>}
+      {availableProviders.length > 0 && (
+        <div className="mt-5">
+          <SocialAuthButtons mode="connect" providers={availableProviders} />
+        </div>
+      )}
       {message && <p role="status" className="mt-4 text-sm text-neutral-700">{message}</p>}
     </section>
   );

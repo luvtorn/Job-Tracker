@@ -34,6 +34,11 @@ const plBase: BaseMessages = {
     syncPending: 'Synchronizacja z Kalendarzem Google oczekuje.',
     syncFailed: 'Synchronizacja nie powiodła się. Spróbuj ponownie lub użyj ręcznego linku.',
     retry: 'Ponów synchronizację', retrying: 'Ponawianie…',
+    errorAccessDenied: 'Nie udzielono dostępu do Kalendarza Google.', errorConfiguration: 'Konfiguracja Google OAuth jest nieprawidłowa.',
+    errorProvider: 'Google nie mogło ukończyć autoryzacji Kalendarza.', errorMissingRefreshToken: 'Google nie zwróciło dostępu offline do Kalendarza. Połącz ponownie i ponownie udziel dostępu.',
+    errorEmailNotVerified: 'Wymagany jest zweryfikowany adres e-mail Google.', errorScopeMissing: 'Nie udzielono uprawnienia do Kalendarza Google.',
+    errorSessionExpired: 'Sesja łączenia Kalendarza wygasła. Rozpocznij łączenie ponownie.', errorSavingConnection: 'Autoryzacja Kalendarza powiodła się, ale nie udało się zapisać połączenia.',
+    errorCode: 'Kod błędu: {code}.',
   },
   authSecurity: {
     orContinue: 'Lub kontynuuj przez',

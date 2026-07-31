@@ -34,6 +34,11 @@ const ruBase: BaseMessages = {
     syncPending: 'Ожидается синхронизация с Google Календарём.',
     syncFailed: 'Синхронизация не удалась. Повторите попытку или укажите ссылку вручную.',
     retry: 'Повторить синхронизацию', retrying: 'Повторяем…',
+    errorAccessDenied: 'Доступ к Google Календарю не был предоставлен.', errorConfiguration: 'Конфигурация Google OAuth некорректна.',
+    errorProvider: 'Google не смог завершить авторизацию Календаря.', errorMissingRefreshToken: 'Google не предоставил офлайн-доступ к Календарю. Подключитесь заново и повторно разрешите доступ.',
+    errorEmailNotVerified: 'Требуется подтверждённый адрес Google.', errorScopeMissing: 'Разрешение Google Календаря не было предоставлено.',
+    errorSessionExpired: 'Сессия подключения Календаря истекла. Начните подключение заново.', errorSavingConnection: 'Авторизация Календаря прошла успешно, но подключение не удалось сохранить.',
+    errorCode: 'Код ошибки: {code}.',
   },
   authSecurity: {
     orContinue: 'Или продолжить через',
