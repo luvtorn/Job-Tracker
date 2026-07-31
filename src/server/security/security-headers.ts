@@ -8,7 +8,7 @@ export const buildContentSecurityPolicy = (
   "style-src-attr 'unsafe-inline'",
   "img-src 'self' data: blob: https://res.cloudinary.com",
   "font-src 'self' data:",
-  `connect-src 'self' https://res.cloudinary.com${isDevelopment ? ' ws: wss:' : ''}`,
+  `connect-src 'self' https://api.cloudinary.com https://res.cloudinary.com${isDevelopment ? ' ws: wss:' : ''}`,
   "worker-src 'self' blob:",
   "frame-src 'self' blob:",
   "object-src 'none'",

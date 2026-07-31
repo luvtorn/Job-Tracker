@@ -18,6 +18,16 @@ const profileDocumentSchema = z.object({
 const documentsResponseSchema = z.object({
   documents: z.array(profileDocumentSchema).default([]),
 });
+const uploadIntentResponseSchema = z.object({
+  document: profileDocumentSchema,
+  upload: z.object({
+    url: z.string().url(),
+    fields: z.record(z.string(), z.union([z.string(), z.number()])),
+  }),
+});
+const completedUploadResponseSchema = z.object({
+  document: profileDocumentSchema,
+});
 type ProfileDocument = z.infer<typeof profileDocumentSchema>;
 
 const SCAN_POLL_INTERVAL_MS = 5_000;
@@ -90,6 +100,7 @@ export function CareerDocuments() {
   const upload = async (type: DocumentType, file?: File) => {
     if (!file) return;
     setLoadingType(type);
+    let uploadDocumentId: string | null = null;
     try {
       const extension = file.name.split('.').pop()?.toLowerCase();
       const contentType = file.type || (extension === 'pdf'
@@ -107,12 +118,13 @@ export function CareerDocuments() {
           size: file.size,
         }),
       });
-      const intent = await intentResponse.json();
       if (!intentResponse.ok) throw new Error(t('uploadFailed'));
+      const intent = uploadIntentResponseSchema.parse(await intentResponse.json());
+      uploadDocumentId = intent.document.id;
 
       const uploadBody = new FormData();
       uploadBody.append('file', file);
-      for (const [key, value] of Object.entries(intent.upload.fields as Record<string, string | number>)) {
+      for (const [key, value] of Object.entries(intent.upload.fields)) {
         uploadBody.append(key, String(value));
       }
       const cloudinaryResponse = await fetch(intent.upload.url, {
@@ -124,16 +136,21 @@ export function CareerDocuments() {
       const completeResponse = await fetch(`/api/documents/${intent.document.id}/complete`, {
         method: 'POST',
       });
-      const completed = await completeResponse.json();
       if (!completeResponse.ok) throw new Error(t('uploadFailed'));
+      const completed = completedUploadResponseSchema.parse(await completeResponse.json());
+      uploadDocumentId = null;
       setScanDelayed(false);
       setDocuments((current) => [
         completed.document,
         ...current.filter((document) => document.type !== type),
       ]);
       showToast(t('scanPending'), 'success');
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : t('uploadFailed'), 'error');
+    } catch {
+      if (uploadDocumentId) {
+        await fetch(`/api/documents/${uploadDocumentId}`, { method: 'DELETE' })
+          .catch(() => undefined);
+      }
+      showToast(t('uploadFailed'), 'error');
     } finally {
       setLoadingType(null);
     }
