@@ -116,10 +116,34 @@ export const documentRepository = {
     });
   },
 
-  deactivate(id: string, userId: string) {
-    return prisma.document.updateMany({
-      where: { id, userId },
-      data: { isCurrent: false },
+  async removeFromProfile(id: string, userId: string) {
+    return prisma.$transaction(async (transaction) => {
+      const document = await transaction.document.findFirst({
+        where: { id, userId },
+        select: { publicId: true },
+      });
+      if (!document) return null;
+
+      const deleted = await transaction.document.deleteMany({
+        where: {
+          id,
+          userId,
+          applications: { none: {} },
+        },
+      });
+      if (deleted.count === 1) {
+        return { publicId: document.publicId, destroyAsset: true };
+      }
+
+      const deactivated = await transaction.document.updateMany({
+        where: { id, userId },
+        data: { isCurrent: false },
+      });
+      if (deactivated.count === 1) {
+        return { publicId: document.publicId, destroyAsset: false };
+      }
+
+      return null;
     });
   },
 
