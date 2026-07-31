@@ -43,8 +43,9 @@ try {
       if (response.status() >= 500) failures.push(`http: ${response.status()} ${response.url()}`);
     });
 
-    const response = await page.goto(baseUrl, { waitUntil: 'networkidle' });
+    const response = await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
     assert.equal(response?.status(), 200, `${locale}: home page did not return HTTP 200`);
+    await page.locator('main h1').waitFor({ state: 'visible' });
     const csp = response?.headers()['content-security-policy'] ?? '';
     assert.match(csp, /script-src[^;]*nonce-/, `${locale}: nonce CSP is missing`);
     assert.doesNotMatch(csp, /script-src[^;]*unsafe-inline/, `${locale}: unsafe inline scripts are allowed`);
@@ -63,8 +64,9 @@ try {
     page.on('request', (request) => {
       if (request.url().includes('/api/jobs?')) jobRequests += 1;
     });
-    const jobsResponse = await page.goto(`${baseUrl}/jobs`, { waitUntil: 'networkidle' });
+    const jobsResponse = await page.goto(`${baseUrl}/jobs`, { waitUntil: 'domcontentloaded' });
     assert.equal(jobsResponse?.status(), 200, `${locale}: jobs page did not return HTTP 200`);
+    await page.locator('input[type="search"]').first().waitFor({ state: 'visible' });
     assert.equal(await page.locator('input[type="search"]').first().getAttribute('placeholder'), jobsSearch, `${locale}: jobs search is not localized`);
     await page.getByRole('button', { name: tableLabel, exact: true }).click();
     assert.equal(await page.getByRole('button', { name: tableLabel, exact: true }).getAttribute('aria-pressed'), 'true', `${locale}: table view did not activate`);
@@ -76,13 +78,15 @@ try {
     await page.waitForTimeout(100);
     assert.equal(jobRequests - requestsBeforeSearch, 1, `${locale}: debounced search sent more than one request`);
 
-    const loginResponse = await page.goto(`${baseUrl}/auth/login`, { waitUntil: 'networkidle' });
+    const loginResponse = await page.goto(`${baseUrl}/auth/login`, { waitUntil: 'domcontentloaded' });
     assert.equal(loginResponse?.status(), 200, `${locale}: login page did not return HTTP 200`);
+    await page.getByRole('link', { name: google, exact: true }).waitFor({ state: 'visible' });
     assert.equal(await page.getByRole('link', { name: google, exact: true }).count(), 1, `${locale}: Google sign-in is missing`);
     assert.equal(await page.getByRole('link', { name: privacy, exact: true }).count(), 1, `${locale}: privacy link is missing`);
 
-    const privacyResponse = await page.goto(`${baseUrl}/privacy`, { waitUntil: 'networkidle' });
+    const privacyResponse = await page.goto(`${baseUrl}/privacy`, { waitUntil: 'domcontentloaded' });
     assert.equal(privacyResponse?.status(), 200, `${locale}: privacy page did not return HTTP 200`);
+    await page.getByRole('heading', { name: privacy, exact: true }).waitFor({ state: 'visible' });
     assert.equal(await page.getByRole('heading', { name: privacy, exact: true }).count(), 1, `${locale}: privacy notice is not localized`);
 
     assert.deepEqual(failures, [], `${locale}: browser failures\n${failures.join('\n')}`);
