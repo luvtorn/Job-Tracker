@@ -37,4 +37,15 @@ export const cloudinaryScanWebhookSchema = z.object({
   })).optional(),
 }).passthrough();
 
+export const cloudinaryResourceSchema = z.object({
+  public_id: z.string().min(1),
+  bytes: z.number().int().nonnegative(),
+  moderation: z.array(z.object({
+    kind: z.string(),
+    status: z.enum(['pending', 'approved', 'rejected']),
+  })).optional(),
+}).passthrough();
+
+export type CloudinaryResource = z.infer<typeof cloudinaryResourceSchema>;
+
 export type DocumentUploadIntentInput = z.infer<typeof documentUploadIntentSchema>;
