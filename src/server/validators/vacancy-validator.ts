@@ -72,7 +72,7 @@ export const scheduleInterviewSchema = z.object({
   interviewNotes: z.string().max(2000).optional(),
   meetingType: z.enum(['NONE', 'MANUAL_GOOGLE_MEET', 'GOOGLE_MEET']).default('NONE'),
   manualMeetingUrl: z.string().trim().url().max(500).optional(),
-  sendCalendarInvite: z.boolean().default(false),
+  sendCalendarInvite: z.boolean().optional(),
 }).strict().superRefine((data, context) => {
   if (
     data.meetingType === 'MANUAL_GOOGLE_MEET'
@@ -100,7 +100,10 @@ export const scheduleInterviewSchema = z.object({
       message: 'Calendar invitations require automatic Google Meet',
     });
   }
-});
+}).transform((data) => ({
+  ...data,
+  sendCalendarInvite: data.sendCalendarInvite ?? data.meetingType === 'GOOGLE_MEET',
+}));
 
 export const updateVacancyStatusSchema = z.object({
   status: z.enum(['PUBLISHED', 'CLOSED', 'ARCHIVED']),
