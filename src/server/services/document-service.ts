@@ -194,11 +194,10 @@ export const documentService = {
   },
 
   async remove(userId: string, id: string) {
-    const document = await documentRepository.findOwned(id, userId);
-    if (!document) throw notFound('Document not found');
-    await documentRepository.deactivate(id, userId);
-    if (document.scanStatus !== DocumentScanStatus.CLEAN) {
-      await destroyAsset(document.publicId).catch(() => undefined);
+    const removed = await documentRepository.removeFromProfile(id, userId);
+    if (!removed) throw notFound('Document not found');
+    if (removed.destroyAsset) {
+      await destroyAsset(removed.publicId).catch(() => undefined);
     }
   },
 
