@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
 import { Download, FileText, Loader2, Mail } from 'lucide-react';
+import { DocumentPreviewDialog } from '@/features/documents/components/document-preview-dialog';
+import { canPreviewDocument } from '@/features/documents/document-preview';
 
 type CandidateProfileData = {
   id: string;
@@ -48,7 +50,7 @@ export function CandidateProfile({ applicationId }: { applicationId: string }) {
     </section>
     <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-6">
       <h3 className="text-lg font-semibold text-neutral-900">{t('applicationDocuments')}</h3>
-      <div className="mt-4 space-y-3">{data.documents.length === 0 ? <p className="rounded-lg bg-neutral-50 p-4 text-sm text-neutral-600">{t('noDocuments')}</p> : data.documents.map(({ type, document }) => <div key={type} className="flex flex-col gap-3 rounded-lg border border-neutral-200 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-center gap-3"><FileText className="shrink-0 text-primary-600" /><div className="min-w-0"><p className="font-medium text-neutral-900">{type === 'RESUME' ? t('resume') : t('coverLetter')}</p><p className="truncate text-sm text-neutral-500">{document.originalFilename}</p></div></div><a href={`/api/documents/${document.id}/content`} className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"><Download size={16} />{documentT('download')}</a></div>)}</div>
+      <div className="mt-4 space-y-3">{data.documents.length === 0 ? <p className="rounded-lg bg-neutral-50 p-4 text-sm text-neutral-600">{t('noDocuments')}</p> : data.documents.map(({ type, document }) => <div key={type} className="flex flex-col gap-3 rounded-lg border border-neutral-200 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-center gap-3"><FileText className="shrink-0 text-primary-600" /><div className="min-w-0"><p className="font-medium text-neutral-900">{type === 'RESUME' ? t('resume') : t('coverLetter')}</p><p className="truncate text-sm text-neutral-500">{document.originalFilename}</p></div></div><div className="flex flex-col gap-2 sm:flex-row">{canPreviewDocument(document.originalFilename) && <DocumentPreviewDialog documentId={document.id} filename={document.originalFilename} triggerLabel={t('preview')} triggerAriaLabel={`${documentT('securePreview')}: ${document.originalFilename}`} />}<a href={`/api/documents/${document.id}/download`} className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"><Download size={16} />{documentT('download')}</a></div></div>)}</div>
     </section>
   </div>;
 }

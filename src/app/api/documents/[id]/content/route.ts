@@ -15,7 +15,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     return new NextResponse(document.content, {
       headers: {
         'Content-Type': document.contentType,
-        'Content-Disposition': createContentDisposition('attachment', document.filename),
+        'Content-Disposition': createContentDisposition('inline', document.filename),
         'Cache-Control': 'private, no-store',
         'X-Content-Type-Options': 'nosniff',
       },
