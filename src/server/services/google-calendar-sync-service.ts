@@ -2,7 +2,11 @@ import { z } from 'zod';
 import { env } from '@/server/config/env';
 import { notFound } from '@/server/errors/application-error';
 import { googleCalendarRepository } from '@/server/repositories/google-calendar-repository';
-import { decryptCalendarToken } from '@/server/security/calendar-token-crypto';
+import {
+  decryptCalendarToken,
+  encryptCalendarToken,
+  isLegacyCalendarToken,
+} from '@/server/security/calendar-token-crypto';
 
 const accessTokenSchema = z.object({ access_token: z.string().min(1) });
 const googleEventSchema = z.object({
@@ -22,16 +26,17 @@ class CalendarSyncError extends Error {
   }
 }
 
-const getAccessToken = async (encryptedRefreshToken: string) => {
+const getAccessToken = async (encryptedRefreshToken: string, userId: string) => {
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       client_id: env.googleClientId,
       client_secret: env.googleClientSecret,
-      refresh_token: decryptCalendarToken(encryptedRefreshToken),
+      refresh_token: decryptCalendarToken(encryptedRefreshToken, userId),
       grant_type: 'refresh_token',
     }),
+    signal: AbortSignal.timeout(10_000),
   });
   if (!response.ok) throw new CalendarSyncError('TOKEN_REFRESH_FAILED');
   return accessTokenSchema.parse(await response.json()).access_token;
@@ -45,6 +50,7 @@ const calendarRequest = (accessToken: string, path: string, init: RequestInit) =
       'Content-Type': 'application/json',
       ...init.headers,
     },
+    signal: AbortSignal.timeout(10_000),
   });
 
 const getMeetingUrl = (event: z.infer<typeof googleEventSchema>) =>
@@ -123,7 +129,18 @@ export const googleCalendarSyncService = {
     try {
       const connection = await googleCalendarRepository.findConnection(job.userId);
       if (!connection || connection.revokedAt) throw new CalendarSyncError('CALENDAR_NOT_CONNECTED');
-      const accessToken = await getAccessToken(connection.encryptedRefreshToken);
+      let encryptedRefreshToken = connection.encryptedRefreshToken;
+      if (isLegacyCalendarToken(encryptedRefreshToken)) {
+        encryptedRefreshToken = encryptCalendarToken(
+          decryptCalendarToken(encryptedRefreshToken, job.userId),
+          job.userId,
+        );
+        await googleCalendarRepository.updateEncryptedToken(
+          job.userId,
+          encryptedRefreshToken,
+        );
+      }
+      const accessToken = await getAccessToken(encryptedRefreshToken, job.userId);
       const meetingUrl = job.operation === 'UPSERT'
         ? await upsertGoogleEvent(accessToken, job.calendarEvent!)
         : (await deleteGoogleEvent(accessToken, job.googleEventId), undefined);

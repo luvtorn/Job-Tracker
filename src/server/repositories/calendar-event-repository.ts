@@ -75,34 +75,6 @@ export const calendarEventRepository = {
     });
   },
 
-  async findById(eventId: string) {
-    return prisma.calendarEvent.findUnique({
-      where: { id: eventId },
-      include: {
-        application: {
-          select: {
-            id: true,
-            status: true,
-            user: {
-              select: {
-                firstName: true,
-                lastName: true,
-                email: true,
-                avatarUrl: true,
-              },
-            },
-            vacancy: {
-              select: {
-                id: true,
-                title: true,
-              },
-            },
-          },
-        },
-      },
-    });
-  },
-
   async findOwnedById(eventId: string, userId: string) {
     return prisma.calendarEvent.findFirst({ where: { id: eventId, userId } });
   },

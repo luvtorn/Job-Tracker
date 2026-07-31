@@ -97,6 +97,9 @@ export default function JobsPage() {
             exit={{ opacity: 0, y: -10 }}
             className="md:hidden border-t border-neutral-200 px-6 py-4 space-y-4 bg-white"
           >
+            <div className="border-b border-neutral-100 pb-4">
+              <LanguageSwitcher expanded />
+            </div>
             <Link
               href="/jobs"
               className="block text-primary-600 font-medium"

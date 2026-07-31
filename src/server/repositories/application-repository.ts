@@ -12,7 +12,9 @@ export const applicationRepository = {
   },
   create(userId: string, vacancyId: string) {
     return prisma.$transaction(async (transaction) => {
-      const documents = await transaction.document.findMany({ where: { userId, isCurrent: true } });
+      const documents = await transaction.document.findMany({
+        where: { userId, isCurrent: true, scanStatus: 'CLEAN' },
+      });
       return transaction.application.create({
         data: {
           userId, vacancyId, status: "APPLIED",

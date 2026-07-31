@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { CheckCircle2, Mail } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useAuth, type User } from '@/features/auth/context/auth-context';
+import { useUrlFragmentToken } from '@/features/auth/hooks/use-url-fragment-token';
 
 type Status = 'waiting' | 'verifying' | 'verified' | 'failed';
 
@@ -17,19 +18,20 @@ export function VerifyEmailCard({
 }) {
   const t = useTranslations('authSecurity');
   const { user, updateUser } = useAuth();
-  const [status, setStatus] = useState<Status>(token ? 'verifying' : 'waiting');
+  const secureToken = useUrlFragmentToken(token);
+  const [status, setStatus] = useState<Status>('waiting');
   const [isResending, setIsResending] = useState(false);
   const [message, setMessage] = useState(deliveryUnavailable ? t('emailUnavailable') : '');
 
   useEffect(() => {
-    if (!token) return;
+    if (!secureToken.resolved || !secureToken.token) return;
     let active = true;
     const verify = async () => {
       try {
         const response = await fetch('/api/auth/verify-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
+          body: JSON.stringify({ token: secureToken.token }),
         });
         if (!response.ok) throw new Error('Verification failed');
         const data: { user: User } = await response.json();
@@ -42,7 +44,7 @@ export function VerifyEmailCard({
     };
     void verify();
     return () => { active = false; };
-  }, [token, updateUser]);
+  }, [secureToken.resolved, secureToken.token, updateUser]);
 
   const resend = async () => {
     setIsResending(true);
@@ -59,7 +61,8 @@ export function VerifyEmailCard({
     }
   };
 
-  const verified = status === 'verified' || user?.emailVerified;
+  const visibleStatus = status === 'waiting' && secureToken.token ? 'verifying' : status;
+  const verified = visibleStatus === 'verified' || user?.emailVerified;
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-8 text-center shadow-lg">
       <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-primary-50 text-primary-600">
@@ -69,9 +72,9 @@ export function VerifyEmailCard({
         {verified ? t('verifiedTitle') : t('verificationTitle')}
       </h1>
       <p className="mt-3 text-neutral-600">
-        {status === 'verifying'
+        {visibleStatus === 'verifying'
           ? t('verifying')
-          : status === 'failed'
+          : visibleStatus === 'failed'
             ? t('verifyFailed')
             : verified
               ? t('verifiedDescription')

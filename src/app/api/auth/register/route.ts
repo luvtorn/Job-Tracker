@@ -8,9 +8,10 @@ import { getRequestLocale } from '@/i18n/server';
 
 export async function POST(request: NextRequest) {
   try {
-    enforceAuthRateLimit(request, 'register');
+    const input = registerSchema.parse(await request.json());
+    await enforceAuthRateLimit(request, 'register', input.email);
     const result = await authService.register(
-      registerSchema.parse(await request.json()),
+      input,
       await getRequestLocale(),
     );
     const response = NextResponse.json(

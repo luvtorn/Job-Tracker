@@ -7,7 +7,7 @@ import { enforceAuthRateLimit } from '@/server/security/request-security';
 
 export async function POST(request: NextRequest) {
   try {
-    enforceAuthRateLimit(request, 'google-calendar-sync-retry');
+    await enforceAuthRateLimit(request, 'google-calendar-sync-retry');
     const user = await requireRecruiter();
     const { eventId } = retryCalendarSyncSchema.parse(await request.json());
     await googleCalendarSyncService.retryEvent(user.id, eventId);

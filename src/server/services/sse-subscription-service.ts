@@ -1,4 +1,7 @@
 import type { NotificationDto } from '@/types/notification';
+import { tooManyRequests } from '@/server/errors/application-error';
+
+const MAX_CONNECTIONS_PER_USER = 3;
 
 interface SSEClient {
   response: ReadableStreamDefaultController<string>;
@@ -9,6 +12,9 @@ class SSESubscriptionService {
   private clients: Map<string, Set<SSEClient>> = new Map();
 
   subscribe(userId: string, controller: ReadableStreamDefaultController<string>): () => void {
+    if (this.getActiveConnections(userId) >= MAX_CONNECTIONS_PER_USER) {
+      throw tooManyRequests(30, MAX_CONNECTIONS_PER_USER, 0);
+    }
     if (!this.clients.has(userId)) {
       this.clients.set(userId, new Set());
     }

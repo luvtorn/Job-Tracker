@@ -6,7 +6,7 @@ import { enforceAuthRateLimit } from '@/server/security/request-security';
 
 export async function POST(request: NextRequest) {
   try {
-    enforceAuthRateLimit(request, 'verify-email');
+    await enforceAuthRateLimit(request, 'verify-email');
     const { token } = authTokenSchema.parse(await request.json());
     const user = await authService.verifyEmail(token);
     return NextResponse.json({ success: true, user });

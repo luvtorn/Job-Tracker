@@ -3,6 +3,9 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { env } from '@/server/config/env';
 import { unauthorized } from '@/server/errors/application-error';
+import { deriveTokenKey } from '@/server/services/access-token-service';
+
+const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 
 const flowSchema = z.object({
   userId: z.string().uuid(),
@@ -22,7 +25,10 @@ const userSchema = z.object({
 const callbackUrl = () => `${env.appUrl}/api/integrations/google-calendar/callback`;
 
 const fetchJson = async (url: string, init: RequestInit) => {
-  const response = await fetch(url, init);
+  const response = await fetch(url, {
+    ...init,
+    signal: AbortSignal.timeout(10_000),
+  });
   if (!response.ok) throw unauthorized('Google Calendar authorization failed');
   return response.json();
 };
@@ -37,7 +43,7 @@ export const googleCalendarOAuthService = {
       client_id: env.googleClientId,
       redirect_uri: callbackUrl(),
       response_type: 'code',
-      scope: 'openid email https://www.googleapis.com/auth/calendar.events',
+      scope: `openid email ${CALENDAR_SCOPE}`,
       access_type: 'offline',
       prompt: 'consent',
       include_granted_scopes: 'true',
@@ -48,19 +54,29 @@ export const googleCalendarOAuthService = {
     Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
     return {
       url,
-      flowToken: jwt.sign({ userId, state, verifier }, env.jwtSecret, {
+      flowToken: jwt.sign(
+        { userId, state, verifier },
+        deriveTokenKey(env.jwtSecret, 'oauth:google-calendar'),
+        {
+        algorithm: 'HS256',
         issuer: 'jobtracker',
         audience: 'google-calendar-oauth',
         expiresIn: '10m',
-      }),
+        },
+      ),
     };
   },
 
   readFlow(token: string) {
-    const claims = jwt.verify(token, env.jwtSecret, {
+    const claims = jwt.verify(
+      token,
+      deriveTokenKey(env.jwtSecret, 'oauth:google-calendar'),
+      {
+      algorithms: ['HS256'],
       issuer: 'jobtracker',
       audience: 'google-calendar-oauth',
-    });
+      },
+    );
     if (typeof claims === 'string') throw unauthorized('Invalid Google Calendar session');
     return flowSchema.parse(claims);
   },
@@ -83,6 +99,10 @@ export const googleCalendarOAuthService = {
       { headers: { Authorization: `Bearer ${token.access_token}` } },
     ));
     if (!user.email_verified) throw unauthorized('A verified Google email is required');
+    const grantedScopes = new Set(token.scope.split(/\s+/).filter(Boolean));
+    if (!grantedScopes.has(CALENDAR_SCOPE)) {
+      throw unauthorized('Google Calendar permission was not granted');
+    }
     return {
       email: user.email.toLowerCase(),
       refreshToken: token.refresh_token,

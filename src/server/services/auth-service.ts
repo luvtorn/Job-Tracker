@@ -1,9 +1,9 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { AuthActionType, AuthProvider, Prisma } from "@prisma/client";
-import jwt from "jsonwebtoken";
 import {
   hashPassword,
   verifyPassword,
+  passwordHashNeedsUpgrade,
   createUserWithRefreshToken,
   getUserByEmail,
   createRefreshToken,
@@ -12,13 +12,13 @@ import {
   revokeRefreshToken,
   updateUserLastLogin,
   getUserById,
+  updatePasswordHash,
 } from "@/server/repositories/user-repository";
 import {
   CompleteOAuthRegistrationInput,
   LoginInput,
   RegisterInput,
 } from "@/server/validators/auth-validator";
-import { env } from "@/server/config/env";
 import { conflict, notFound, unauthorized } from "@/server/errors/application-error";
 import {
   generateRefreshToken,
@@ -39,9 +39,11 @@ import {
 import type { OAuthIdentity } from "@/server/services/oauth-service";
 import { authEmailService } from "@/server/services/auth-email-service";
 import type { AppLocale } from "@/i18n/config";
+import { signAccessToken } from "@/server/services/access-token-service";
 
 const VERIFY_EMAIL_TTL_MS = 24 * 60 * 60 * 1000;
 const PASSWORD_RESET_TTL_MS = 30 * 60 * 1000;
+const DUMMY_PASSWORD_HASH = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOqM4G8TqRZcGuk1unTzXcVj7r5yK2Nte';
 
 export class AuthService {
   async register(input: RegisterInput, locale: AppLocale) {
@@ -62,6 +64,7 @@ export class AuthService {
       lastName: input.lastName,
       role: input.role,
       refreshTokenHash: hashRefreshToken(session.refreshToken),
+      refreshTokenFamilyId: session.refreshTokenFamilyId,
       refreshTokenExpiresAt: session.refreshTokenExpiresAt,
       actionToken: {
         tokenHash: verification.tokenHash,
@@ -79,6 +82,7 @@ export class AuthService {
     const user = await getUserByEmail(input.email.toLowerCase());
 
     if (!user) {
+      await verifyPassword(input.password, DUMMY_PASSWORD_HASH);
       throw unauthorized("Invalid credentials");
     }
 
@@ -96,6 +100,9 @@ export class AuthService {
     }
 
     await updateUserLastLogin(user.id);
+    if (user.passwordHash && passwordHashNeedsUpgrade(user.passwordHash)) {
+      await updatePasswordHash(user.id, await hashPassword(input.password));
+    }
 
     const session = this.createSessionCredentials();
 
@@ -103,6 +110,7 @@ export class AuthService {
     await createRefreshToken(
       user.id,
       hashRefreshToken(session.refreshToken),
+      session.refreshTokenFamilyId,
       session.refreshTokenExpiresAt,
     );
 
@@ -119,7 +127,7 @@ export class AuthService {
     return {
       user: this.toPublicUser(user),
       tokens: {
-        accessToken: this.generateAccessToken(user.id, user.email, user.role),
+        accessToken: this.generateAccessToken(user.id, user.role, user.authVersion),
         refreshToken: nextToken,
         refreshTokenExpiresAt: expiresAt,
       },
@@ -178,6 +186,7 @@ export class AuthService {
     const session = this.createSessionCredentials();
     const user = await resolveOAuthUserWithSession(identity, {
       refreshTokenHash: hashRefreshToken(session.refreshToken),
+      refreshTokenFamilyId: session.refreshTokenFamilyId,
       refreshTokenExpiresAt: session.refreshTokenExpiresAt,
     });
     return user ? this.createAuthResult(user, session) : null;
@@ -191,6 +200,7 @@ export class AuthService {
     try {
       const user = await createOAuthUserWithSession(identity, input, {
         refreshTokenHash: hashRefreshToken(session.refreshToken),
+        refreshTokenFamilyId: session.refreshTokenFamilyId,
         refreshTokenExpiresAt: session.refreshTokenExpiresAt,
       });
       return this.createAuthResult(user, session);
@@ -242,6 +252,7 @@ export class AuthService {
   private createSessionCredentials() {
     return {
       refreshToken: generateRefreshToken(),
+      refreshTokenFamilyId: randomUUID(),
       refreshTokenExpiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
     };
   }
@@ -255,15 +266,21 @@ export class AuthService {
       role: "SEEKER" | "RECRUITER" | "ADMIN";
       avatarUrl: string | null;
       emailVerified: boolean;
+      authVersion: number;
       createdAt: Date;
     },
-    session: { refreshToken: string; refreshTokenExpiresAt: Date },
+    session: {
+      refreshToken: string;
+      refreshTokenFamilyId: string;
+      refreshTokenExpiresAt: Date;
+    },
   ) {
     return {
       user: this.toPublicUser(user),
       tokens: {
-        accessToken: this.generateAccessToken(user.id, user.email, user.role),
-        ...session,
+        accessToken: this.generateAccessToken(user.id, user.role, user.authVersion),
+        refreshToken: session.refreshToken,
+        refreshTokenExpiresAt: session.refreshTokenExpiresAt,
       },
     };
   }
@@ -287,20 +304,10 @@ export class AuthService {
 
   private generateAccessToken(
     userId: string,
-    email: string,
-    role: string,
-  ): string {
-    return jwt.sign(
-      {
-        userId,
-        email,
-        role,
-      },
-      env.jwtSecret,
-      {
-        expiresIn: "1h",
-      },
-    );
+    role: "SEEKER" | "RECRUITER" | "ADMIN",
+    authVersion: number,
+  ) {
+    return signAccessToken({ userId, role, authVersion });
   }
 }
 

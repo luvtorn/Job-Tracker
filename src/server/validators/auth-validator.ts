@@ -1,16 +1,23 @@
 import { z } from 'zod';
 
+const fitsBcryptInput = (value: string) =>
+  new TextEncoder().encode(value).byteLength <= 72;
+
+const passwordInputSchema = z
+  .string()
+  .max(256, 'Password is too long')
+  .refine(fitsBcryptInput, 'Password must be at most 72 bytes');
+
 export const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  password: passwordInputSchema.min(1, 'Password is required'),
 }).strict();
 
 export const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(100),
   lastName: z.string().min(1, 'Last name is required').max(100),
   email: z.string().email('Invalid email address'),
-  password: z
-    .string()
+  password: passwordInputSchema
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')

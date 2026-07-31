@@ -96,7 +96,7 @@ async function sendEmail(to: string, subject: string, html: string) {
 export const authEmailService = {
   sendVerification(email: string, token: string, locale: AppLocale) {
     const localized = copy[locale];
-    const url = `${env.appUrl}/auth/verify-email?token=${encodeURIComponent(token)}`;
+    const url = `${env.appUrl}/auth/verify-email#token=${encodeURIComponent(token)}`;
     return sendEmail(
       email,
       localized.verifySubject,
@@ -106,7 +106,7 @@ export const authEmailService = {
 
   sendPasswordReset(email: string, token: string, locale: AppLocale) {
     const localized = copy[locale];
-    const url = `${env.appUrl}/auth/reset-password?token=${encodeURIComponent(token)}`;
+    const url = `${env.appUrl}/auth/reset-password#token=${encodeURIComponent(token)}`;
     return sendEmail(
       email,
       localized.resetSubject,

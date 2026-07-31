@@ -7,7 +7,7 @@ import { enforceAuthRateLimit } from '@/server/security/request-security';
 
 export async function POST(request: NextRequest) {
   try {
-    enforceAuthRateLimit(request, 'refresh');
+    await enforceAuthRateLimit(request, 'refresh');
     const refreshToken = (await cookies()).get("refreshToken")?.value;
     if (!refreshToken) throw unauthorized("Invalid session");
     const result = await authService.refresh(refreshToken);

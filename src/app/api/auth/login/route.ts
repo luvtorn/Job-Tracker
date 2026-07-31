@@ -7,8 +7,9 @@ import { enforceAuthRateLimit } from '@/server/security/request-security';
 
 export async function POST(request: NextRequest) {
   try {
-    enforceAuthRateLimit(request, 'login');
-    const result = await authService.login(loginSchema.parse(await request.json()));
+    const input = loginSchema.parse(await request.json());
+    await enforceAuthRateLimit(request, 'login', input.email);
+    const result = await authService.login(input);
     const response = NextResponse.json(
       { success: true, message: "Login successful", user: result.user },
       { status: 200 },

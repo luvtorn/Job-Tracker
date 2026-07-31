@@ -4,6 +4,7 @@ import { AuthProvider } from '@prisma/client';
 import { z } from 'zod';
 import { env } from '@/server/config/env';
 import { badRequest, unauthorized } from '@/server/errors/application-error';
+import { deriveTokenKey } from '@/server/services/access-token-service';
 
 export const oauthProviderSchema = z.enum(['google', 'github']);
 export type OAuthProviderSlug = z.infer<typeof oauthProviderSchema>;
@@ -57,14 +58,16 @@ const redirectUri = (provider: OAuthProviderSlug) =>
   `${env.appUrl}/api/auth/oauth/${provider}/callback`;
 
 const signClaims = (claims: object, audience: string) =>
-  jwt.sign(claims, env.jwtSecret, {
+  jwt.sign(claims, deriveTokenKey(env.jwtSecret, `oauth:${audience}`), {
+    algorithm: 'HS256',
     issuer: 'jobtracker',
     audience,
     expiresIn: '10m',
   });
 
 const verifyClaims = <T>(token: string, audience: string, schema: z.ZodType<T>) => {
-  const payload = jwt.verify(token, env.jwtSecret, {
+  const payload = jwt.verify(token, deriveTokenKey(env.jwtSecret, `oauth:${audience}`), {
+    algorithms: ['HS256'],
     issuer: 'jobtracker',
     audience,
   });
@@ -80,6 +83,7 @@ const postToken = async (url: string, body: URLSearchParams) => {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body,
+    signal: AbortSignal.timeout(10_000),
   });
   if (!response.ok) throw unauthorized('OAuth authorization failed');
   return response.json();
@@ -92,6 +96,7 @@ const fetchJson = async (url: string, accessToken: string, headers?: HeadersInit
       Authorization: `Bearer ${accessToken}`,
       ...headers,
     },
+    signal: AbortSignal.timeout(10_000),
   });
   if (!response.ok) throw unauthorized('OAuth profile request failed');
   return response.json();

@@ -7,7 +7,7 @@ import { enforceAuthRateLimit } from '@/server/security/request-security';
 
 export async function POST(request: NextRequest) {
   try {
-    enforceAuthRateLimit(request, 'resend-verification');
+    await enforceAuthRateLimit(request, 'resend-verification');
     const user = await requireAuthenticatedUser({ allowUnverified: true });
     const result = await authService.resendVerification(user.id, await getRequestLocale());
     return NextResponse.json({ success: true, ...result });

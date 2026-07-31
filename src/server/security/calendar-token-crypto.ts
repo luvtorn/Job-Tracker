@@ -2,6 +2,7 @@ import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import { env } from '@/server/config/env';
 
 const ALGORITHM = 'aes-256-gcm';
+const VERSION = 'v1';
 
 const getKey = () => {
   const key = Buffer.from(env.googleCalendarTokenEncryptionKey, 'base64');
@@ -11,19 +12,34 @@ const getKey = () => {
   return key;
 };
 
-export const encryptCalendarToken = (token: string) => {
+const getAdditionalData = (userId: string) =>
+  Buffer.from(`jobtracker:google-calendar:${userId}`, 'utf8');
+
+export const isLegacyCalendarToken = (encryptedToken: string) =>
+  !encryptedToken.startsWith(`${VERSION}.`);
+
+export const encryptCalendarToken = (token: string, userId: string) => {
   const iv = randomBytes(12);
   const cipher = createCipheriv(ALGORITHM, getKey(), iv);
+  cipher.setAAD(getAdditionalData(userId));
   const encrypted = Buffer.concat([cipher.update(token, 'utf8'), cipher.final()]);
   const tag = cipher.getAuthTag();
-  return [iv, tag, encrypted].map((part) => part.toString('base64url')).join('.');
+  return [
+    VERSION,
+    ...[iv, tag, encrypted].map((part) => part.toString('base64url')),
+  ].join('.');
 };
 
-export const decryptCalendarToken = (encryptedToken: string) => {
+export const decryptCalendarToken = (encryptedToken: string, userId: string) => {
   const parts = encryptedToken.split('.');
-  if (parts.length !== 3) throw new Error('Invalid encrypted calendar token');
-  const [iv, tag, encrypted] = parts.map((part) => Buffer.from(part, 'base64url'));
+  const legacy = parts.length === 3;
+  const encodedParts = legacy ? parts : parts.slice(1);
+  if ((!legacy && parts[0] !== VERSION) || encodedParts.length !== 3) {
+    throw new Error('Invalid encrypted calendar token');
+  }
+  const [iv, tag, encrypted] = encodedParts.map((part) => Buffer.from(part, 'base64url'));
   const decipher = createDecipheriv(ALGORITHM, getKey(), iv);
+  if (!legacy) decipher.setAAD(getAdditionalData(userId));
   decipher.setAuthTag(tag);
   return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8');
 };

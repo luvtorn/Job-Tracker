@@ -7,7 +7,7 @@ import { googleCalendarOAuthService } from '@/server/services/google-calendar-oa
 
 export async function GET(request: Request) {
   try {
-    enforceAuthRateLimit(request, 'google-calendar-connect');
+    await enforceAuthRateLimit(request, 'google-calendar-connect');
     const user = await requireRecruiter();
     const authorization = googleCalendarOAuthService.createAuthorization(user.id);
     const response = NextResponse.redirect(authorization.url);

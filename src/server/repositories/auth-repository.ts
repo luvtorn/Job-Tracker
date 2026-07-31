@@ -1,9 +1,13 @@
 import { AuthActionType, AuthProvider, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { publicUserSelect } from '@/server/repositories/user-repository';
+import {
+  publicUserSelect,
+  sessionUserSelect,
+} from '@/server/repositories/user-repository';
 
 type SessionRecord = {
   refreshTokenHash: string;
+  refreshTokenFamilyId: string;
   refreshTokenExpiresAt: Date;
 };
 
@@ -72,8 +76,12 @@ export async function consumePasswordResetToken(
 
     const user = await transaction.user.update({
       where: { id: token.userId },
-      data: { passwordHash, emailVerified: true },
-      select: publicUserSelect,
+      data: {
+        passwordHash,
+        emailVerified: true,
+        authVersion: { increment: 1 },
+      },
+      select: sessionUserSelect,
     });
     await Promise.all([
       transaction.authActionToken.deleteMany({ where: { userId: token.userId } }),
@@ -122,12 +130,13 @@ export async function resolveOAuthUserWithSession(
         emailVerified: true,
         lastLoginAt: new Date(),
       },
-      select: publicUserSelect,
+      select: sessionUserSelect,
     });
     await transaction.refreshToken.create({
       data: {
         userId,
         tokenHash: session.refreshTokenHash,
+        familyId: session.refreshTokenFamilyId,
         expiresAt: session.refreshTokenExpiresAt,
       },
     });
@@ -150,7 +159,7 @@ export async function createOAuthUserWithSession(
         role: input.role,
         lastLoginAt: new Date(),
       },
-      select: publicUserSelect,
+      select: sessionUserSelect,
     });
     await transaction.authAccount.create({
       data: {
@@ -163,6 +172,7 @@ export async function createOAuthUserWithSession(
       data: {
         userId: user.id,
         tokenHash: session.refreshTokenHash,
+        familyId: session.refreshTokenFamilyId,
         expiresAt: session.refreshTokenExpiresAt,
       },
     });

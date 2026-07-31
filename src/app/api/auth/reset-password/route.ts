@@ -7,7 +7,7 @@ import { enforceAuthRateLimit } from '@/server/security/request-security';
 
 export async function POST(request: NextRequest) {
   try {
-    enforceAuthRateLimit(request, 'reset-password');
+    await enforceAuthRateLimit(request, 'reset-password');
     const { token, password } = resetPasswordSchema.parse(await request.json());
     await authService.resetPassword(token, password);
     const response = NextResponse.json({ success: true });

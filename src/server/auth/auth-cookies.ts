@@ -13,7 +13,7 @@ export function setAuthCookies(
 ) {
   response.cookies.set("accessToken", tokens.accessToken, {
     ...baseCookieOptions,
-    maxAge: 60 * 60,
+    maxAge: 15 * 60,
   });
   response.cookies.set("refreshToken", tokens.refreshToken, {
     ...baseCookieOptions,

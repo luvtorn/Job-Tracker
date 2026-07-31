@@ -19,7 +19,12 @@ export async function verifyAuth(options: { allowUnverified?: boolean } = {}) {
 
     const user = await getUserById(decoded.userId);
 
-    if (!user || user.deletedAt || (!options.allowUnverified && !user.emailVerified)) {
+    if (
+      !user
+      || user.deletedAt
+      || user.authVersion !== decoded.authVersion
+      || (!options.allowUnverified && !user.emailVerified)
+    ) {
       return null;
     }
 

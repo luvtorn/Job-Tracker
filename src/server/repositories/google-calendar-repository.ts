@@ -29,6 +29,13 @@ export const googleCalendarRepository = {
     return prisma.googleCalendarConnection.deleteMany({ where: { userId } });
   },
 
+  updateEncryptedToken(userId: string, encryptedRefreshToken: string) {
+    return prisma.googleCalendarConnection.updateMany({
+      where: { userId, revokedAt: null },
+      data: { encryptedRefreshToken },
+    });
+  },
+
   findSyncJob(jobId: string) {
     return prisma.calendarSyncJob.findUnique({
       where: { id: jobId },
@@ -56,9 +63,23 @@ export const googleCalendarRepository = {
   },
 
   async claimSyncJob(jobId: string) {
+    const now = new Date();
+    const staleBefore = new Date(now.getTime() - 5 * 60 * 1000);
     const claimed = await prisma.calendarSyncJob.updateMany({
-      where: { id: jobId, status: { in: ['PENDING', 'FAILED'] } },
-      data: { status: 'PROCESSING', attempts: { increment: 1 }, lastErrorCode: null },
+      where: {
+        id: jobId,
+        nextAttemptAt: { lte: now },
+        OR: [
+          { status: { in: ['PENDING', 'FAILED'] } },
+          { status: 'PROCESSING', lockedAt: { lt: staleBefore } },
+        ],
+      },
+      data: {
+        status: 'PROCESSING',
+        attempts: { increment: 1 },
+        lastErrorCode: null,
+        lockedAt: now,
+      },
     });
     return claimed.count === 1;
   },
@@ -82,7 +103,7 @@ export const googleCalendarRepository = {
       }
       await transaction.calendarSyncJob.update({
         where: { id: jobId },
-        data: { status: 'SUCCEEDED', lastErrorCode: null },
+        data: { status: 'SUCCEEDED', lastErrorCode: null, lockedAt: null },
       });
     });
   },
@@ -102,6 +123,7 @@ export const googleCalendarRepository = {
           status: 'FAILED',
           lastErrorCode: errorCode,
           nextAttemptAt: new Date(Date.now() + delayMinutes * 60 * 1000),
+          lockedAt: null,
         },
       });
     });
@@ -110,7 +132,12 @@ export const googleCalendarRepository = {
   retryEvent(userId: string, eventId: string) {
     return prisma.calendarSyncJob.updateMany({
       where: { calendarEventId: eventId, userId },
-      data: { status: 'PENDING', nextAttemptAt: new Date(), lastErrorCode: null },
+      data: {
+        status: 'PENDING',
+        nextAttemptAt: new Date(),
+        lastErrorCode: null,
+        lockedAt: null,
+      },
     });
   },
 };
@@ -132,5 +159,6 @@ export const upsertCalendarSyncJob = (
     status: 'PENDING',
     nextAttemptAt: new Date(),
     lastErrorCode: null,
+    lockedAt: null,
   },
 });

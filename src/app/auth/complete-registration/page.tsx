@@ -18,7 +18,7 @@ export default async function CompleteRegistrationPage() {
   }
 
   return (
-    <AuthPageShell>
+    <AuthPageShell wide>
       <CompleteOAuthRegistrationCard
         email={identity.email}
         initialFirstName={identity.firstName ?? ''}

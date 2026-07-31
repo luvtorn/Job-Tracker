@@ -9,7 +9,7 @@ import { completeOAuthRegistrationSchema } from '@/server/validators/auth-valida
 
 export async function POST(request: NextRequest) {
   try {
-    enforceAuthRateLimit(request, 'oauth-registration');
+    await enforceAuthRateLimit(request, 'oauth-registration');
     const intentToken = getOAuthRegistrationCookie(request);
     if (!intentToken) throw unauthorized('OAuth registration expired');
     const identity = oauthService.readRegistrationIntent(intentToken);

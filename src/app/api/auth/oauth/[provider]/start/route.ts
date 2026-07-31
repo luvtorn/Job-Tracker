@@ -16,7 +16,7 @@ export async function GET(
   context: { params: Promise<{ provider: string }> },
 ) {
   try {
-    enforceAuthRateLimit(request, 'oauth-start');
+    await enforceAuthRateLimit(request, 'oauth-start');
     const { provider } = resourceIdSchema.parse(await context.params);
     const { mode } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
     if (mode === 'connect') await requireAuthenticatedUser();

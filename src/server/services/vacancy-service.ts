@@ -47,18 +47,6 @@ export class VacancyService {
     return vacancyRepository.delete(vacancyId);
   }
 
-  async archiveVacancy(vacancyId: string) {
-    return vacancyRepository.update(vacancyId, getVacancyLifecycleUpdate("ARCHIVED"));
-  }
-
-  async reactivateVacancy(vacancyId: string) {
-    return vacancyRepository.update(vacancyId, getVacancyLifecycleUpdate("PUBLISHED"));
-  }
-
-  async closeVacancy(vacancyId: string) {
-    return vacancyRepository.update(vacancyId, getVacancyLifecycleUpdate("CLOSED"));
-  }
-
   async deleteExpiredVacancies() {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
