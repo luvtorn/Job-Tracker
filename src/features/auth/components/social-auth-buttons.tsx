@@ -2,6 +2,13 @@
 
 import { useTranslations } from 'next-intl';
 
+export type SocialAuthProvider = 'google' | 'github';
+
+type SocialAuthButtonsProps = {
+  mode?: 'login' | 'connect';
+  providers?: readonly SocialAuthProvider[];
+};
+
 function GoogleIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
@@ -21,9 +28,14 @@ function GitHubIcon() {
   );
 }
 
-export function SocialAuthButtons({ mode = 'login' }: { mode?: 'login' | 'connect' }) {
+export function SocialAuthButtons({
+  mode = 'login',
+  providers = ['google', 'github'],
+}: SocialAuthButtonsProps) {
   const t = useTranslations('authSecurity');
   const suffix = mode === 'connect' ? '?mode=connect' : '';
+
+  if (providers.length === 0) return null;
 
   return (
     <div className="space-y-3">
@@ -36,21 +48,25 @@ export function SocialAuthButtons({ mode = 'login' }: { mode?: 'login' | 'connec
           <div className="h-px flex-1 bg-neutral-200" />
         </div>
       )}
-      <div className="grid gap-3 sm:grid-cols-2">
-        <a
-          href={`/api/auth/oauth/google/start${suffix}`}
-          className="flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 font-medium text-neutral-800 shadow-sm transition hover:border-neutral-400 hover:bg-neutral-50 focus:outline-none focus:ring-4 focus:ring-primary-100"
-        >
-          <GoogleIcon />
-          {mode === 'connect' ? t('connectGoogle') : t('continueGoogle')}
-        </a>
-        <a
-          href={`/api/auth/oauth/github/start${suffix}`}
-          className="flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-neutral-900 bg-neutral-900 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-neutral-800 focus:outline-none focus:ring-4 focus:ring-neutral-300"
-        >
-          <GitHubIcon />
-          {mode === 'connect' ? t('connectGithub') : t('continueGithub')}
-        </a>
+      <div className={`grid gap-3 ${providers.length > 1 ? 'sm:grid-cols-2' : ''}`}>
+        {providers.includes('google') && (
+          <a
+            href={`/api/auth/oauth/google/start${suffix}`}
+            className="flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 font-medium text-neutral-800 shadow-sm transition hover:border-neutral-400 hover:bg-neutral-50 focus:outline-none focus:ring-4 focus:ring-primary-100"
+          >
+            <GoogleIcon />
+            {mode === 'connect' ? t('connectGoogle') : t('continueGoogle')}
+          </a>
+        )}
+        {providers.includes('github') && (
+          <a
+            href={`/api/auth/oauth/github/start${suffix}`}
+            className="flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-neutral-900 bg-neutral-900 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-neutral-800 focus:outline-none focus:ring-4 focus:ring-neutral-300"
+          >
+            <GitHubIcon />
+            {mode === 'connect' ? t('connectGithub') : t('continueGithub')}
+          </a>
+        )}
       </div>
     </div>
   );

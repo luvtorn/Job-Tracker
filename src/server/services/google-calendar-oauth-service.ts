@@ -2,8 +2,8 @@ import { createHash, randomBytes } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { env } from '@/server/config/env';
-import { unauthorized } from '@/server/errors/application-error';
 import { deriveTokenKey } from '@/server/services/access-token-service';
+import type { GoogleCalendarConnectionErrorCode } from '@/types/google-calendar';
 
 const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 
@@ -14,23 +14,78 @@ const flowSchema = z.object({
 });
 const tokenSchema = z.object({
   access_token: z.string().min(1),
-  refresh_token: z.string().min(1),
+  refresh_token: z.string().min(1).optional(),
   scope: z.string().default(''),
 });
 const userSchema = z.object({
   email: z.string().email(),
   email_verified: z.boolean(),
 });
+const providerErrorCodeSchema = z.enum([
+  'access_denied',
+  'invalid_client',
+  'invalid_grant',
+  'redirect_uri_mismatch',
+]);
+const providerErrorSchema = z.object({ error: providerErrorCodeSchema });
+
+export class GoogleCalendarConnectionError extends Error {
+  constructor(readonly code: GoogleCalendarConnectionErrorCode) {
+    super(code);
+    this.name = 'GoogleCalendarConnectionError';
+  }
+}
+
+export const createGoogleCalendarConnectionError = (
+  code: GoogleCalendarConnectionErrorCode,
+) => new GoogleCalendarConnectionError(code);
+
+export const getGoogleCalendarConnectionErrorCode = (
+  error: unknown,
+): GoogleCalendarConnectionErrorCode =>
+  error instanceof GoogleCalendarConnectionError ? error.code : 'connection_failed';
 
 const callbackUrl = () => `${env.appUrl}/api/integrations/google-calendar/callback`;
 
-const fetchJson = async (url: string, init: RequestInit) => {
-  const response = await fetch(url, {
-    ...init,
-    signal: AbortSignal.timeout(10_000),
-  });
-  if (!response.ok) throw unauthorized('Google Calendar authorization failed');
-  return response.json();
+const providerErrorCode = async (
+  response: Response,
+  fallback: GoogleCalendarConnectionErrorCode,
+) => {
+  try {
+    const body: unknown = await response.json();
+    const parsed = providerErrorSchema.safeParse(body);
+    if (parsed.success) return parsed.data.error;
+  } catch {
+    return fallback;
+  }
+  return fallback;
+};
+
+const fetchJson = async (
+  url: string,
+  init: RequestInit,
+  failureCode: GoogleCalendarConnectionErrorCode,
+) => {
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...init,
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch {
+    throw createGoogleCalendarConnectionError('provider_unavailable');
+  }
+  if (!response.ok) {
+    throw createGoogleCalendarConnectionError(
+      await providerErrorCode(response, failureCode),
+    );
+  }
+  try {
+    const body: unknown = await response.json();
+    return body;
+  } catch {
+    throw createGoogleCalendarConnectionError(failureCode);
+  }
 };
 
 export const googleCalendarOAuthService = {
@@ -68,21 +123,30 @@ export const googleCalendarOAuthService = {
   },
 
   readFlow(token: string) {
-    const claims = jwt.verify(
-      token,
-      deriveTokenKey(env.jwtSecret, 'oauth:google-calendar'),
-      {
-      algorithms: ['HS256'],
-      issuer: 'jobtracker',
-      audience: 'google-calendar-oauth',
-      },
-    );
-    if (typeof claims === 'string') throw unauthorized('Invalid Google Calendar session');
-    return flowSchema.parse(claims);
+    try {
+      const claims = jwt.verify(
+        token,
+        deriveTokenKey(env.jwtSecret, 'oauth:google-calendar'),
+        {
+          algorithms: ['HS256'],
+          issuer: 'jobtracker',
+          audience: 'google-calendar-oauth',
+        },
+      );
+      if (typeof claims === 'string') {
+        throw createGoogleCalendarConnectionError('session_expired');
+      }
+      const flow = flowSchema.safeParse(claims);
+      if (!flow.success) throw createGoogleCalendarConnectionError('session_expired');
+      return flow.data;
+    } catch (error) {
+      if (error instanceof GoogleCalendarConnectionError) throw error;
+      throw createGoogleCalendarConnectionError('session_expired');
+    }
   },
 
   async exchange(code: string, verifier: string) {
-    const token = tokenSchema.parse(await fetchJson('https://oauth2.googleapis.com/token', {
+    const tokenResult = tokenSchema.safeParse(await fetchJson('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -93,15 +157,29 @@ export const googleCalendarOAuthService = {
         grant_type: 'authorization_code',
         redirect_uri: callbackUrl(),
       }),
-    }));
-    const user = userSchema.parse(await fetchJson(
+    }, 'invalid_token_response'));
+    if (!tokenResult.success) {
+      throw createGoogleCalendarConnectionError('invalid_token_response');
+    }
+    const token = tokenResult.data;
+    if (!token.refresh_token) {
+      throw createGoogleCalendarConnectionError('missing_refresh_token');
+    }
+    const userResult = userSchema.safeParse(await fetchJson(
       'https://openidconnect.googleapis.com/v1/userinfo',
       { headers: { Authorization: `Bearer ${token.access_token}` } },
+      'userinfo_failed',
     ));
-    if (!user.email_verified) throw unauthorized('A verified Google email is required');
+    if (!userResult.success) {
+      throw createGoogleCalendarConnectionError('invalid_user_response');
+    }
+    const user = userResult.data;
+    if (!user.email_verified) {
+      throw createGoogleCalendarConnectionError('email_not_verified');
+    }
     const grantedScopes = new Set(token.scope.split(/\s+/).filter(Boolean));
     if (!grantedScopes.has(CALENDAR_SCOPE)) {
-      throw unauthorized('Google Calendar permission was not granted');
+      throw createGoogleCalendarConnectionError('calendar_scope_missing');
     }
     return {
       email: user.email.toLowerCase(),
