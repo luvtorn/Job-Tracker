@@ -1,5 +1,5 @@
 import { compare, getRounds, hash } from 'bcryptjs';
-import type { AuthActionType } from '@prisma/client';
+import { AuthActionType } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 export const PASSWORD_HASH_ROUNDS = 12;
@@ -41,6 +41,7 @@ export async function createUserWithRefreshToken(data: {
   refreshTokenHash: string;
   refreshTokenFamilyId: string;
   refreshTokenExpiresAt: Date;
+  refreshTokenUserAgent: string | null;
   actionToken?: {
     tokenHash: string;
     type: AuthActionType;
@@ -65,6 +66,7 @@ export async function createUserWithRefreshToken(data: {
         tokenHash: data.refreshTokenHash,
         familyId: data.refreshTokenFamilyId,
         expiresAt: data.refreshTokenExpiresAt,
+        userAgent: data.refreshTokenUserAgent,
       },
     });
     if (data.actionToken) {
@@ -94,9 +96,10 @@ export function createRefreshToken(
   tokenHash: string,
   familyId: string,
   expiresAt: Date,
+  userAgent: string | null,
 ) {
   return prisma.refreshToken.create({
-    data: { userId, tokenHash, familyId, expiresAt },
+    data: { userId, tokenHash, familyId, expiresAt, userAgent },
   });
 }
 
@@ -149,6 +152,7 @@ export async function rotateRefreshToken(
         tokenHash: nextHash,
         familyId: current.familyId,
         expiresAt: current.expiresAt,
+        userAgent: current.userAgent,
       },
     });
     return { user: current.user, expiresAt: current.expiresAt };
@@ -164,6 +168,114 @@ export async function revokeRefreshToken(tokenHash: string) {
   return prisma.refreshToken.updateMany({
     where: { familyId: token.familyId, revokedAt: null },
     data: { revokedAt: new Date() },
+  });
+}
+
+export function listActiveRefreshSessions(userId: string, now = new Date()) {
+  return prisma.refreshToken.findMany({
+    where: {
+      userId,
+      usedAt: null,
+      revokedAt: null,
+      expiresAt: { gt: now },
+    },
+    select: {
+      familyId: true,
+      tokenHash: true,
+      userAgent: true,
+      createdAt: true,
+      expiresAt: true,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+  });
+}
+
+export async function revokeRefreshSession(
+  userId: string,
+  familyId: string,
+  now = new Date(),
+) {
+  return prisma.$transaction(async (transaction) => {
+    const activeToken = await transaction.refreshToken.findFirst({
+      where: {
+        userId,
+        familyId,
+        usedAt: null,
+        revokedAt: null,
+        expiresAt: { gt: now },
+      },
+      select: { tokenHash: true },
+    });
+    if (!activeToken) return null;
+
+    await transaction.refreshToken.updateMany({
+      where: { userId, familyId, revokedAt: null },
+      data: { revokedAt: now },
+    });
+    return activeToken;
+  });
+}
+
+export async function changePasswordAndReplaceSessions(data: {
+  userId: string;
+  currentTokenHash: string;
+  passwordHash: string;
+  nextTokenHash: string;
+  nextFamilyId: string;
+  nextExpiresAt: Date;
+  userAgent: string | null;
+  now?: Date;
+}) {
+  const now = data.now ?? new Date();
+  return prisma.$transaction(async (transaction) => {
+    const currentSession = await transaction.refreshToken.findFirst({
+      where: {
+        userId: data.userId,
+        tokenHash: data.currentTokenHash,
+        usedAt: null,
+        revokedAt: null,
+        expiresAt: { gt: now },
+      },
+      select: { id: true },
+    });
+    if (!currentSession) return null;
+
+    const claimed = await transaction.refreshToken.updateMany({
+      where: {
+        id: currentSession.id,
+        usedAt: null,
+        revokedAt: null,
+      },
+      data: { usedAt: now },
+    });
+    if (claimed.count !== 1) return null;
+
+    const user = await transaction.user.update({
+      where: { id: data.userId },
+      data: {
+        passwordHash: data.passwordHash,
+        authVersion: { increment: 1 },
+      },
+      select: sessionUserSelect,
+    });
+    await transaction.refreshToken.updateMany({
+      where: { userId: data.userId, revokedAt: null },
+      data: { revokedAt: now },
+    });
+    await transaction.refreshToken.create({
+      data: {
+        userId: data.userId,
+        tokenHash: data.nextTokenHash,
+        familyId: data.nextFamilyId,
+        expiresAt: data.nextExpiresAt,
+        userAgent: data.userAgent,
+      },
+    });
+    await transaction.authActionToken.deleteMany({
+      where: { userId: data.userId, type: AuthActionType.PASSWORD_RESET },
+    });
+    return user;
   });
 }
 

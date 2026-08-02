@@ -9,6 +9,7 @@ type SessionRecord = {
   refreshTokenHash: string;
   refreshTokenFamilyId: string;
   refreshTokenExpiresAt: Date;
+  refreshTokenUserAgent: string | null;
 };
 
 type OAuthIdentityRecord = {
@@ -138,6 +139,7 @@ export async function resolveOAuthUserWithSession(
         tokenHash: session.refreshTokenHash,
         familyId: session.refreshTokenFamilyId,
         expiresAt: session.refreshTokenExpiresAt,
+        userAgent: session.refreshTokenUserAgent,
       },
     });
     return user;
@@ -174,6 +176,7 @@ export async function createOAuthUserWithSession(
         tokenHash: session.refreshTokenHash,
         familyId: session.refreshTokenFamilyId,
         expiresAt: session.refreshTokenExpiresAt,
+        userAgent: session.refreshTokenUserAgent,
       },
     });
     return user;

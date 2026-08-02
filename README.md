@@ -8,6 +8,14 @@ The project is designed as a production-oriented full-stack application rather t
 
 > **Status:** Active development. Core recruitment workflows, multilingual dashboards, secure account flows, Google/GitHub sign-in, and Google Meet interview integration are implemented.
 
+## Product Preview
+
+![JobTracker landing page](docs/screenshots/jobtracker-home.png)
+
+| Job discovery | Vacancy details |
+|---|---|
+| ![JobTracker job search](docs/screenshots/jobtracker-jobs.png) | ![JobTracker vacancy details](docs/screenshots/jobtracker-job-details.png) |
+
 ## Product Overview
 
 ### Job Seeker Experience

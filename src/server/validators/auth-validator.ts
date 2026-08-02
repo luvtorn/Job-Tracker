@@ -37,6 +37,16 @@ export const resetPasswordSchema = authTokenSchema.extend({
   password: registerSchema.shape.password,
 }).strict();
 
+export const changePasswordSchema = z.object({
+  currentPassword: passwordInputSchema.min(1, 'Current password is required'),
+  newPassword: registerSchema.shape.password,
+}).strict().refine(
+  ({ currentPassword, newPassword }) => currentPassword !== newPassword,
+  { path: ['newPassword'], message: 'New password must be different' },
+);
+
+export const sessionIdSchema = z.string().uuid('Invalid session identifier');
+
 export const completeOAuthRegistrationSchema = z.object({
   firstName: z.string().trim().min(1, 'First name is required').max(100),
   lastName: z.string().trim().min(1, 'Last name is required').max(100),
@@ -50,3 +60,4 @@ export const authProviderParamSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type CompleteOAuthRegistrationInput = z.infer<typeof completeOAuthRegistrationSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
