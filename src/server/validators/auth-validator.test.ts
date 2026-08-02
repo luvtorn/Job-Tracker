@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  changePasswordSchema,
   completeOAuthRegistrationSchema,
   registerSchema,
   resetPasswordSchema,
@@ -40,5 +41,20 @@ test('rejects passwords that exceed the bcrypt byte boundary', () => {
     email: 'test@example.com',
     password,
     role: 'SEEKER',
+  }).success, false);
+});
+
+test('validates password changes and rejects password reuse', () => {
+  assert.equal(changePasswordSchema.safeParse({
+    currentPassword: 'OldPassword1',
+    newPassword: 'NewPassword2',
+  }).success, true);
+  assert.equal(changePasswordSchema.safeParse({
+    currentPassword: 'SamePassword1',
+    newPassword: 'SamePassword1',
+  }).success, false);
+  assert.equal(changePasswordSchema.safeParse({
+    currentPassword: 'OldPassword1',
+    newPassword: 'weak',
   }).success, false);
 });

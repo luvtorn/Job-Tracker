@@ -5,6 +5,7 @@ import { handleApiError } from "@/server/errors/application-error";
 import { enforceAuthRateLimit } from '@/server/security/request-security';
 import { setAuthCookies } from '@/server/auth/auth-cookies';
 import { getRequestLocale } from '@/i18n/server';
+import { getSessionMetadata } from '@/server/security/session-metadata';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +14,7 @@ export async function POST(request: NextRequest) {
     const result = await authService.register(
       input,
       await getRequestLocale(),
+      getSessionMetadata(request),
     );
     const response = NextResponse.json(
       {

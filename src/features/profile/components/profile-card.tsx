@@ -8,6 +8,7 @@ import Image from "next/image";
 import { CareerDocuments } from "./career-documents";
 import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui/toast";
+import { ProfileSecurity } from './profile-security';
 
 type UserRole = "SEEKER" | "RECRUITER" | "ADMIN";
 
@@ -306,20 +307,7 @@ export function ProfileCard() {
 
       {user.role === "SEEKER" && <CareerDocuments />}
 
-      {/* Security Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
-        <h3 className="text-lg font-semibold text-neutral-900 mb-6">
-          {t("security")}
-        </h3>
-        <div className="space-y-3">
-          <button disabled className="w-full px-4 py-3 border border-neutral-200 rounded-lg text-left font-medium text-neutral-400 cursor-not-allowed">
-            {t("changePassword")}
-          </button>
-          <button disabled className="w-full px-4 py-3 border border-neutral-200 rounded-lg text-left font-medium text-neutral-400 cursor-not-allowed">
-            {t("activeSessions")}
-          </button>
-        </div>
-      </div>
+      <ProfileSecurity />
     </motion.div>
   );
 }

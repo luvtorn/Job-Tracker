@@ -112,6 +112,7 @@ model RefreshToken {
   expiresAt DateTime @map("expires_at")
   usedAt    DateTime? @map("used_at")
   revokedAt DateTime? @map("revoked_at")
+  userAgent String?   @map("user_agent") @db.VarChar(512)
 
   userId String @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

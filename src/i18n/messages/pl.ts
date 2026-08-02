@@ -5,6 +5,13 @@ type Messages = { [K in keyof typeof en]: { [P in keyof (typeof en)[K]]: string 
 type BaseMessages = { [K in keyof typeof en]: Partial<Messages[K]> & Record<string, string> };
 
 const plBase: BaseMessages = {
+  profileSecurity: {
+    title: 'Bezpieczeństwo konta', description: 'Zarządzaj hasłem i urządzeniami zalogowanymi na Twoje konto.',
+    passwordTitle: 'Zmień hasło', passwordDescription: 'Zmiana hasła wyloguje wszystkie pozostałe urządzenia.', currentPassword: 'Obecne hasło', newPassword: 'Nowe hasło', confirmPassword: 'Potwierdź nowe hasło', currentPasswordRequired: 'Wpisz obecne hasło.', currentPasswordIncorrect: 'Obecne hasło jest nieprawidłowe.', passwordRequirements: 'Użyj co najmniej 8 znaków, wielkiej i małej litery oraz cyfry.', passwordsMismatch: 'Nowe hasła nie są takie same.', passwordSame: 'Wybierz hasło inne niż obecne.',
+    updatePassword: 'Zmień hasło', updatingPassword: 'Zmienianie…', passwordUpdated: 'Hasło zostało zmienione. Pozostałe urządzenia wylogowano.', passwordChangeFailed: 'Nie udało się zmienić hasła. Spróbuj ponownie.', passwordUnavailableDescription: 'To konto używa obecnie logowania społecznościowego. Użyj resetowania hasła, aby dodać logowanie e-mailem i hasłem.', resetPassword: 'Ustaw hasło',
+    sessionsTitle: 'Aktywne sesje', sessionsDescription: 'Sprawdź urządzenia mające dostęp do konta i wyloguj te, których nie rozpoznajesz.', sessionsLoading: 'Ładowanie sesji…', sessionsLoadFailed: 'Nie udało się wczytać aktywnych sesji.', noSessions: 'Brak aktywnych sesji.', currentSession: 'To urządzenie', lastActive: 'Ostatnia aktywność: {date}', signOut: 'Wyloguj', sessionRevoked: 'Urządzenie zostało wylogowane.', sessionRevokeFailed: 'Nie udało się wylogować urządzenia.',
+    revokeTitle: 'Wylogować to urządzenie?', revokeDescription: 'Na tym urządzeniu będzie wymagane ponowne logowanie.', revokeCurrentDescription: 'Zostaniesz wylogowany na tym urządzeniu i przeniesiony do strony logowania.', browserEDGE: 'Microsoft Edge', browserCHROME: 'Google Chrome', browserFIREFOX: 'Mozilla Firefox', browserSAFARI: 'Safari', browserUNKNOWN: 'Nieznana przeglądarka', platformWINDOWS: 'Windows', platformMACOS: 'macOS', platformIOS: 'iOS', platformANDROID: 'Android', platformLINUX: 'Linux', platformUNKNOWN: 'Nieznane urządzenie', methodsLoadFailed: 'Nie udało się wczytać ustawień hasła.', tryAgain: 'Spróbuj ponownie',
+  },
   privacy: {
     link: 'Informacja o prywatności', title: 'Informacja o prywatności',
     intro: 'JobTracker używa danych konta i integracji wyłącznie do obsługi wybranych funkcji.',

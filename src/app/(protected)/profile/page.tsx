@@ -9,7 +9,7 @@ export default function ProfilePage() {
   return (
     <div className="h-full">
       <TopBar />
-      <main className="p-6 max-w-2xl">
+      <main className="max-w-3xl p-4 sm:p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-neutral-900">{t('profileTitle')}</h1>
           <p className="text-neutral-600 mt-2">{t('profileDescription')}</p>

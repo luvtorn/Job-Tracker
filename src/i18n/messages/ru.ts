@@ -5,6 +5,13 @@ type Messages = { [K in keyof typeof en]: { [P in keyof (typeof en)[K]]: string 
 type BaseMessages = { [K in keyof typeof en]: Partial<Messages[K]> & Record<string, string> };
 
 const ruBase: BaseMessages = {
+  profileSecurity: {
+    title: 'Безопасность аккаунта', description: 'Управляйте паролем и устройствами, на которых выполнен вход.',
+    passwordTitle: 'Смена пароля', passwordDescription: 'После смены пароля все остальные устройства будут отключены.', currentPassword: 'Текущий пароль', newPassword: 'Новый пароль', confirmPassword: 'Повторите новый пароль', currentPasswordRequired: 'Введите текущий пароль.', currentPasswordIncorrect: 'Текущий пароль указан неверно.', passwordRequirements: 'Минимум 8 символов, заглавная и строчная буквы и цифра.', passwordsMismatch: 'Новые пароли не совпадают.', passwordSame: 'Новый пароль должен отличаться от текущего.',
+    updatePassword: 'Изменить пароль', updatingPassword: 'Изменение…', passwordUpdated: 'Пароль изменён. Остальные устройства отключены.', passwordChangeFailed: 'Не удалось изменить пароль. Попробуйте снова.', passwordUnavailableDescription: 'Сейчас аккаунт использует вход через социальную сеть. Воспользуйтесь восстановлением, чтобы добавить вход по email и паролю.', resetPassword: 'Установить пароль',
+    sessionsTitle: 'Активные сессии', sessionsDescription: 'Проверьте устройства с доступом к аккаунту и отключите незнакомые.', sessionsLoading: 'Загрузка сессий…', sessionsLoadFailed: 'Не удалось загрузить активные сессии.', noSessions: 'Активных сессий нет.', currentSession: 'Это устройство', lastActive: 'Последняя активность: {date}', signOut: 'Выйти', sessionRevoked: 'Устройство отключено.', sessionRevokeFailed: 'Не удалось отключить устройство.',
+    revokeTitle: 'Выйти на этом устройстве?', revokeDescription: 'На этом устройстве потребуется снова войти в аккаунт.', revokeCurrentDescription: 'Вы выйдете из аккаунта на этом устройстве и вернётесь на страницу входа.', browserEDGE: 'Microsoft Edge', browserCHROME: 'Google Chrome', browserFIREFOX: 'Mozilla Firefox', browserSAFARI: 'Safari', browserUNKNOWN: 'Неизвестный браузер', platformWINDOWS: 'Windows', platformMACOS: 'macOS', platformIOS: 'iOS', platformANDROID: 'Android', platformLINUX: 'Linux', platformUNKNOWN: 'Неизвестное устройство', methodsLoadFailed: 'Не удалось загрузить настройки пароля.', tryAgain: 'Попробовать снова',
+  },
   privacy: {
     link: 'Уведомление о конфиденциальности', title: 'Уведомление о конфиденциальности',
     intro: 'JobTracker использует данные аккаунта и интеграций только для выбранных вами функций.',

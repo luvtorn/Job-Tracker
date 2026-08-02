@@ -6,6 +6,7 @@ import { handleApiError, unauthorized } from '@/server/errors/application-error'
 import { verifyAuth } from '@/server/middleware/auth';
 import { authService } from '@/server/services/auth-service';
 import { oauthProviderSchema, oauthService } from '@/server/services/oauth-service';
+import { getSessionMetadata } from '@/server/security/session-metadata';
 
 const resourceIdSchema = z.object({ provider: oauthProviderSchema });
 const querySchema = z.object({
@@ -42,7 +43,7 @@ export async function GET(
       return response;
     }
 
-    const authResult = await authService.signInWithOAuth(identity);
+    const authResult = await authService.signInWithOAuth(identity, getSessionMetadata(request));
     if (authResult) {
       const response = NextResponse.redirect(new URL('/dashboard', request.url));
       clearOAuthFlowCookie(response);

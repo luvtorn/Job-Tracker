@@ -108,6 +108,7 @@ const AUTH_POLICIES: Record<string, RateLimitPolicy> = {
   'reset-password': { limit: 3, windowSeconds: 60 * 60, failClosed: true },
   'resend-verification': { limit: 3, windowSeconds: 60 * 60, failClosed: true },
   'oauth-start': { limit: 20, windowSeconds: 10 * 60, failClosed: true },
+  'change-password': { limit: 5, windowSeconds: 60 * 60, failClosed: true },
 };
 const DEFAULT_AUTH_POLICY: RateLimitPolicy = {
   limit: 20,

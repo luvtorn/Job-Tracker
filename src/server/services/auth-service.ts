@@ -13,13 +13,17 @@ import {
   updateUserLastLogin,
   getUserById,
   updatePasswordHash,
+  changePasswordAndReplaceSessions,
+  listActiveRefreshSessions,
+  revokeRefreshSession,
 } from "@/server/repositories/user-repository";
 import {
   CompleteOAuthRegistrationInput,
   LoginInput,
   RegisterInput,
+  ChangePasswordInput,
 } from "@/server/validators/auth-validator";
-import { conflict, notFound, unauthorized } from "@/server/errors/application-error";
+import { badRequest, conflict, notFound, unauthorized } from "@/server/errors/application-error";
 import {
   generateRefreshToken,
   hashRefreshToken,
@@ -40,13 +44,15 @@ import type { OAuthIdentity } from "@/server/services/oauth-service";
 import { authEmailService } from "@/server/services/auth-email-service";
 import type { AppLocale } from "@/i18n/config";
 import { signAccessToken } from "@/server/services/access-token-service";
+import type { SessionMetadata } from '@/server/security/session-metadata';
+import { describeSessionDevice } from '@/server/services/session-device';
 
 const VERIFY_EMAIL_TTL_MS = 24 * 60 * 60 * 1000;
 const PASSWORD_RESET_TTL_MS = 30 * 60 * 1000;
 const DUMMY_PASSWORD_HASH = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOqM4G8TqRZcGuk1unTzXcVj7r5yK2Nte';
 
 export class AuthService {
-  async register(input: RegisterInput, locale: AppLocale) {
+  async register(input: RegisterInput, locale: AppLocale, metadata: SessionMetadata) {
     const email = input.email.toLowerCase();
     const existingUser = await getUserByEmail(email);
     if (existingUser) {
@@ -54,7 +60,7 @@ export class AuthService {
     }
 
     const passwordHash = await hashPassword(input.password);
-    const session = this.createSessionCredentials();
+    const session = this.createSessionCredentials(metadata);
     const verification = this.createActionToken(VERIFY_EMAIL_TTL_MS);
 
     const user = await createUserWithRefreshToken({
@@ -66,6 +72,7 @@ export class AuthService {
       refreshTokenHash: hashRefreshToken(session.refreshToken),
       refreshTokenFamilyId: session.refreshTokenFamilyId,
       refreshTokenExpiresAt: session.refreshTokenExpiresAt,
+      refreshTokenUserAgent: session.refreshTokenUserAgent,
       actionToken: {
         tokenHash: verification.tokenHash,
         type: AuthActionType.VERIFY_EMAIL,
@@ -78,7 +85,7 @@ export class AuthService {
     return { ...this.createAuthResult(user, session), emailSent };
   }
 
-  async login(input: LoginInput) {
+  async login(input: LoginInput, metadata: SessionMetadata) {
     const user = await getUserByEmail(input.email.toLowerCase());
 
     if (!user) {
@@ -104,7 +111,7 @@ export class AuthService {
       await updatePasswordHash(user.id, await hashPassword(input.password));
     }
 
-    const session = this.createSessionCredentials();
+    const session = this.createSessionCredentials(metadata);
 
     await deleteExpiredRefreshTokens(user.id);
     await createRefreshToken(
@@ -112,6 +119,7 @@ export class AuthService {
       hashRefreshToken(session.refreshToken),
       session.refreshTokenFamilyId,
       session.refreshTokenExpiresAt,
+      session.refreshTokenUserAgent,
     );
 
     return this.createAuthResult(user, session);
@@ -182,12 +190,13 @@ export class AuthService {
     return this.toPublicUser(user);
   }
 
-  async signInWithOAuth(identity: OAuthIdentity) {
-    const session = this.createSessionCredentials();
+  async signInWithOAuth(identity: OAuthIdentity, metadata: SessionMetadata) {
+    const session = this.createSessionCredentials(metadata);
     const user = await resolveOAuthUserWithSession(identity, {
       refreshTokenHash: hashRefreshToken(session.refreshToken),
       refreshTokenFamilyId: session.refreshTokenFamilyId,
       refreshTokenExpiresAt: session.refreshTokenExpiresAt,
+      refreshTokenUserAgent: session.refreshTokenUserAgent,
     });
     return user ? this.createAuthResult(user, session) : null;
   }
@@ -195,13 +204,15 @@ export class AuthService {
   async completeOAuthRegistration(
     identity: OAuthIdentity,
     input: CompleteOAuthRegistrationInput,
+    metadata: SessionMetadata,
   ) {
-    const session = this.createSessionCredentials();
+    const session = this.createSessionCredentials(metadata);
     try {
       const user = await createOAuthUserWithSession(identity, input, {
         refreshTokenHash: hashRefreshToken(session.refreshToken),
         refreshTokenFamilyId: session.refreshTokenFamilyId,
         refreshTokenExpiresAt: session.refreshTokenExpiresAt,
+        refreshTokenUserAgent: session.refreshTokenUserAgent,
       });
       return this.createAuthResult(user, session);
     } catch (error) {
@@ -227,6 +238,61 @@ export class AuthService {
     if (result === "NOT_FOUND") throw notFound("Connected account not found");
   }
 
+  async listSessions(userId: string, currentRefreshToken?: string) {
+    const currentHash = currentRefreshToken ? hashRefreshToken(currentRefreshToken) : null;
+    const sessions = await listActiveRefreshSessions(userId);
+    return sessions.map((session) => ({
+      id: session.familyId,
+      ...describeSessionDevice(session.userAgent),
+      createdAt: session.createdAt,
+      expiresAt: session.expiresAt,
+      isCurrent: session.tokenHash === currentHash,
+    }));
+  }
+
+  async revokeSession(userId: string, familyId: string, currentRefreshToken?: string) {
+    const revoked = await revokeRefreshSession(userId, familyId);
+    if (!revoked) throw notFound('Session not found');
+    return {
+      isCurrent: currentRefreshToken
+        ? revoked.tokenHash === hashRefreshToken(currentRefreshToken)
+        : false,
+    };
+  }
+
+  async changePassword(
+    userId: string,
+    input: ChangePasswordInput,
+    currentRefreshToken: string,
+    metadata: SessionMetadata,
+  ) {
+    const existingUser = await getUserById(userId);
+    if (!existingUser || existingUser.deletedAt) throw unauthorized();
+    if (!existingUser.passwordHash) {
+      throw conflict('Password sign-in is not enabled for this account');
+    }
+    if (!await verifyPassword(input.currentPassword, existingUser.passwordHash)) {
+      throw badRequest('Current password is incorrect');
+    }
+    if (await verifyPassword(input.newPassword, existingUser.passwordHash)) {
+      throw badRequest('New password must be different');
+    }
+
+    const passwordHash = await hashPassword(input.newPassword);
+    const session = this.createSessionCredentials(metadata);
+    const user = await changePasswordAndReplaceSessions({
+      userId,
+      currentTokenHash: hashRefreshToken(currentRefreshToken),
+      passwordHash,
+      nextTokenHash: hashRefreshToken(session.refreshToken),
+      nextFamilyId: session.refreshTokenFamilyId,
+      nextExpiresAt: session.refreshTokenExpiresAt,
+      userAgent: session.refreshTokenUserAgent,
+    });
+    if (!user) throw unauthorized('Invalid session');
+    return this.createAuthResult(user, session);
+  }
+
   private createActionToken(ttlMs: number) {
     const token = randomBytes(32).toString("base64url");
     return {
@@ -249,11 +315,12 @@ export class AuthService {
     }
   }
 
-  private createSessionCredentials() {
+  private createSessionCredentials(metadata: SessionMetadata) {
     return {
       refreshToken: generateRefreshToken(),
       refreshTokenFamilyId: randomUUID(),
       refreshTokenExpiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+      refreshTokenUserAgent: metadata.userAgent,
     };
   }
 
@@ -273,6 +340,7 @@ export class AuthService {
       refreshToken: string;
       refreshTokenFamilyId: string;
       refreshTokenExpiresAt: Date;
+      refreshTokenUserAgent: string | null;
     },
   ) {
     return {
