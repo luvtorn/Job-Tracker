@@ -73,6 +73,7 @@ export class AuthService {
       refreshTokenFamilyId: session.refreshTokenFamilyId,
       refreshTokenExpiresAt: session.refreshTokenExpiresAt,
       refreshTokenUserAgent: session.refreshTokenUserAgent,
+      preferredLocale: locale,
       actionToken: {
         tokenHash: verification.tokenHash,
         type: AuthActionType.VERIFY_EMAIL,
@@ -205,10 +206,11 @@ export class AuthService {
     identity: OAuthIdentity,
     input: CompleteOAuthRegistrationInput,
     metadata: SessionMetadata,
+    locale: AppLocale,
   ) {
     const session = this.createSessionCredentials(metadata);
     try {
-      const user = await createOAuthUserWithSession(identity, input, {
+      const user = await createOAuthUserWithSession(identity, { ...input, preferredLocale: locale }, {
         refreshTokenHash: hashRefreshToken(session.refreshToken),
         refreshTokenFamilyId: session.refreshTokenFamilyId,
         refreshTokenExpiresAt: session.refreshTokenExpiresAt,

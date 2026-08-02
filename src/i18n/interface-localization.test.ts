@@ -42,6 +42,12 @@ const files = [
   'src/features/jobs/components/jobs-list.tsx',
   'src/features/jobs/components/wishlist-toggle.tsx',
   'src/features/jobs/components/apply-button.tsx',
+  'src/app/(protected)/messages/page.tsx',
+  'src/features/chat/components/messages-workspace.tsx',
+  'src/features/chat/components/conversation-list.tsx',
+  'src/features/chat/components/conversation-thread.tsx',
+  'src/features/chat/components/chat-notification-preferences.tsx',
+  'src/components/ui/theme-switcher.tsx',
   'src/app/not-found.tsx',
   'src/app/privacy/page.tsx',
 ];
@@ -81,6 +87,9 @@ const forbiddenInterfaceText = [
   'placeholder="you@example.com"',
   'placeholder="John"',
   'placeholder="Doe"',
+  '>Messages<',
+  '>Write a message<',
+  '>No conversations yet<',
 ];
 
 test('core localized interfaces do not reintroduce hardcoded English copy', () => {

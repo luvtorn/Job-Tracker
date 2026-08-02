@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { TrendingUp, Target, Clock, CheckCircle2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useTheme } from '@/features/theme/theme-context';
 
 interface StatsData {
   stats: {
@@ -40,6 +41,8 @@ export function StatisticsCharts() {
   const common = useTranslations('common');
   const statusT = useTranslations('statuses');
   const locale = useLocale();
+  const { resolvedTheme } = useTheme();
+  const chartGrid = resolvedTheme === 'dark' ? '#334155' : '#e5e7eb';
   const [data, setData] = useState<StatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -208,7 +211,7 @@ export function StatisticsCharts() {
                 data={data.applicationsByDate.slice(-14).map((item) => ({ ...item, date: new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${item.date}T00:00:00Z`)) }))}
                 margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
                 <XAxis
                   dataKey="date"
                   stroke="#9ca3af"

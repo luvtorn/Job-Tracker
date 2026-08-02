@@ -1,7 +1,9 @@
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
+
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return <><div className="fixed right-4 top-4 z-50"><ThemeSwitcher /></div>{children}</>;
 }

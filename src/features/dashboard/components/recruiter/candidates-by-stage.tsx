@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useTranslations } from 'next-intl';
+import { useTheme } from '@/features/theme/theme-context';
 
 interface CandidateStage {
   stage: string;
@@ -31,6 +32,8 @@ const stageColors: Record<string, string> = {
 export function CandidatesByStage({ candidates }: CandidatesByStageProps) {
   const t = useTranslations('dashboard');
   const statusT = useTranslations('statuses');
+  const { resolvedTheme } = useTheme();
+  const chartGrid = resolvedTheme === 'dark' ? '#334155' : '#e5e7eb';
   const stageLabel = (stage: string) => statusT(stage.toLowerCase() as 'applied' | 'interviewing' | 'offer' | 'accepted');
 
   if (candidates.length === 0) {
@@ -62,7 +65,7 @@ export function CandidatesByStage({ candidates }: CandidatesByStageProps) {
           data={stagesData}
           margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
           <XAxis
             dataKey="label"
             stroke="#9ca3af"

@@ -64,6 +64,11 @@ model User {
   contacts                 Contact[]
   applicationNotes         ApplicationNote[]
   tags                     Tag[]
+  sentMessages             ApplicationMessage[]
+  chatStates               ApplicationChatState[]
+
+  preferredLocale        String  @default("en") @map("preferred_locale") @db.VarChar(5)
+  chatEmailNotifications Boolean @default(true) @map("chat_email_notifications")
 
   @@index([email])
   @@index([role])
@@ -243,6 +248,8 @@ model Application {
   documents     ApplicationDocument[]
   notes         ApplicationNote[]
   tags          ApplicationTag[]
+  messages      ApplicationMessage[]
+  chatStates    ApplicationChatState[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -253,6 +260,55 @@ model Application {
   @@index([status])
   @@index([createdAt(sort: Desc)])
   @@map("applications")
+}
+
+model ApplicationMessage {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  applicationId String      @map("application_id") @db.Uuid
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  senderId String @map("sender_id") @db.Uuid
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  clientMessageId String   @map("client_message_id") @db.Uuid
+  content         String   @db.VarChar(2000)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  readStates     ApplicationChatState[] @relation("LastReadMessage")
+  reminderStates ApplicationChatState[] @relation("ScheduledEmailMessage")
+
+  @@unique([senderId, clientMessageId])
+  @@index([applicationId, createdAt(sort: Desc)])
+  @@index([senderId])
+  @@map("application_messages")
+}
+
+model ApplicationChatState {
+  applicationId String      @map("application_id") @db.Uuid
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  userId String @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  unreadCount   Int       @default(0) @map("unread_count")
+  lastMessageAt DateTime? @map("last_message_at")
+
+  lastReadMessageId String?             @map("last_read_message_id") @db.Uuid
+  lastReadMessage   ApplicationMessage? @relation("LastReadMessage", fields: [lastReadMessageId], references: [id], onDelete: SetNull)
+
+  scheduledEmailId        String?             @map("scheduled_email_id") @db.VarChar(255)
+  scheduledEmailAt        DateTime?           @map("scheduled_email_at")
+  scheduledEmailMessageId String?             @map("scheduled_email_message_id") @db.Uuid
+  scheduledEmailMessage   ApplicationMessage? @relation("ScheduledEmailMessage", fields: [scheduledEmailMessageId], references: [id], onDelete: SetNull)
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([applicationId, userId])
+  @@index([userId, unreadCount])
+  @@index([userId, lastMessageAt(sort: Desc)])
+  @@index([scheduledEmailAt])
+  @@map("application_chat_states")
 }
 
 model Document {

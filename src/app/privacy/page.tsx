@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 export default async function PrivacyPage() {
   const t = await getTranslations('privacy');
@@ -14,7 +15,7 @@ export default async function PrivacyPage() {
   return (
     <main className="min-h-screen bg-neutral-50 px-4 py-10">
       <div className="mx-auto max-w-3xl">
-        <div className="mb-8 flex justify-end"><LanguageSwitcher /></div>
+        <div className="mb-8 flex justify-end gap-2"><LanguageSwitcher /><ThemeSwitcher /></div>
         <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-10">
           <h1 className="text-3xl font-bold text-neutral-900">{t('title')}</h1>
           <p className="mt-4 text-neutral-600">{t('intro')}</p>

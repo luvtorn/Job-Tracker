@@ -7,6 +7,7 @@ import { authService } from '@/server/services/auth-service';
 import { oauthService } from '@/server/services/oauth-service';
 import { completeOAuthRegistrationSchema } from '@/server/validators/auth-validator';
 import { getSessionMetadata } from '@/server/security/session-metadata';
+import { getRequestLocale } from '@/i18n/server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
       identity,
       input,
       getSessionMetadata(request),
+      await getRequestLocale(),
     );
     const response = NextResponse.json({ success: true, user: result.user }, { status: 201 });
     clearOAuthRegistrationCookie(response);

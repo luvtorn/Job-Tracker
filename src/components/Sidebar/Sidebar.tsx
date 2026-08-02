@@ -16,10 +16,12 @@ import {
   ContactRound,
   NotebookPen,
   Settings,
+  MessageCircle,
 } from "lucide-react";
 import { useTranslations } from 'next-intl';
+import { useChatUnread } from '@/hooks/use-chat-unread';
 
-type NavigationKey = 'dashboard' | 'applications' | 'findJobs' | 'wishlist' | 'calendar' | 'contacts' | 'notes' | 'notifications' | 'statistics' | 'profile' | 'settings';
+type NavigationKey = 'dashboard' | 'applications' | 'findJobs' | 'wishlist' | 'calendar' | 'messages' | 'contacts' | 'notes' | 'notifications' | 'statistics' | 'profile' | 'settings';
 type SectionKey = 'workspace' | 'analytics' | 'settings' | 'applications';
 
 interface NavItem {
@@ -56,6 +58,7 @@ const navItems: NavItem[] = [
     href: "/calendar",
     icon: <CalendarDays size={20} />,
   },
+  { label: 'messages', href: '/messages', icon: <MessageCircle size={20} /> },
   { label: "contacts", href: "/contacts", icon: <ContactRound size={20} />, section: "workspace" },
   { label: "notes", href: "/notes", icon: <NotebookPen size={20} /> },
   {
@@ -87,6 +90,7 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const t = useTranslations('navigation');
+  const { unreadCount } = useChatUnread();
 
   const getSections = () => {
     const sections: { [key: string]: NavItem[] } = {};
@@ -162,7 +166,7 @@ export function Sidebar({
                         className={clsx(
                           "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group",
                           isActive
-                            ? "bg-primary-100 text-primary-700"
+                            ? "bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-200"
                             : "text-neutral-700 hover:bg-neutral-100",
                         )}
                       >
@@ -170,7 +174,7 @@ export function Sidebar({
                           className={clsx(
                             "transition-colors",
                             isActive
-                              ? "text-primary-600"
+                              ? "text-primary-600 dark:text-primary-300"
                               : "text-neutral-400 group-hover:text-neutral-600",
                           )}
                         >
@@ -179,6 +183,11 @@ export function Sidebar({
                         <span className="text-sm font-medium">
                           {t(item.label)}
                         </span>
+                        {item.label === 'messages' && unreadCount > 0 && (
+                          <span className="ml-auto min-w-5 rounded-full bg-primary-600 px-1.5 text-center text-xs font-semibold text-white">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </span>
+                        )}
                       </Link>
                     );
                   })}

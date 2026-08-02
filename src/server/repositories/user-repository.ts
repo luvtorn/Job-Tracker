@@ -42,6 +42,7 @@ export async function createUserWithRefreshToken(data: {
   refreshTokenFamilyId: string;
   refreshTokenExpiresAt: Date;
   refreshTokenUserAgent: string | null;
+  preferredLocale: string;
   actionToken?: {
     tokenHash: string;
     type: AuthActionType;
@@ -57,6 +58,7 @@ export async function createUserWithRefreshToken(data: {
         lastName: data.lastName,
         role: data.role,
         lastLoginAt: new Date(),
+        preferredLocale: data.preferredLocale,
       },
       select: sessionUserSelect,
     });
@@ -310,5 +312,27 @@ export function updateUserAvatar(
     where: { id: userId },
     data: { avatarUrl, avatarPublicId },
     select: publicUserSelect,
+  });
+}
+
+export function updatePreferredLocale(userId: string, preferredLocale: string) {
+  return prisma.user.updateMany({
+    where: { id: userId, deletedAt: null },
+    data: { preferredLocale },
+  });
+}
+
+export function getChatNotificationPreferences(userId: string) {
+  return prisma.user.findFirst({
+    where: { id: userId, deletedAt: null },
+    select: { chatEmailNotifications: true },
+  });
+}
+
+export function updateChatNotificationPreferences(userId: string, chatEmailNotifications: boolean) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { chatEmailNotifications },
+    select: { chatEmailNotifications: true },
   });
 }

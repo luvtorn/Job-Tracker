@@ -25,12 +25,21 @@ export const toNotificationDto = (notification: Notification): NotificationDto =
     messageKey = metadata.rescheduled ? 'interviewRescheduledMessage' : 'interviewScheduledMessage';
     params = { vacancy: metadata.vacancyTitle, company: metadata.company ?? '', date: metadata.interviewDate, time: metadata.interviewTime };
     action = { href: '/calendar', labelKey: 'openCalendar' };
+  } else if (metadata?.kind === 'NEW_MESSAGE') {
+    titleKey = 'newMessageTitle';
+    messageKey = 'newMessageMessage';
+    params = { sender: metadata.senderName, vacancy: metadata.vacancyTitle };
+    if (notification.applicationId) {
+      action = { href: `/messages?applicationId=${notification.applicationId}`, labelKey: 'openConversation' };
+    }
   } else if (notification.type === 'NEW_APPLICATION' && notification.applicationId) {
     action = { href: `/candidates/${notification.applicationId}`, labelKey: 'viewCandidate' };
   } else if (notification.type === 'APPLICATION_STATUS_CHANGED') {
     action = { href: '/applications', labelKey: 'viewApplication' };
   } else if (notification.type === 'INTERVIEW_SCHEDULED') {
     action = { href: '/calendar', labelKey: 'openCalendar' };
+  } else if (notification.type === 'NEW_MESSAGE' && notification.applicationId) {
+    action = { href: `/messages?applicationId=${notification.applicationId}`, labelKey: 'openConversation' };
   }
 
   return {

@@ -238,10 +238,10 @@ export function VacanciesList() {
             )}
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${
               vacancy.status === 'PUBLISHED'
-                ? 'bg-green-100 text-green-700'
+                ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300 dark:ring-1 dark:ring-green-800'
                 : vacancy.status === 'ARCHIVED'
-                  ? 'bg-neutral-100 text-neutral-700'
-                : 'bg-yellow-100 text-yellow-700'
+                  ? 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:ring-1 dark:ring-neutral-700'
+                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300 dark:ring-1 dark:ring-yellow-800'
             }`}>
               {vacancy.status === 'PUBLISHED' ? t('published') : vacancy.status === 'ARCHIVED' ? t('archived') : t('closed')}
             </span>

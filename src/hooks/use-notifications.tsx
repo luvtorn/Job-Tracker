@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useToast } from '@/components/ui/toast';
 import { useAuth } from '@/features/auth/context/auth-context';
 import type { NotificationDto } from '@/types/notification';
+import { CHAT_REFRESH_EVENT } from '@/hooks/use-chat-unread';
 
 type NotificationsResponse = {
   notifications: NotificationDto[];
@@ -142,6 +143,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       try {
         const notification = JSON.parse(event.data) as NotificationDto;
         setNotifications((current) => current.some((item) => item.id === notification.id) ? current : [notification, ...current]);
+        if (notification.type === 'NEW_MESSAGE') window.dispatchEvent(new Event(CHAT_REFRESH_EVENT));
         channel?.postMessage({ type: 'refresh' });
       } catch {
         void fetchNotifications(true);

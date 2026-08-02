@@ -72,7 +72,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50 to-neutral-50 flex items-center justify-center px-4"><div className="absolute right-4 top-4"><LanguageSwitcher /></div>
+    <div className="relative min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50 to-neutral-50 flex items-center justify-center px-4 dark:from-[#0b1120] dark:via-[#172033] dark:to-[#0b1120]"><div className="absolute right-16 top-4"><LanguageSwitcher /></div>
       <div className="w-full max-w-md">
         <AuthLogo />
 

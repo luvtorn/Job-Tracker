@@ -15,6 +15,7 @@ import {
   Bar,
 } from 'recharts';
 import { useLocale, useTranslations } from 'next-intl';
+import { useTheme } from '@/features/theme/theme-context';
 
 interface ChartsData {
   statusDistribution: Array<{ status: string; name: string; value: number; fill: string }>;
@@ -25,6 +26,8 @@ export function DashboardCharts() {
   const t = useTranslations('dashboard');
   const statusT = useTranslations('statuses');
   const locale = useLocale();
+  const { resolvedTheme } = useTheme();
+  const chartGrid = resolvedTheme === 'dark' ? '#334155' : '#e5e7eb';
   const [data, setData] = useState<ChartsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -131,7 +134,7 @@ export function DashboardCharts() {
               data={data.applicationsByDate.slice(-14)}
               margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
               <XAxis
                 dataKey="date"
                 tickFormatter={formatDate}

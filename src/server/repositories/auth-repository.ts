@@ -148,7 +148,7 @@ export async function resolveOAuthUserWithSession(
 
 export async function createOAuthUserWithSession(
   identity: OAuthIdentityRecord,
-  input: { firstName: string; lastName: string; role: 'SEEKER' | 'RECRUITER' },
+  input: { firstName: string; lastName: string; role: 'SEEKER' | 'RECRUITER'; preferredLocale: string },
   session: SessionRecord,
 ) {
   return prisma.$transaction(async (transaction) => {
@@ -160,6 +160,7 @@ export async function createOAuthUserWithSession(
         lastName: input.lastName,
         role: input.role,
         lastLoginAt: new Date(),
+        preferredLocale: input.preferredLocale,
       },
       select: sessionUserSelect,
     });
