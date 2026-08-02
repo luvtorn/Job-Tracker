@@ -52,10 +52,10 @@ export function TopBar() {
   const displayName = user ? `${user.firstName} ${user.lastName}` : 'User';
 
   return (
-    <div className="sticky top-0 z-20 bg-white border-b border-neutral-200 px-6 py-4">
+    <div className="sticky top-0 z-20 border-b border-neutral-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
       <div className="flex items-center justify-between">
         {/* Search */}
-        <div className="flex-1 max-w-md">
+        <div className="hidden max-w-md flex-1 lg:block">
           <div className="relative">
             <Search className="absolute left-3 top-3 text-neutral-400" size={18} />
             <input
@@ -67,15 +67,16 @@ export function TopBar() {
         </div>
 
         {/* Right section */}
-        <div className="flex items-center gap-3 sm:gap-6 ml-auto">
+        <div className="ml-auto flex w-full items-center justify-end gap-2 sm:gap-4 lg:w-auto lg:gap-6">
           <LanguageSwitcher />
           {/* Notifications */}
           <div className="relative" ref={notificationsRef}>
             <button
               onClick={() => setNotificationsOpen(!notificationsOpen)}
+              aria-label={t('topbar.notifications')}
               className="p-2 hover:bg-neutral-100 rounded-lg transition-colors relative"
             >
-              <Bell size={20} className="text-neutral-600" aria-label={t('topbar.notifications')} />
+              <Bell size={20} className="text-neutral-600" aria-hidden="true" />
               {unreadCount > 0 && (
                 <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                   {unreadCount > 9 ? '9+' : unreadCount}
@@ -89,7 +90,7 @@ export function TopBar() {
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center gap-3 hover:bg-neutral-100 px-3 py-2 rounded-lg transition-colors"
+              className="flex items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-neutral-100 sm:px-3 sm:py-2"
             >
               {user?.avatarUrl ? (
                 <Image
