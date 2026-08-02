@@ -64,7 +64,7 @@ export function ChangePasswordForm({ onChanged }: ChangePasswordFormProps) {
   const inputClass = 'mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-neutral-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100';
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+    <section className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="flex items-start gap-3">
         <span className="rounded-lg bg-primary-50 p-2 text-primary-600"><KeyRound size={20} /></span>
         <div>
@@ -87,7 +87,7 @@ export function ChangePasswordForm({ onChanged }: ChangePasswordFormProps) {
         </label>
         <p className="text-xs leading-5 text-neutral-500">{t('passwordRequirements')}</p>
         {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-        <button type="submit" disabled={isSaving} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50">
+        <button type="submit" disabled={isSaving} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
           {isSaving && <Loader2 size={16} className="animate-spin" />}
           {isSaving ? t('updatingPassword') : t('updatePassword')}
         </button>

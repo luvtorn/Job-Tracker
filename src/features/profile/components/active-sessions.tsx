@@ -74,7 +74,7 @@ export function ActiveSessions({ reloadKey }: { reloadKey: number }) {
   }).format(new Date(value));
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+    <section className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
       <h3 className="font-semibold text-neutral-900">{t('sessionsTitle')}</h3>
       <p className="mt-1 text-sm text-neutral-600">{t('sessionsDescription')}</p>
       {isLoading ? (
@@ -91,14 +91,16 @@ export function ActiveSessions({ reloadKey }: { reloadKey: number }) {
           {sessions.map((session) => {
             const DeviceIcon = session.deviceType === 'MOBILE' ? Smartphone : Laptop;
             return (
-              <li key={session.id} className="flex items-start gap-3 py-4 first:pt-0 last:pb-0">
-                <span className="rounded-lg bg-neutral-100 p-2 text-neutral-600"><DeviceIcon size={20} /></span>
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-neutral-900">{t(`browser${session.browser}`)} · {t(`platform${session.platform}`)}</p>
-                  <p className="mt-1 text-xs text-neutral-500">{t('lastActive', { date: formatDate(session.createdAt) })}</p>
-                  {session.isCurrent && <span className="mt-2 inline-block rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">{t('currentSession')}</span>}
+              <li key={session.id} className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-start">
+                <div className="flex min-w-0 items-start gap-3 sm:flex-1">
+                  <span className="shrink-0 rounded-lg bg-neutral-100 p-2 text-neutral-600"><DeviceIcon size={20} /></span>
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words font-medium text-neutral-900">{t(`browser${session.browser}`)} · {t(`platform${session.platform}`)}</p>
+                    <p className="mt-1 text-xs leading-5 text-neutral-500">{t('lastActive', { date: formatDate(session.createdAt) })}</p>
+                    {session.isCurrent && <span className="mt-2 inline-block rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">{t('currentSession')}</span>}
+                  </div>
                 </div>
-                <button type="button" onClick={() => setSelected(session)} className="shrink-0 rounded-lg px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500">
+                <button type="button" onClick={() => setSelected(session)} className="w-full shrink-0 rounded-lg border border-red-100 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 sm:w-auto sm:border-transparent">
                   {t('signOut')}
                 </button>
               </li>

@@ -175,7 +175,7 @@ export function CareerDocuments() {
   };
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-8 shadow-sm">
+    <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8">
       <h3 className="text-lg font-semibold text-neutral-900">{t('careerDocuments')}</h3>
       <p className="mt-1 text-sm text-neutral-600">{t('documentsHelp')}</p>
       {isLoading ? <div className="mt-6 grid gap-4 sm:grid-cols-2">{[0, 1].map((item) => <div key={item} className="h-36 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />)}</div> :

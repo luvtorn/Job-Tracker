@@ -41,9 +41,9 @@ export function ProfileSecurity() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <span className="rounded-xl bg-primary-50 p-2.5 text-primary-600"><ShieldCheck size={22} /></span>
-        <div>
+      <div className="flex items-start gap-3">
+        <span className="shrink-0 rounded-xl bg-primary-50 p-2.5 text-primary-600"><ShieldCheck size={22} /></span>
+        <div className="min-w-0">
           <h2 className="text-lg font-semibold text-neutral-900">{t('title')}</h2>
           <p className="mt-1 text-sm text-neutral-600">{t('description')}</p>
         </div>
@@ -59,7 +59,7 @@ export function ProfileSecurity() {
       ) : hasPassword ? (
         <ChangePasswordForm onChanged={() => setSessionsReloadKey((value) => value + 1)} />
       ) : (
-        <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <section className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
           <h3 className="font-semibold text-neutral-900">{t('passwordTitle')}</h3>
           <p className="mt-2 text-sm leading-6 text-neutral-600">{t('passwordUnavailableDescription')}</p>
           <Link href="/auth/forgot-password" className="mt-4 inline-flex rounded-lg border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-800 hover:bg-neutral-50">

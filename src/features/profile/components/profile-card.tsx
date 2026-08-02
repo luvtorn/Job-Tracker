@@ -144,9 +144,9 @@ export function ProfileCard() {
       className="space-y-6"
     >
       {/* Avatar Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
-        <div className="flex items-center gap-6">
-          <div className="relative group">
+      <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8">
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
+          <div className="group relative shrink-0">
             {user.avatarUrl ? (
               <Image
                 src={user.avatarUrl}
@@ -182,16 +182,16 @@ export function ProfileCard() {
               className="hidden"
             />
           </div>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold text-neutral-900">
+          <div className="min-w-0 w-full text-center sm:flex-1 sm:text-left">
+            <h2 className="break-words text-xl font-bold text-neutral-900 sm:text-2xl">
               {user.firstName} {user.lastName}
             </h2>
-            <p className="text-neutral-600 flex items-center gap-2 mt-2">
-              <Mail size={16} />
-              {user.email}
+            <p className="mt-2 flex min-w-0 items-start justify-center gap-2 text-neutral-600 sm:justify-start">
+              <Mail size={16} className="mt-1 shrink-0" />
+              <span className="min-w-0 break-all">{user.email}</span>
             </p>
-            <p className="text-neutral-600 flex items-center gap-2 mt-1">
-              <User size={16} />
+            <p className="mt-1 flex items-center justify-center gap-2 text-neutral-600 sm:justify-start">
+              <User size={16} className="shrink-0" />
               {user.role === "SEEKER" ? t("seeker") : t("recruiter")}
             </p>
             {uploadError && (
@@ -202,7 +202,7 @@ export function ProfileCard() {
       </div>
 
       {/* Profile Information */}
-      <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
+      <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-neutral-900">
             {t("personalInformation")}
@@ -217,7 +217,7 @@ export function ProfileCard() {
 
         {isEditing ? (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   {t("firstName")}
@@ -260,18 +260,18 @@ export function ProfileCard() {
               </p>
             </div>
 
-            <div className="flex gap-3 pt-4">
+            <div className="flex flex-col gap-3 pt-4 sm:flex-row">
               <button
                 type="submit"
                 disabled={isSaving}
-                className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium disabled:opacity-50"
+                className="w-full rounded-lg bg-primary-600 px-6 py-2 font-medium text-white transition-colors hover:bg-primary-700 disabled:opacity-50 sm:w-auto"
               >
                 {isSaving ? t("saving") : t("saveChanges")}
               </button>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="px-6 py-2 border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors font-medium"
+                className="w-full rounded-lg border border-neutral-200 px-6 py-2 font-medium text-neutral-700 transition-colors hover:bg-neutral-50 sm:w-auto"
               >
                 {common("cancel")}
               </button>
@@ -279,25 +279,25 @@ export function ProfileCard() {
           </form>
         ) : (
           <div className="space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
+            <div className="flex flex-col items-start gap-1 border-b border-neutral-100 pb-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <span className="text-neutral-600">{t("firstName")}</span>
-              <span className="font-medium text-neutral-900">
+              <span className="w-full break-words font-medium text-neutral-900 sm:w-auto sm:max-w-[65%] sm:text-right">
                 {user.firstName}
               </span>
             </div>
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
+            <div className="flex flex-col items-start gap-1 border-b border-neutral-100 pb-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <span className="text-neutral-600">{t("lastName")}</span>
-              <span className="font-medium text-neutral-900">
+              <span className="w-full break-words font-medium text-neutral-900 sm:w-auto sm:max-w-[65%] sm:text-right">
                 {user.lastName}
               </span>
             </div>
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
+            <div className="flex flex-col items-start gap-1 border-b border-neutral-100 pb-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <span className="text-neutral-600">{t("email")}</span>
-              <span className="font-medium text-neutral-900">{user.email}</span>
+              <span className="w-full break-all font-medium text-neutral-900 sm:w-auto sm:max-w-[65%] sm:text-right">{user.email}</span>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <span className="text-neutral-600">{t("accountType")}</span>
-              <span className="font-medium text-neutral-900">
+              <span className="w-full break-words font-medium text-neutral-900 sm:w-auto sm:max-w-[65%] sm:text-right">
                 {user.role === "SEEKER" ? t("seeker") : t("recruiter")}
               </span>
             </div>
