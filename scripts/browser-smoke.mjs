@@ -21,14 +21,15 @@ const browser = await chromium.launch({ headless: true, ...(executablePath ? { e
 
 try {
   const locales = [
-    { header: 'en-US', locale: 'en', expected: 'Find Your Next', jobsSearch: 'Search jobs\u2026', tableLabel: 'Table', google: 'Continue with Google', privacy: 'Privacy notice' },
-    { header: 'pl-PL', locale: 'pl', expected: 'Znajd\u017a swoj\u0105 nast\u0119pn\u0105', jobsSearch: 'Szukaj ofert\u2026', tableLabel: 'Tabela', google: 'Kontynuuj przez Google', privacy: 'Informacja o prywatno\u015bci' },
-    { header: 'ru-RU', locale: 'ru', expected: '\u041d\u0430\u0439\u0434\u0438\u0442\u0435 \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0443\u044e', jobsSearch: '\u041f\u043e\u0438\u0441\u043a \u0432\u0430\u043a\u0430\u043d\u0441\u0438\u0439\u2026', tableLabel: '\u0422\u0430\u0431\u043b\u0438\u0446\u0430', google: '\u041f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u044c \u0447\u0435\u0440\u0435\u0437 Google', privacy: '\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u0435 \u043e \u043a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0441\u0442\u0438' },
+    { header: 'en-US', locale: 'en', expected: 'Find Your Next', jobsSearch: 'Search jobs\u2026', tableLabel: 'Table', google: 'Continue with Google', privacy: 'Privacy notice', systemToLight: 'Current theme: System. Switch to Light.', lightToDark: 'Current theme: Light. Switch to Dark.' },
+    { header: 'pl-PL', locale: 'pl', expected: 'Znajd\u017a swoj\u0105 nast\u0119pn\u0105', jobsSearch: 'Szukaj ofert\u2026', tableLabel: 'Tabela', google: 'Kontynuuj przez Google', privacy: 'Informacja o prywatno\u015bci', systemToLight: 'Bie\u017c\u0105cy motyw: Systemowy. Prze\u0142\u0105cz na Jasny.', lightToDark: 'Bie\u017c\u0105cy motyw: Jasny. Prze\u0142\u0105cz na Ciemny.' },
+    { header: 'ru-RU', locale: 'ru', expected: '\u041d\u0430\u0439\u0434\u0438\u0442\u0435 \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0443\u044e', jobsSearch: '\u041f\u043e\u0438\u0441\u043a \u0432\u0430\u043a\u0430\u043d\u0441\u0438\u0439\u2026', tableLabel: '\u0422\u0430\u0431\u043b\u0438\u0446\u0430', google: '\u041f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u044c \u0447\u0435\u0440\u0435\u0437 Google', privacy: '\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u0435 \u043e \u043a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0441\u0442\u0438', systemToLight: '\u0422\u0435\u043a\u0443\u0449\u0430\u044f \u0442\u0435\u043c\u0430: \u0421\u0438\u0441\u0442\u0435\u043c\u043d\u0430\u044f. \u041f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u043d\u0430 \u0421\u0432\u0435\u0442\u043b\u0430\u044f.', lightToDark: '\u0422\u0435\u043a\u0443\u0449\u0430\u044f \u0442\u0435\u043c\u0430: \u0421\u0432\u0435\u0442\u043b\u0430\u044f. \u041f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u043d\u0430 \u0422\u0451\u043c\u043d\u0430\u044f.' },
   ];
 
-  for (const { header, locale, expected, jobsSearch, tableLabel, google, privacy } of locales) {
+  for (const { header, locale, expected, jobsSearch, tableLabel, google, privacy, systemToLight, lightToDark } of locales) {
     const context = await browser.newContext({
       locale: header,
+      colorScheme: 'dark',
       extraHTTPHeaders: { 'Accept-Language': header },
     });
     const page = await context.newPage();
@@ -51,6 +52,13 @@ try {
     assert.doesNotMatch(csp, /script-src[^;]*unsafe-inline/, `${locale}: unsafe inline scripts are allowed`);
     assert.equal(await page.locator('html').getAttribute('lang'), locale, `${locale}: incorrect html lang`);
     assert.match(await page.locator('body').innerText(), new RegExp(expected), `${locale}: localized hero is missing`);
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark', `${locale}: system dark theme was not applied before hydration`);
+    await page.getByRole('button', { name: systemToLight, exact: true }).click();
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'light', `${locale}: explicit light theme was not applied`);
+    await page.getByRole('button', { name: lightToDark, exact: true }).click();
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark', `${locale}: explicit dark theme was not applied`);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark', `${locale}: saved dark theme was not restored`);
 
     const csrfResponse = await context.request.post(`${baseUrl}/api/auth/logout`, {
       headers: {

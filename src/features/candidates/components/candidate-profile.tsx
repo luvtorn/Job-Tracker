@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
-import { Download, FileText, Loader2, Mail } from 'lucide-react';
+import { Download, FileText, Loader2, Mail, MessageCircle } from 'lucide-react';
+import Link from 'next/link';
 import { DocumentPreviewDialog } from '@/features/documents/components/document-preview-dialog';
 import { canPreviewDocument } from '@/features/documents/document-preview';
 
@@ -19,6 +20,7 @@ type CandidateProfileData = {
 export function CandidateProfile({ applicationId }: { applicationId: string }) {
   const t = useTranslations('candidates');
   const documentT = useTranslations('documents');
+  const chatT = useTranslations('chatUi');
   const locale = useLocale();
   const [data, setData] = useState<CandidateProfileData | null>(null);
   const [error, setError] = useState('');
@@ -45,7 +47,7 @@ export function CandidateProfile({ applicationId }: { applicationId: string }) {
     <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
         {data.user.avatarUrl ? <Image src={data.user.avatarUrl} alt={name} width={80} height={80} className="h-16 w-16 rounded-xl object-cover sm:h-20 sm:w-20" /> : <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary-100 text-xl font-bold text-primary-700 sm:h-20 sm:w-20 sm:text-2xl">{name.slice(0, 1)}</div>}
-        <div className="min-w-0"><h2 className="break-words text-xl font-bold text-neutral-900 sm:text-2xl">{name}</h2><p className="mt-1 flex min-w-0 items-center gap-2 text-neutral-600"><Mail size={16} className="shrink-0" /><span className="break-all">{data.user.email}</span></p><p className="mt-2 text-sm text-neutral-500">{t('appliedFor', { vacancy: data.vacancy.title, date: new Date(data.createdAt).toLocaleDateString(locale) })}</p></div>
+        <div className="min-w-0 flex-1"><h2 className="break-words text-xl font-bold text-neutral-900 sm:text-2xl">{name}</h2><p className="mt-1 flex min-w-0 items-center gap-2 text-neutral-600"><Mail size={16} className="shrink-0" /><span className="break-all">{data.user.email}</span></p><p className="mt-2 text-sm text-neutral-500">{t('appliedFor', { vacancy: data.vacancy.title, date: new Date(data.createdAt).toLocaleDateString(locale) })}</p></div><Link href={`/messages?applicationId=${applicationId}`} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700"><MessageCircle size={17} />{chatT('openChat')}</Link>
       </div>
     </section>
     <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-6">

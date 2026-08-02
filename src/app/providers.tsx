@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/features/auth/context/auth-context';
 import { ToastProvider } from '@/components/ui/toast';
 import { NotificationsProvider } from '@/hooks/use-notifications';
+import { ChatUnreadProvider } from '@/hooks/use-chat-unread';
+import { ThemeProvider } from '@/features/theme/theme-context';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,12 +19,12 @@ const queryClient = new QueryClient({
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <QueryClientProvider client={queryClient}>
+    <ThemeProvider><QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ToastProvider>
-          <NotificationsProvider>{children}</NotificationsProvider>
+          <NotificationsProvider><ChatUnreadProvider>{children}</ChatUnreadProvider></NotificationsProvider>
         </ToastProvider>
       </AuthProvider>
-    </QueryClientProvider>
+    </QueryClientProvider></ThemeProvider>
   );
 }

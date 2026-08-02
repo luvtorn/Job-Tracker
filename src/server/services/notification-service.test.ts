@@ -34,3 +34,17 @@ test('keeps legacy text and derives only a safe action without metadata', () => 
   assert.equal(dto.title, 'Application Status Updated');
   assert.deepEqual(dto.action, { href: '/applications', labelKey: 'viewApplication' });
 });
+
+test('formats message notifications without exposing message content', () => {
+  const dto = toNotificationDto({
+    ...baseNotification,
+    type: 'NEW_MESSAGE',
+    title: 'New message',
+    message: 'You have a new message',
+    metadata: { kind: 'NEW_MESSAGE', senderName: 'Alex Smith', vacancyTitle: 'Frontend Developer' },
+  });
+  assert.equal(dto.titleKey, 'newMessageTitle');
+  assert.deepEqual(dto.params, { sender: 'Alex Smith', vacancy: 'Frontend Developer' });
+  assert.deepEqual(dto.action, { href: `/messages?applicationId=${baseNotification.applicationId}`, labelKey: 'openConversation' });
+  assert.equal(JSON.stringify(dto).includes('private message body'), false);
+});

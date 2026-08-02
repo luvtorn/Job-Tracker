@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Loader, ChevronDown, Mail, Calendar, Clock } from 'lucide-react';
+import { Loader, ChevronDown, Mail, Calendar, Clock, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ScheduleInterviewModal, type InterviewFormData } from './schedule-interview-modal';
@@ -63,6 +63,7 @@ type CandidatesListProps = {
 
 export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
   const t = useTranslations('candidates');
+  const chatT = useTranslations('chatUi');
   const loadErrors = useTranslations('loadErrors');
   const statusT = useTranslations('statuses');
   const locale = useLocale();
@@ -379,7 +380,7 @@ export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
                         <select id={`candidate-status-${candidate.id}`} value={candidate.status} disabled={isUpdating === candidate.id} onChange={(event) => void handleStatusChange(candidate.id, event.target.value)} className="mt-3 w-full rounded-md border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-700">
                           {statusOptions.map((option) => <option key={option} value={option}>{statusLabel(option)}</option>)}
                         </select>
-                        <Link href={`/candidates/${candidate.id}`} className="mt-3 inline-flex text-xs font-semibold text-primary-700 hover:underline">{t('viewProfile')}</Link>
+                        <div className="mt-3 flex items-center gap-3"><Link href={`/candidates/${candidate.id}`} className="inline-flex text-xs font-semibold text-primary-700 hover:underline">{t('viewProfile')}</Link><Link href={`/messages?applicationId=${candidate.id}`} aria-label={chatT('openChatWith', { name: `${candidate.user.firstName} ${candidate.user.lastName}` })} className="inline-flex items-center gap-1 text-xs font-semibold text-primary-700 hover:underline"><MessageCircle size={14} />{chatT('openChat')}</Link></div>
                         {isUpdating === candidate.id && <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white/70"><Loader size={18} className="animate-spin text-primary-600" /></div>}
                       </article>
                       </motion.div>
@@ -454,7 +455,7 @@ export function CandidatesList({ initialVacancyId }: CandidatesListProps) {
                         />
                       </div>
                     )}
-                    <Link href={`/candidates/${candidate.id}`} className="mt-3 inline-flex rounded-lg bg-primary-50 px-3 py-2 text-sm font-medium text-primary-700 hover:bg-primary-100">{t('viewProfile')}</Link>
+                    <div className="mt-3 flex flex-wrap gap-2"><Link href={`/candidates/${candidate.id}`} className="inline-flex rounded-lg bg-primary-50 px-3 py-2 text-sm font-medium text-primary-700 hover:bg-primary-100">{t('viewProfile')}</Link><Link href={`/messages?applicationId=${candidate.id}`} className="inline-flex items-center gap-2 rounded-lg border border-primary-200 px-3 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50"><MessageCircle size={16} />{chatT('openChat')}</Link></div>
                   </div>
                 </div>
 

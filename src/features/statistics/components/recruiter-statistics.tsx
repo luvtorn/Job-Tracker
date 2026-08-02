@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { RecruiterVacancyStatistics } from './recruiter-vacancy-statistics';
 import { useLocale, useTranslations } from 'next-intl';
+import { useTheme } from '@/features/theme/theme-context';
 
 type Period = '30' | '90' | 'all';
 type RecruiterStatisticsData = {
@@ -33,6 +34,8 @@ export function RecruiterStatistics() {
   const common = useTranslations('common');
   const statusT = useTranslations('statuses');
   const locale = useLocale();
+  const { resolvedTheme } = useTheme();
+  const chartGrid = resolvedTheme === 'dark' ? '#334155' : '#e5e7eb';
   const [period, setPeriod] = useState<Period>('30');
   const [data, setData] = useState<RecruiterStatisticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -142,7 +145,7 @@ export function RecruiterStatistics() {
           <h2 className="mb-4 text-lg font-semibold">{t('applicationsOverTime')}</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={timeline} margin={{ left: 0, right: 10, bottom: 35 }}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
               <XAxis dataKey="label" angle={-35} textAnchor="end" fontSize={11} />
               <YAxis allowDecimals={false} />
               <Tooltip />

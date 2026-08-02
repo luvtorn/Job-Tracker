@@ -1,5 +1,7 @@
 import type { AppLocale } from '@/i18n/config';
 import { env } from '@/server/config/env';
+import { createActionEmailHtml } from '@/server/services/email-template';
+import { sendResendEmail } from '@/server/services/resend-email-service';
 
 type EmailCopy = {
   verifySubject: string;
@@ -53,44 +55,8 @@ const copy: Record<AppLocale, EmailCopy> = {
   },
 };
 
-const escapeHtml = (value: string) =>
-  value.replace(/[&<>"']/g, (character) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;',
-  })[character] ?? character);
-
-const emailHtml = (title: string, body: string, action: string, url: string, footer: EmailCopy) => `
-<!doctype html>
-<html>
-  <body style="margin:0;background:#f5f3ff;font-family:Arial,sans-serif;color:#171717">
-    <div style="max-width:560px;margin:32px auto;background:#fff;border-radius:16px;padding:32px">
-      <div style="font-size:20px;font-weight:700;color:#7c3aed;margin-bottom:24px">JobTracker</div>
-      <h1 style="font-size:24px;margin:0 0 16px">${escapeHtml(title)}</h1>
-      <p style="line-height:1.6;margin:0 0 24px">${escapeHtml(body)}</p>
-      <a href="${escapeHtml(url)}" style="display:inline-block;background:#7c3aed;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600">${escapeHtml(action)}</a>
-      <p style="font-size:13px;color:#737373;line-height:1.5;margin:24px 0 0">${escapeHtml(footer.expiry)} ${escapeHtml(footer.ignore)}</p>
-    </div>
-  </body>
-</html>`;
-
 async function sendEmail(to: string, subject: string, html: string) {
-  const apiKey = env.resendApiKey;
-  const from = env.emailFrom;
-  if (!apiKey || !from) return false;
-
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ from, to: [to], subject, html }),
-  });
-  if (!response.ok) throw new Error('Email delivery failed');
-  return true;
+  return Boolean(await sendResendEmail({ to, subject, html }));
 }
 
 export const authEmailService = {
@@ -100,7 +66,13 @@ export const authEmailService = {
     return sendEmail(
       email,
       localized.verifySubject,
-      emailHtml(localized.verifyTitle, localized.verifyBody, localized.verifyAction, url, localized),
+      createActionEmailHtml({
+        title: localized.verifyTitle,
+        body: localized.verifyBody,
+        action: localized.verifyAction,
+        url,
+        footer: `${localized.expiry} ${localized.ignore}`,
+      }),
     );
   },
 
@@ -110,7 +82,13 @@ export const authEmailService = {
     return sendEmail(
       email,
       localized.resetSubject,
-      emailHtml(localized.resetTitle, localized.resetBody, localized.resetAction, url, localized),
+      createActionEmailHtml({
+        title: localized.resetTitle,
+        body: localized.resetBody,
+        action: localized.resetAction,
+        url,
+        footer: `${localized.expiry} ${localized.ignore}`,
+      }),
     );
   },
 };

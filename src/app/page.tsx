@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 export default function Home() {
   const { user } = useAuth();
@@ -15,7 +16,7 @@ export default function Home() {
   const t = useTranslations('public');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-primary-50">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-primary-50 dark:from-[#0b1120] dark:to-[#172033]">
       {/* Header */}
       <header className="border-b border-neutral-200 sticky top-0 bg-white/80 backdrop-blur-sm z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -34,7 +35,7 @@ export default function Home() {
           </nav>
 
           {/* Auth Buttons */}
-          <div className="hidden md:flex items-center gap-3"><LanguageSwitcher />
+          <div className="hidden md:flex items-center gap-3"><LanguageSwitcher /><ThemeSwitcher />
             {user ? (
               <Link
                 href="/dashboard"
@@ -86,6 +87,7 @@ export default function Home() {
             <div className="border-b border-neutral-100 pb-4">
               <LanguageSwitcher expanded />
             </div>
+            <div className="border-b border-neutral-100 pb-4"><ThemeSwitcher expanded /></div>
             <Link
               href="/jobs"
               className="block text-neutral-600 hover:text-primary-600 font-medium"

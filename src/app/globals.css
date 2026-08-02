@@ -1,5 +1,32 @@
 @config "../../tailwind.config.js";
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --page: #f9fafb;
+  --surface: #ffffff;
+  --surface-subtle: #f3f4f6;
+  --surface-raised: #ffffff;
+  --foreground: #111827;
+  --foreground-muted: #4b5563;
+  --foreground-subtle: #6b7280;
+  --theme-border: #e5e7eb;
+  --theme-input: #ffffff;
+  --theme-shadow: 17 24 39;
+}
+
+.dark {
+  --page: #0b1120;
+  --surface: #111827;
+  --surface-subtle: #1f2937;
+  --surface-raised: #182235;
+  --foreground: #f9fafb;
+  --foreground-muted: #cbd5e1;
+  --foreground-subtle: #94a3b8;
+  --theme-border: #334155;
+  --theme-input: #172033;
+  --theme-shadow: 0 0 0;
+}
 
 * {
   @apply box-border;
@@ -7,9 +34,176 @@
 
 html {
   @apply scroll-smooth;
+  color-scheme: light;
 }
 
 body {
-  @apply bg-neutral-50 text-neutral-900;
+  background: var(--page);
+  color: var(--foreground);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.dark body,
+.dark .bg-neutral-50,
+.dark .bg-gray-50 {
+  background-color: var(--page);
+}
+
+.dark .bg-white {
+  background-color: var(--surface);
+}
+
+.dark .bg-white\/80,
+.dark .bg-white\/90,
+.dark .bg-white\/95 {
+  background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.dark .bg-white\/70 {
+  background-color: color-mix(in srgb, var(--surface) 72%, transparent);
+}
+
+.dark .bg-gray-100,
+.dark .bg-neutral-100,
+.dark .bg-neutral-200,
+.dark .bg-gray-200 {
+  background-color: var(--surface-subtle);
+}
+
+.dark .text-neutral-900,
+.dark .text-neutral-800,
+.dark .text-gray-900,
+.dark .text-gray-800 {
+  color: var(--foreground);
+}
+
+.dark .text-neutral-700,
+.dark .text-neutral-600,
+.dark .text-gray-700,
+.dark .text-gray-600 {
+  color: var(--foreground-muted);
+}
+
+.dark .text-neutral-500,
+.dark .text-neutral-400,
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: var(--foreground-subtle);
+}
+
+.dark .border-neutral-100,
+.dark .border-neutral-200,
+.dark .border-neutral-300,
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark .divide-neutral-200 > :not(:last-child),
+.dark .divide-gray-200 > :not(:last-child) {
+  border-color: var(--theme-border);
+}
+
+.dark input:not([type='checkbox']):not([type='radio']),
+.dark textarea,
+.dark select {
+  border-color: var(--theme-border);
+  background-color: var(--theme-input);
+  color: var(--foreground);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--foreground-subtle);
+}
+
+.dark .shadow,
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg,
+.dark .shadow-xl,
+.dark .shadow-2xl {
+  --tw-shadow-color: rgb(var(--theme-shadow) / 0.45);
+}
+
+.dark .hover\:bg-neutral-50:hover,
+.dark .hover\:bg-neutral-100:hover,
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover {
+  background-color: var(--surface-subtle);
+}
+
+.dark .bg-red-50,
+.dark .bg-red-100,
+.dark .bg-amber-50,
+.dark .bg-amber-100,
+.dark .bg-yellow-50,
+.dark .bg-yellow-100,
+.dark .bg-green-50,
+.dark .bg-green-100,
+.dark .bg-emerald-50,
+.dark .bg-emerald-100,
+.dark .bg-blue-50,
+.dark .bg-blue-100,
+.dark .bg-purple-50,
+.dark .bg-purple-100,
+.dark .bg-primary-50 {
+  background-color: color-mix(in srgb, currentColor 13%, var(--surface));
+}
+
+.dark .bg-primary-100 {
+  background-color: #312e81;
+}
+
+.dark .text-red-700,
+.dark .text-red-800,
+.dark .text-red-900 { color: #fca5a5; }
+.dark .text-amber-700,
+.dark .text-amber-800,
+.dark .text-amber-900,
+.dark .text-yellow-700,
+.dark .text-yellow-800 { color: #fcd34d; }
+.dark .text-green-700,
+.dark .text-green-800,
+.dark .text-green-900 { color: #86efac; }
+.dark .text-emerald-600,
+.dark .text-emerald-700,
+.dark .text-emerald-800 { color: #6ee7b7; }
+
+.dark .border-emerald-200 { border-color: #065f46; }
+.dark .text-blue-700,
+.dark .text-blue-800,
+.dark .text-blue-900 { color: #93c5fd; }
+.dark .text-primary-700,
+.dark .text-primary-800,
+.dark .text-purple-700,
+.dark .text-purple-800 { color: #c4b5fd; }
+
+.dark .rbc-calendar,
+.dark .rbc-month-view,
+.dark .rbc-time-view,
+.dark .rbc-time-content,
+.dark .rbc-time-header-content,
+.dark .rbc-header,
+.dark .rbc-day-bg,
+.dark .rbc-agenda-view table {
+  border-color: var(--theme-border);
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+
+.dark .rbc-off-range-bg,
+.dark .rbc-today,
+.dark .rbc-toolbar button:hover,
+.dark .rbc-toolbar button:focus {
+  background-color: var(--surface-subtle);
+}
+
+.dark .rbc-toolbar button {
+  border-color: var(--theme-border);
+  color: var(--foreground-muted);
+}
+
+.dark .recharts-default-tooltip {
+  border-color: var(--theme-border) !important;
+  background-color: var(--surface-raised) !important;
+  color: var(--foreground) !important;
 }

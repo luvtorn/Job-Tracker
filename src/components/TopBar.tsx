@@ -10,6 +10,7 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { useToast } from '@/components/ui/toast';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 export function TopBar() {
   const [profileOpen, setProfileOpen] = useState(false);
@@ -69,6 +70,7 @@ export function TopBar() {
         {/* Right section */}
         <div className="ml-auto flex w-full items-center justify-end gap-2 sm:gap-4 lg:w-auto lg:gap-6">
           <LanguageSwitcher />
+          <div className="hidden lg:block"><ThemeSwitcher /></div>
           {/* Notifications */}
           <div className="relative" ref={notificationsRef}>
             <button
